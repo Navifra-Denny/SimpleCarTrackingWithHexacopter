@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(offboard_control)
+project(control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -15,37 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
   roscpp
   std_msgs
-)
-
-add_message_files(
-  FILES
-  #  GimbalAngleEulerCmd.msg
-  #  GimbalAngleQuatCmd.msg
-  #  GPSYaw.msg
-  #  VelCmd.msg
-  #  VelCmdGroup.msg
-  #  CarControls.msg
-  CarState.msg
-  #  Altimeter.msg
-  #  Environment.msg
-)
-
-add_service_files(
-  FILES
-  SetGPSPosition.srv
-  #  Takeoff.srv
-  #  TakeoffGroup.srv
-  #  Land.srv
-  #  LandGroup.srv
-  #  Reset.srv
-  SetLocalPosition.srv
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-  geographic_msgs
+  uav_msgs
 )
 
 ###################################
@@ -59,8 +29,8 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES offboard_control
-  CATKIN_DEPENDS geometry_msgs mavros_msgs roscpp std_msgs
+  LIBRARIES control
+  CATKIN_DEPENDS geometry_msgs mavros_msgs roscpp std_msgs uav_msgs
 )
 
 ###########
@@ -74,9 +44,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${uav_msgs_INCLUDE_DIRS}
 )
 
-## offboard_control_node
+## control_node
 add_executable(${PROJECT_NAME}_node src/offb_node.cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})

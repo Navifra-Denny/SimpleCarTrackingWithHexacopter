@@ -1,5 +1,5 @@
 #include "generate_waypoints.h"
-#include <offboard_control/SetLocalPosition.h>
+#include "uav_msgs/SetLocalPosition.h"
 
 
 // #include <math.h>
@@ -9,14 +9,14 @@
 GenerateWaypoints::GenerateWaypoints()
 {
     // Initialize subscriber 
-	m_car_state_sub = m_nh.subscribe<offboard_control::CarState>("/airsim_node/drone_1/car_state", 10, boost::bind(&GenerateWaypoints::CarStateCallback, this, _1));
+	m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>("/airsim_node/drone_1/car_state", 10, boost::bind(&GenerateWaypoints::CarStateCallback, this, _1));
 
     // Initialize publisher 
     m_input_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray> ("/generate_waypoints_node/input_waypoints", 1);
     m_desired_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray> ("/generate_waypoints_node/desired_waypoints", 1);
 
     // Initialize service client
-    m_desired_waypoints_srv_client = m_nh.serviceClient<offboard_control::SetLocalPosition>("/airsim_node/local_position_goal");
+    m_desired_waypoints_srv_client = m_nh.serviceClient<uav_msgs::SetLocalPosition>("/airsim_node/local_position_goal");
 
     // Set Param
     SetParam();
@@ -31,7 +31,7 @@ void GenerateWaypoints::SetParam()
 }
 
 
-void GenerateWaypoints::CarStateCallback(const offboard_control::CarState::ConstPtr &car_state)
+void GenerateWaypoints::CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state)
 {
     auto pose = car_state->pose.pose;
     if (!ConvertStateToWaypoints(pose)) ROS_ERROR_STREAM("Fail convert state to pose");    
@@ -52,7 +52,7 @@ bool GenerateWaypoints::ConvertStateToWaypoints(geometry_msgs::Pose pose)
         auto desired_point = CreateDesiredWaypoint(pose);
         m_desired_waypoints.push_back(desired_point);
         
-        offboard_control::SetLocalPosition desired_local_position;
+        uav_msgs::SetLocalPosition desired_local_position;
 
         desired_local_position.request.x = desired_point.position.x;
         desired_local_position.request.y = desired_point.position.y;

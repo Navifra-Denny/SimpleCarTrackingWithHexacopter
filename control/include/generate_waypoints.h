@@ -7,7 +7,7 @@
 #include "Eigen/Dense"
 #include <deque>
 #include <geometry_msgs/PoseArray.h>
-#include "offboard_control/CarState.h"
+#include "uav_msgs/CarState.h"
 
 using Vector3f = Eigen::Vector3f;
 
@@ -45,7 +45,7 @@ private:
 private: // function
     void SetParam();
 
-    void CarStateCallback(const offboard_control::CarState::ConstPtr &car_state);
+    void CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state);
     bool ConvertStateToWaypoints(geometry_msgs::Pose pose);
 
     geometry_msgs::Pose CreateDesiredWaypoint(geometry_msgs::Pose pose);

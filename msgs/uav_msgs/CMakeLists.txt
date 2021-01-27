@@ -31,14 +31,15 @@ add_message_files(
   DetectedObject.msg
   DetectedObjectArray.msg
   Centroids.msg
+  CarState.msg
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  SetGPSPosition.srv
+  SetLocalPosition.srv
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(

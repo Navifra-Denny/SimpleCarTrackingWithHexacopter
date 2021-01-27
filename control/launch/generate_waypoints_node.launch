@@ -3,13 +3,13 @@
 	<arg name="x_offset_m" default="2" />
 	<arg name="z_offset_m" default="10" />
 
-	<node name="generate_waypoints_node" pkg="offboard_control" type="generate_waypoints_node" output="$(arg output)">
+	<node name="generate_waypoints_node" pkg="control" type="generate_waypoints_node" output="$(arg output)">
 		<param name="x_offset_m" value="$(arg x_offset_m)" />
 		<param name="z_offset_m" value="$(arg z_offset_m)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 
-	<node name="display_node" pkg="offboard_control" type="display_node" output="$(arg output)" />
-	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find offboard_control)/rviz/default.rviz" />
+	<node name="display_node" pkg="control" type="display_node" output="$(arg output)" />
+	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find control)/rviz/default.rviz" />
 
 </launch>

@@ -1,5 +1,4 @@
 #include "ros/ros.h"
-// #include "airsim_ros_wrapper.h"
 #include "generate_waypoints.h"
 #include <ros/spinner.h>
 
