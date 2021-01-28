@@ -5,6 +5,7 @@ string label
 float64 score
 
 sensor_msgs/PointCloud2 cloud
+std_msgs/ColorRGBA color
 
 geometry_msgs/PointStamped min_point
 geometry_msgs/PointStamped max_point
