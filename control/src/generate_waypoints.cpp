@@ -8,8 +8,12 @@
 
 GenerateWaypoints::GenerateWaypoints()
 {
+    // Set Param
+    SetParam();
+
     // Initialize subscriber 
-	m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>("/airsim_node/drone_1/car_state", 10, boost::bind(&GenerateWaypoints::CarStateCallback, this, _1));
+    std::string m_car_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/car_state";
+	m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>(m_car_state_sub_topic_name, 10, boost::bind(&GenerateWaypoints::CarStateCallback, this, _1));
 
     // Initialize publisher 
     m_input_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray> ("/generate_waypoints_node/input_waypoints", 1);
@@ -17,9 +21,6 @@ GenerateWaypoints::GenerateWaypoints()
 
     // Initialize service client
     m_desired_waypoints_srv_client = m_nh.serviceClient<uav_msgs::SetLocalPosition>("/airsim_node/local_position_goal");
-
-    // Set Param
-    SetParam();
 }
 GenerateWaypoints::~GenerateWaypoints()
 {}
@@ -28,6 +29,7 @@ void GenerateWaypoints::SetParam()
 {
 	m_nh.getParam("generate_waypoints_node/x_offset_m", m_x_offset_m_param);
 	m_nh.getParam("generate_waypoints_node/z_offset_m", m_z_offset_m_param);
+	m_nh.getParam("generate_waypoints_node/ugv_name", m_vehicle_name_param);
 }
 
 

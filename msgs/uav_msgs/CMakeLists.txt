@@ -32,6 +32,8 @@ add_message_files(
   DetectedObjectArray.msg
   Centroids.msg
   CarState.msg
+  PolyfitLaneData.msg
+  PolyfitLane.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -46,7 +48,6 @@ generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
   geometry_msgs
-  std_msgs
   jsk_recognition_msgs
 )
 

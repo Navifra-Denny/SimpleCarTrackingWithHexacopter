@@ -2,7 +2,6 @@
 #define __GENERATE_WAYPOINTS_H__
 
 #include "ros/ros.h"
-// #include "airsim_ros_wrapper.h"
 #include <ros/spinner.h>
 #include "Eigen/Dense"
 #include <deque>
