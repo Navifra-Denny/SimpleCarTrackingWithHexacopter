@@ -2,7 +2,6 @@
 #include "tf2_ros/transform_listener.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "uav_msgs/Roi.h"
 
 ExtractLane::ExtractLane()
 {
@@ -45,27 +44,26 @@ void ExtractLane::UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr)
 	auto center = (m_roi_front_param + m_roi_rear_param)/2;
 	auto complement_x = longer - center;
 	
-	uav_msgs::Roi roi_msg;
-	roi_msg.header = odm_ptr->header;
+	m_roi_msg.header = odm_ptr->header;
 
 	auto euler = Quat2Euler(odm_ptr->pose.pose.orientation);
 	auto roll = euler.r;
 	auto pitch = euler.p;
 	auto yaw = euler.y;
-	roi_msg.pose.position.x = odm_ptr->pose.pose.position.x + complement_x*cos(pitch)*cos(yaw);
-	roi_msg.pose.position.y = odm_ptr->pose.pose.position.y + complement_x*cos(pitch)*sin(yaw);
-	roi_msg.pose.position.z = odm_ptr->pose.pose.position.z + complement_x*sin(pitch);
+	m_roi_msg.pose.position.x = odm_ptr->pose.pose.position.x + complement_x*cos(pitch)*cos(yaw);
+	m_roi_msg.pose.position.y = odm_ptr->pose.pose.position.y + complement_x*cos(pitch)*sin(yaw);
+	m_roi_msg.pose.position.z = odm_ptr->pose.pose.position.z + complement_x*sin(pitch);
 
-	roi_msg.pose.orientation.w = odm_ptr->pose.pose.orientation.w;
-	roi_msg.pose.orientation.x = odm_ptr->pose.pose.orientation.x;
-	roi_msg.pose.orientation.y = odm_ptr->pose.pose.orientation.y;
-	roi_msg.pose.orientation.z = odm_ptr->pose.pose.orientation.z;
+	m_roi_msg.pose.orientation.w = odm_ptr->pose.pose.orientation.w;
+	m_roi_msg.pose.orientation.x = odm_ptr->pose.pose.orientation.x;
+	m_roi_msg.pose.orientation.y = odm_ptr->pose.pose.orientation.y;
+	m_roi_msg.pose.orientation.z = odm_ptr->pose.pose.orientation.z;
 
-	roi_msg.scale.x = 2 * center;
-	roi_msg.scale.y = 2 * m_roi_lateral_param;
-	roi_msg.scale.z = 2 * m_roi_vertical_param;
+	m_roi_msg.scale.x = 2 * center;
+	m_roi_msg.scale.y = 2 * m_roi_lateral_param;
+	m_roi_msg.scale.z = 2 * m_roi_vertical_param;
 
-	m_roi_box_pub.publish(roi_msg);
+	m_roi_box_pub.publish(m_roi_msg);
 }
 
 void ExtractLane::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr)
@@ -79,17 +77,26 @@ bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstP
     m_roi_lane.points.clear();
 
     for (auto pose : lane_ptr->poses){
-		double delta_x = m_curr_uav_position.point.x - pose.position.x;
-		double delta_y = m_curr_uav_position.point.y - pose.position.y;
-		double delta_z = m_curr_uav_position.point.z - pose.position.z;
-		
-		if ((delta_x <= m_roi_front_param) && 
-			(delta_x >= -1*m_roi_rear_param) &&
-			(std::fabs(delta_y) <= m_roi_lateral_param) &&
-			(std::fabs(delta_z) <= m_roi_vertical_param)){
-			
+		auto center = (m_roi_front_param + m_roi_rear_param)/2;
+
+		auto thr_x = m_roi_msg.pose.position.x + center;
+		auto thr_y = m_roi_msg.pose.position.y + m_roi_lateral_param;
+		auto thr_z = m_roi_msg.pose.position.z + m_roi_vertical_param;
+		if (((pose.position.x > m_roi_msg.pose.position.x - center) && (pose.position.x < m_roi_msg.pose.position.x + center)) &&
+			((pose.position.y > m_roi_msg.pose.position.y - m_roi_lateral_param) && (pose.position.y < m_roi_msg.pose.position.y + m_roi_lateral_param)) &&
+			((pose.position.z > m_roi_msg.pose.position.z - m_roi_vertical_param) && (pose.position.z < m_roi_msg.pose.position.z + m_roi_vertical_param))){
 			m_roi_lane.points.push_back(pose.position);
 		}
+
+		// double delta_x = m_curr_uav_position.point.x - pose.position.x;
+		// double delta_y = m_curr_uav_position.point.y - pose.position.y;
+		// double delta_z = m_curr_uav_position.point.z - pose.position.z;
+		
+		// if ((delta_x <= m_roi_front_param) && 
+		// 	(delta_x >= -1*m_roi_rear_param) &&
+		// 	(std::fabs(delta_y) <= m_roi_lateral_param) &&
+		// 	(std::fabs(delta_z) <= m_roi_vertical_param)){
+			
 	}
 	if (m_roi_lane.points.size() < 1) return false;
 

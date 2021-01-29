@@ -252,8 +252,6 @@ Visualization Manager:
       Name: roi_lane
       Namespaces:
         center_point: true
-        lane: true
-        roi: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -284,15 +282,15 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 131.78567504882812
+      Distance: 74.31463623046875
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -26.13775634765625
-        Y: -26.886850357055664
+        X: -11.84481430053711
+        Y: -20.45339012145996
         Z: 0.00013029240653850138
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806

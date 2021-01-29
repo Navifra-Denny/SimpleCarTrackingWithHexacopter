@@ -11,6 +11,8 @@
 #include <uav_msgs/PolyfitLane.h>
 #include <uav_msgs/PolyfitLaneData.h>
 #include <nav_msgs/Odometry.h>
+#include "uav_msgs/Roi.h"
+
 
 struct Euler {
     double r;
@@ -46,7 +48,7 @@ private:
     uav_msgs::PolyfitLane m_roi_lane;
     uav_msgs::PolyfitLaneData m_poly_lane;
     geometry_msgs::PointStamped m_curr_uav_position;
-
+    uav_msgs::Roi m_roi_msg;
 
     void SetParam();
     void UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr);
