@@ -15,7 +15,12 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
   roscpp
   std_msgs
+  nav_msgs
   uav_msgs
+  tf2
+  tf2_ros
+  tf2_sensor_msgs
+  tf2_geometry_msgs
 )
 
 ###################################
@@ -30,7 +35,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES control
-  CATKIN_DEPENDS geometry_msgs mavros_msgs roscpp std_msgs uav_msgs
+  CATKIN_DEPENDS geometry_msgs mavros_msgs roscpp std_msgs uav_msgs nav_msgs
 )
 
 ###########
@@ -59,3 +64,7 @@ target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 ## display_node add_executable(display_node src/display_node.cpp)
 add_executable(display_node src/display_node.cpp)
 target_link_libraries(display_node ${catkin_LIBRARIES})
+
+## extract_lane_node add_executable(display_node src/display_node.cpp)
+add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp)
+target_link_libraries(extract_lane_node ${catkin_LIBRARIES})
