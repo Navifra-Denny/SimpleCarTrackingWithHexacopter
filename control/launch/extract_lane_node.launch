@@ -5,6 +5,8 @@
 	<arg name="ROI_lateral_m" default="20.0" />
 	<arg name="ROI_vertical_m" default="20.0" />
 	<arg name="uav_name" default="drone_1" />
+	<arg name="use_sim_time" default="false"/>
+	<param name="use_sim_time" value="$(arg use_sim_time)"/>
 
 	<node name="extract_lane_node" pkg="control" type="extract_lane_node" output="$(arg output)">
 		<param name="ROI_front_m" value="$(arg ROI_front_m)" />

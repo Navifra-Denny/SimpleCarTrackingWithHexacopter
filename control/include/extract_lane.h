@@ -5,11 +5,18 @@
 #include <ros/spinner.h>
 #include <Eigen/Dense>
 #include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/Point.h>
 #include <uav_msgs/CarState.h>
 #include <uav_msgs/PolyfitLane.h>
 #include <uav_msgs/PolyfitLaneData.h>
 #include <nav_msgs/Odometry.h>
+
+struct Euler {
+    double r;
+    double p;
+    double y;
+};
 
 class ExtractLane{
 public:
@@ -24,9 +31,9 @@ private:
 	ros::Subscriber m_desired_waypoints_sub;
     ros::Subscriber m_uav_state_sub;
 	// publisher
+    ros::Publisher m_roi_box_pub;
 	ros::Publisher m_roi_lane_pub;
     ros::Publisher m_poly_fit_lane_pub;
-    ros::Publisher m_curr_position_pub;
 
     // Param
     double m_roi_front_param;
@@ -38,15 +45,15 @@ private:
     //
     uav_msgs::PolyfitLane m_roi_lane;
     uav_msgs::PolyfitLaneData m_poly_lane;
+    geometry_msgs::PointStamped m_curr_uav_position;
 
-    geometry_msgs::Point m_curr_uav_position;
 
     void SetParam();
     void UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr);
     void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
     
-    std::vector<geometry_msgs::Point> GetLane(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
-    bool ExtractRegionOfInterest(std::vector<geometry_msgs::Point> lane);
+    bool ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstPtr lane_ptr);
+    Euler Quat2Euler(const geometry_msgs::Quaternion& quat_msg);
     void PolyfitLane();
 };
 

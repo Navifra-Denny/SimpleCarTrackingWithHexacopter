@@ -1,20 +1,25 @@
 #include "extract_lane.h"
+#include "tf2_ros/transform_listener.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "uav_msgs/Roi.h"
 
 ExtractLane::ExtractLane()
 {
 	// Set Param
 	SetParam();
 
+	// Topic name
+	std::string uav_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/odom_local_ned";
+
 	// Initialize subscriber 
 	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/desired_waypoints", 10, boost::bind(&ExtractLane::DesiredWaypointsCallback, this, _1));
-
-	std::string m_uav_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/odom_local_ned";
-	m_uav_state_sub = m_nh.subscribe<nav_msgs::Odometry>(m_uav_state_sub_topic_name, 10, boost::bind(&ExtractLane::UavStateCallback, this, _1));
+	m_uav_state_sub = m_nh.subscribe<nav_msgs::Odometry>(uav_state_sub_topic_name, 10, boost::bind(&ExtractLane::UavStateCallback, this, _1));
 
 	// Initialize publisher 
+	m_roi_box_pub = m_nh.advertise<uav_msgs::Roi> ("/extract_lane_node/roi", 1);
 	m_roi_lane_pub = m_nh.advertise<uav_msgs::PolyfitLane> ("/extract_lane_node/poly_fit_lane", 1);
 	// m_poly_fit_lane_pub = m_nh.advertise<uav_msgs::PolyfitLaneData> ("polyfit_lanes", 10);
-	m_curr_position_pub = m_nh.advertise<geometry_msgs::Point> ("/extract_lane_node/current_point", 10);
 }
 
 ExtractLane::~ExtractLane()
@@ -31,38 +36,59 @@ void ExtractLane::SetParam()
 
 void ExtractLane::UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr)
 {
-    auto position = odm_ptr->pose.pose.position;
-    
-    m_curr_uav_position.x = position.x;
-    m_curr_uav_position.y = position.y;
-    m_curr_uav_position.z = position.z;
+	m_curr_uav_position.header = odm_ptr->header;
+	m_curr_uav_position.point.x = odm_ptr->pose.pose.position.x;
+	m_curr_uav_position.point.y = odm_ptr->pose.pose.position.y;
+	m_curr_uav_position.point.z = odm_ptr->pose.pose.position.z;
+
+	auto longer = (m_roi_front_param > m_roi_rear_param) ? m_roi_front_param : m_roi_rear_param; 
+	auto center = (m_roi_front_param + m_roi_rear_param)/2;
+	auto complement_x = longer - center;
 	
-	geometry_msgs::Point curr_p = m_curr_uav_position;
-	m_curr_position_pub.publish(curr_p);
+	uav_msgs::Roi roi_msg;
+	roi_msg.header = odm_ptr->header;
+
+	auto euler = Quat2Euler(odm_ptr->pose.pose.orientation);
+	auto roll = euler.r;
+	auto pitch = euler.p;
+	auto yaw = euler.y;
+	roi_msg.pose.position.x = odm_ptr->pose.pose.position.x + complement_x*cos(pitch)*cos(yaw);
+	roi_msg.pose.position.y = odm_ptr->pose.pose.position.y + complement_x*cos(pitch)*sin(yaw);
+	roi_msg.pose.position.z = odm_ptr->pose.pose.position.z + complement_x*sin(pitch);
+
+	roi_msg.pose.orientation.w = odm_ptr->pose.pose.orientation.w;
+	roi_msg.pose.orientation.x = odm_ptr->pose.pose.orientation.x;
+	roi_msg.pose.orientation.y = odm_ptr->pose.pose.orientation.y;
+	roi_msg.pose.orientation.z = odm_ptr->pose.pose.orientation.z;
+
+	roi_msg.scale.x = 2 * center;
+	roi_msg.scale.y = 2 * m_roi_lateral_param;
+	roi_msg.scale.z = 2 * m_roi_vertical_param;
+
+	m_roi_box_pub.publish(roi_msg);
 }
 
 void ExtractLane::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr)
 {
-    std::vector<geometry_msgs::Point> lane = GetLane(pose_array_ptr);
-    if(!ExtractRegionOfInterest(lane)) ROS_ERROR_STREAM("Faile Extract ROI Lane");
+	if(!ExtractRegionOfInterest(pose_array_ptr)) ROS_ERROR_STREAM("Faile Extract ROI Lane");
 }
 
-bool ExtractLane::ExtractRegionOfInterest(std::vector<geometry_msgs::Point> input_lane)
+bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstPtr lane_ptr)
 {
-    m_roi_lane.header.frame_id = "world_ned";
+	m_roi_lane.header = lane_ptr->header;
     m_roi_lane.points.clear();
 
-    for (auto p : input_lane){
-		double delta_x = m_curr_uav_position.x - p.x;
-		double delta_y = m_curr_uav_position.y - p.y;
-		double delta_z = m_curr_uav_position.z - p.z;
+    for (auto pose : lane_ptr->poses){
+		double delta_x = m_curr_uav_position.point.x - pose.position.x;
+		double delta_y = m_curr_uav_position.point.y - pose.position.y;
+		double delta_z = m_curr_uav_position.point.z - pose.position.z;
 		
 		if ((delta_x <= m_roi_front_param) && 
 			(delta_x >= -1*m_roi_rear_param) &&
 			(std::fabs(delta_y) <= m_roi_lateral_param) &&
 			(std::fabs(delta_z) <= m_roi_vertical_param)){
 			
-			m_roi_lane.points.push_back(p);
+			m_roi_lane.points.push_back(pose.position);
 		}
 	}
 	if (m_roi_lane.points.size() < 1) return false;
@@ -77,19 +103,14 @@ void ExtractLane::PolyfitLane ()
     
 }
 
-std::vector<geometry_msgs::Point> ExtractLane::GetLane(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr)
+Euler ExtractLane::Quat2Euler(const geometry_msgs::Quaternion& quat_msg)
 {
-    std::vector<geometry_msgs::Point> lane;
+	tf2::Quaternion quat_tf;
+	double roll, pitch, yaw;
+	tf2::fromMsg(quat_msg, quat_tf);
+	tf2::Matrix3x3(quat_tf).getRPY(roll, pitch, yaw);
+	
+	Euler euler = {roll, pitch, yaw};
 
-    for (auto const p : pose_array_ptr->poses){
-        geometry_msgs::Point point;
-
-        point.x = p.position.x;
-        point.y = p.position.y;
-        point.z = p.position.z;
-        
-        lane.push_back(point);
-    }
-
-    return lane;
+	return euler;
 }

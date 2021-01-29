@@ -34,6 +34,7 @@ add_message_files(
   CarState.msg
   PolyfitLaneData.msg
   PolyfitLane.msg
+  Roi.msg
 )
 
 ## Generate services in the 'srv' folder
