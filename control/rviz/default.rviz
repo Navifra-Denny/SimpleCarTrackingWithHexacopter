@@ -231,27 +231,31 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /Marker/input_line
       Name: input_lane
       Namespaces:
-        {}
+        center_point: true
+        lane: true
+        orientation: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /Marker/desired_line
       Name: desired_lane
       Namespaces:
-        {}
+        lane: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /Marker/roi_line
       Name: roi_lane
       Namespaces:
         center_point: true
+        lane: false
+        roi: false
       Queue Size: 100
       Value: true
   Enabled: true

@@ -36,6 +36,7 @@ private:
     ros::Publisher m_roi_box_pub;
 	ros::Publisher m_roi_lane_pub;
     ros::Publisher m_poly_fit_lane_pub;
+    ros::Publisher m_evaulation_pub;
 
     // Param
     double m_roi_front_param;
@@ -53,6 +54,7 @@ private:
     void SetParam();
     void UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr);
     void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
+    bool Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr);
     
     bool ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstPtr lane_ptr);
     Euler Quat2Euler(const geometry_msgs::Quaternion& quat_msg);

@@ -18,6 +18,8 @@ ExtractLane::ExtractLane()
 	// Initialize publisher 
 	m_roi_box_pub = m_nh.advertise<uav_msgs::Roi> ("/extract_lane_node/roi", 1);
 	m_roi_lane_pub = m_nh.advertise<uav_msgs::PolyfitLane> ("/extract_lane_node/poly_fit_lane", 1);
+	m_evaulation_pub = m_nh.advertise<geometry_msgs::Point> ("/extract_lane_node/evaluation", 1);
+	
 	// m_poly_fit_lane_pub = m_nh.advertise<uav_msgs::PolyfitLaneData> ("polyfit_lanes", 10);
 }
 
@@ -68,7 +70,8 @@ void ExtractLane::UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr)
 
 void ExtractLane::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr)
 {
-	if(!ExtractRegionOfInterest(pose_array_ptr)) ROS_ERROR_STREAM("Faile Extract ROI Lane");
+	if (!ExtractRegionOfInterest(pose_array_ptr)) ROS_ERROR_STREAM("Faile Extract ROI Lane");
+	if (!Evaluation(pose_array_ptr)) ROS_ERROR_STREAM("Fail Evaluate");
 }
 
 bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstPtr lane_ptr)
@@ -101,9 +104,25 @@ bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstP
 	if (m_roi_lane.points.size() < 1) return false;
 
 	m_roi_lane_pub.publish(m_roi_lane);
+
 	return true;
 }
 
+bool ExtractLane::Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr)
+{
+	auto diff_x = lane_ptr->poses.back().position.x - m_curr_uav_position.point.x;
+	auto diff_y = lane_ptr->poses.back().position.y - m_curr_uav_position.point.y;
+	auto diff_z = lane_ptr->poses.back().position.z - m_curr_uav_position.point.z;
+
+	geometry_msgs::Point diff_msg;
+	diff_msg.x = diff_x;
+	diff_msg.y = diff_y;
+	diff_msg.z = diff_z;
+
+	m_evaulation_pub.publish(diff_msg);
+
+	return true;
+}
 
 void ExtractLane::PolyfitLane ()
 {
