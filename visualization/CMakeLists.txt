@@ -52,11 +52,8 @@ include_directories(
 #   src/${PROJECT_NAME}/visualization.cpp
 # )
 
-add_executable(${PROJECT_NAME} src/visualize_detected_objects.cpp src/visualize_detected_objects_main.cpp)
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
+add_executable(visualize_perception_node src/visualize_perception.cpp src/visualize_perception_node.cpp)
+target_link_libraries(visualize_perception_node ${catkin_LIBRARIES})
 
-add_executable(visualization_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
-target_link_libraries(visualization_control_node ${catkin_LIBRARIES})
+add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
+target_link_libraries(visualize_control_node ${catkin_LIBRARIES})

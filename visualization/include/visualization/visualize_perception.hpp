@@ -18,7 +18,7 @@
 #include "uav_msgs/DetectedObject.h"
 #include "uav_msgs/DetectedObjectArray.h"
 
-#define __APP_NAME__ "visualize_detected_objects"
+#define __APP_NAME__ "visualize_perception"
 
 class VisualizeDetectedObjects
 {
