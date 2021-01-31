@@ -10,6 +10,14 @@ Cluster::~Cluster()
   // TODO Auto-generated destructor stub
 }
 
+<<<<<<< HEAD
+=======
+int Cluster::Id()
+{ 
+  return id_;
+}
+
+>>>>>>> perception
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cluster::GetCloud()
 {
   return pointcloud_;
