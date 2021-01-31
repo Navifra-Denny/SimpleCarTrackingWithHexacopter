@@ -108,7 +108,7 @@
     </node>
 
     <!-- visualization pkg node launch  -->
-    <node pkg="visualization" type="visualization" name="visualization" output="screen">
+    <node pkg="visualization" type="visualize_perception_node" name="visualize_perception_node" output="screen">
       <param name="objects_markers_topic" value="$(arg objects_markers_topic)"/>
       <param name="objects_topic" value="$(arg objects_topic)"/>
       <param name="object_speed_threshold" value="$(arg object_speed_threshold)"/>
@@ -121,10 +121,6 @@
       <param name="centroid_color" value="$(arg centroid_color)"/>
 
     </node>
-    
-    
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find detection)/rviz/default.rviz" />
-
-    <!-- <node pkg="rosbag" type="play" name="player" output="screen" args="/home/ymj/project_ws/src/uav_object_tracking/perception/detection/bag/OS1-16_city.bag" /> -->
+    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find detection)/rviz/default.rviz" /> -->
   </group>
 </launch>

@@ -31,21 +31,24 @@ add_message_files(
   DetectedObject.msg
   DetectedObjectArray.msg
   Centroids.msg
+  CarState.msg
+  PolyfitLaneData.msg
+  PolyfitLane.msg
+  Roi.msg
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  SetGPSPosition.srv
+  SetLocalPosition.srv
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
   geometry_msgs
-  std_msgs
   jsk_recognition_msgs
 )
 
@@ -64,7 +67,6 @@ catkin_package(
   std_msgs
   geometry_msgs
   sensor_msgs
-
 )
 
 ###########

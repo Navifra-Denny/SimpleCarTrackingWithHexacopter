@@ -1,0 +1,18 @@
+<launch>
+	<arg name="output" default="screen"/>
+	<arg name="ROI_front_m" default="40.0" />
+	<arg name="ROI_rear_m" default="10.0" />
+	<arg name="ROI_lateral_m" default="20.0" />
+	<arg name="ROI_vertical_m" default="20.0" />
+	<arg name="uav_name" default="drone_1" />
+	<arg name="use_sim_time" default="false"/>
+	<param name="use_sim_time" value="$(arg use_sim_time)"/>
+
+	<node pkg="control" type="extract_lane_node" name="extract_lane_node" output="$(arg output)">
+		<param name="ROI_front_m" value="$(arg ROI_front_m)" />
+        <param name="ROI_rear_m" value="$(arg ROI_rear_m)" />
+		<param name="ROI_lateral_m" value="$(arg ROI_lateral_m)" />
+        <param name="ROI_vertical_m" value="$(arg ROI_vertical_m)" />
+		<param name="uav_name" value="$(arg uav_name)" />
+	</node>
+</launch>

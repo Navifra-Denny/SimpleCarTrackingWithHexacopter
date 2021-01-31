@@ -1,18 +1,26 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(visualization)
+project(control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   geometry_msgs
+  mavros_msgs
   roscpp
-  sensor_msgs
-  visualization_msgs
+  std_msgs
+  nav_msgs
   uav_msgs
+  tf2
+  tf2_ros
+  tf2_sensor_msgs
+  tf2_geometry_msgs
 )
 
 ###################################
@@ -26,13 +34,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES visualization
-  CATKIN_DEPENDS 
-  geometry_msgs 
-  roscpp 
-  sensor_msgs 
-  visualization_msgs
-  uav_msgs
+  LIBRARIES control
+  CATKIN_DEPENDS geometry_msgs mavros_msgs roscpp std_msgs uav_msgs nav_msgs
 )
 
 ###########
@@ -44,16 +47,20 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
   ${uav_msgs_INCLUDE_DIRS}
 )
 
-## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/visualization.cpp
-# )
+## control_node
+add_executable(${PROJECT_NAME}_node src/offb_node.cpp)
+add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
-add_executable(visualize_perception_node src/visualize_perception.cpp src/visualize_perception_node.cpp)
-target_link_libraries(visualize_perception_node ${catkin_LIBRARIES})
+## generate_waypoints_node
+add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
+target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 
-add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
-target_link_libraries(visualize_control_node ${catkin_LIBRARIES})
+## extract_lane_node add_executable(display_node src/display_node.cpp)
+add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
+target_link_libraries(extract_lane_node ${catkin_LIBRARIES})

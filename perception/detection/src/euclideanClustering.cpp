@@ -667,7 +667,6 @@ bool EuclideanClustering::PublishDetectedObjects(const uav_msgs::CloudClusterArr
     detected_object.valid = true;
 
     detected_objects.objects.push_back(detected_object);
-
   }
   _pub_detected_objects.publish(detected_objects);
 
