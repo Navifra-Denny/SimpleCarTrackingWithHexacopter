@@ -1,4 +1,4 @@
-#include "visualization/visualize_detected_objects.hpp"
+#include "visualization/visualize_perception.hpp"
 
 VisualizeDetectedObjects::VisualizeDetectedObjects() : _arrow_height(0.5),_label_height(1.0), _object_max_linear_size(50.0)
 {
@@ -29,38 +29,38 @@ VisualizeDetectedObjects::~VisualizeDetectedObjects()
 
 void VisualizeDetectedObjects::getParam()
 {
-    _node_handle.getParam("visualization/objects_markers_topic", _objects_markers_topic);
+    _node_handle.getParam("visualize_perception_node/objects_markers_topic", _objects_markers_topic);
     ROS_INFO("[%s] objects_markers_topic: %s", __APP_NAME__, _objects_markers_topic.c_str());
     
-    _node_handle.getParam("visualization/objects_topic", _objects_topic);
+    _node_handle.getParam("visualize_perception_node/objects_topic", _objects_topic);
     ROS_INFO("[%s] objects_topic: %s", __APP_NAME__, _objects_topic.c_str());
 
-    _node_handle.getParam("visualization/object_speed_threshold", _object_speed_threshold);
+    _node_handle.getParam("visualize_perception_node/object_speed_threshold", _object_speed_threshold);
     ROS_INFO("[%s] object_speed_threshold: %.2f", __APP_NAME__, _object_speed_threshold);
 
-    _node_handle.getParam("visualization/arrow_speed_threshold", _arrow_speed_threshold);
+    _node_handle.getParam("visualize_perception_node/arrow_speed_threshold", _arrow_speed_threshold);
     ROS_INFO("[%s] arrow_speed_threshold: %.2f", __APP_NAME__, _arrow_speed_threshold);
 
-    _node_handle.getParam("visualization/marker_display_duration", _marker_display_duration);
+    _node_handle.getParam("visualize_perception_node/marker_display_duration", _marker_display_duration);
     ROS_INFO("[%s] marker_display_duration: %.2f", __APP_NAME__, _marker_display_duration);
 
-    // _node_handle.getParam("visualization/label_color", color);
+    // _node_handle.getParam("visualize_perception_node/label_color", color);
     // _label_color = ParseColor(color);
     // ROS_INFO("[%s] label_color: %s", __APP_NAME__, ColorToString(_label_color).c_str());
 
-    // _node_handle.getParam("visualization/arrow_color", color);
+    // _node_handle.getParam("visualize_perception_node/arrow_color", color);
     // _arrow_color = ParseColor(color);
     // ROS_INFO("[%s] arrow_color: %s", __APP_NAME__, ColorToString(_arrow_color).c_str());
 
-    // _node_handle.getParam("visualization/hull_color", color);
+    // _node_handle.getParam("visualize_perception_node/hull_color", color);
     // _hull_color = ParseColor(color);
     // ROS_INFO("[%s] hull_color: %s", __APP_NAME__, ColorToString(_hull_color).c_str());
 
-    // _node_handle.getParam("visualization/box_color", color);
+    // _node_handle.getParam("visualize_perception_node/box_color", color);
     // _box_color = ParseColor(color);
     // ROS_INFO("[%s] box_color: %s", __APP_NAME__, ColorToString(_box_color).c_str());
 
-    // _node_handle.getParam("visualization/centroid_color", color);
+    // _node_handle.getParam("visualize_perception_node/centroid_color", color);
     // _centroid_color = ParseColor(color);
     // ROS_INFO("[%s] centroid_color: %s", __APP_NAME__, ColorToString(_centroid_color).c_str());
 
