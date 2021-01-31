@@ -1,73 +1,6 @@
-#include "ros/ros.h"
-#include <ros/spinner.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <geometry_msgs/PointStamped.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/Point.h>
-#include "uav_msgs/PolyfitLane.h"
-#include "uav_msgs/CarState.h"
-#include "nav_msgs/Odometry.h"
-#include "uav_msgs/Roi.h"
+#include "visualization/visualize_control.h"
 
-
-struct Line{
-    visualization_msgs::MarkerArray self;
-    visualization_msgs::Marker line_strip;
-    visualization_msgs::Marker orientation;
-    visualization_msgs::Marker center_point;
-    visualization_msgs::Marker roi;
-};
-
-class Display
-{
-public:
-    Display();
-    virtual ~Display();
-private:
-    // Node Handler
-	ros::NodeHandle m_nh;
-
-	// subscriber
-	ros::Subscriber m_input_waypoints_sub;
-	ros::Subscriber m_input_curr_position_sub;
-	ros::Subscriber m_desired_waypoints_sub;
-    ros::Subscriber m_roi_waypoints_sub;
-    ros::Subscriber m_roi_curr_position_sub;
-    ros::Subscriber m_roi_box_sub;
-    
-    // publisher
-    ros::Publisher m_input_line_pub;
-    ros::Publisher m_desired_line_pub;
-    ros::Publisher m_roi_line_pub;
-    ros::Timer m_roi_line_update_timer;
-
-    // Parm
-    std::string m_ugv_name_param;
-    std::string m_uav_name_param;
-
-    // Marker Init
-    void SetParam();
-    void MarkerInit();
-
-    // Callback
-    void InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
-    void InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr);
-    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
-    void ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_waypoints);
-    void ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &current_point_ptr);
-    void ROICallback(const uav_msgs::Roi::ConstPtr &current_point_ptr);
-    void TimerCallback(const ros::TimerEvent& event);
-
-    Line m_input_line;
-    Line m_desired_line;
-    Line m_roi_line;
-
-private:
-    void GenerateDesiredWaypoints();
-};
-
-Display::Display()
+VisualizeControl::VisualizeControl()
 {
     SetParam();
     MarkerInit();
@@ -77,34 +10,31 @@ Display::Display()
 	std::string roi_curr_position_sub_topic_name = "/airsim_node/" + m_uav_name_param + "/odom_local_ned";
 
     // subscriber init
-	m_input_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/input_waypoints", 1, boost::bind(&Display::InputWaypointsCallback, this, _1));
-	m_input_curr_position_sub = m_nh.subscribe<uav_msgs::CarState>(input_curr_position_sub_topic_name, 10, boost::bind(&Display::InputPositionCallback, this, _1));
-	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/desired_waypoints", 1, boost::bind(&Display::DesiredWaypointsCallback, this, _1));
-	m_roi_waypoints_sub = m_nh.subscribe<uav_msgs::PolyfitLane>("/extract_lane_node/poly_fit_lane", 1, boost::bind(&Display::ROIWaypointsCallback, this, _1));
-	m_roi_curr_position_sub = m_nh.subscribe<nav_msgs::Odometry>(roi_curr_position_sub_topic_name, 1, boost::bind(&Display::ROICurrPositionCallback, this, _1));
-	m_roi_box_sub = m_nh.subscribe<uav_msgs::Roi>("/extract_lane_node/roi", 1, boost::bind(&Display::ROICallback, this, _1));
+	m_input_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/input_waypoints", 1, boost::bind(&VisualizeControl::InputWaypointsCallback, this, _1));
+	m_input_curr_position_sub = m_nh.subscribe<uav_msgs::CarState>(input_curr_position_sub_topic_name, 10, boost::bind(&VisualizeControl::InputPositionCallback, this, _1));
+	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/desired_waypoints", 1, boost::bind(&VisualizeControl::DesiredWaypointsCallback, this, _1));
+	m_roi_waypoints_sub = m_nh.subscribe<uav_msgs::PolyfitLane>("/extract_lane_node/poly_fit_lane", 1, boost::bind(&VisualizeControl::ROIWaypointsCallback, this, _1));
+	m_roi_curr_position_sub = m_nh.subscribe<nav_msgs::Odometry>(roi_curr_position_sub_topic_name, 1, boost::bind(&VisualizeControl::ROICurrPositionCallback, this, _1));
+	m_roi_box_sub = m_nh.subscribe<uav_msgs::Roi>("/extract_lane_node/roi", 1, boost::bind(&VisualizeControl::ROICallback, this, _1));
 
     // publisher init
-    m_input_line_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/input_line", 1);
-    m_desired_line_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/desired_line", 1);
-    m_roi_line_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/roi_line", 1);
-
-    m_roi_line_update_timer = m_nh.createTimer(ros::Duration(0.1), &Display::TimerCallback, this);
+    m_markers_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/control_marekrs", 1);
+    m_roi_line_update_timer = m_nh.createTimer(ros::Duration(0.1), &VisualizeControl::TimerCallback, this);
 }
 
-Display::~Display()
+VisualizeControl::~VisualizeControl()
 {}
 
-void Display::SetParam()
+void VisualizeControl::SetParam()
 {
-	m_nh.getParam("display_node/ugv_name", m_ugv_name_param);
-	m_nh.getParam("display_node/ugv_name", m_uav_name_param);
+	m_nh.getParam("visualization_control_node/uav_name", m_ugv_name_param);
+	m_nh.getParam("visualization_control_node/ugv_name", m_uav_name_param);
 }
 
-void Display::MarkerInit()
+void VisualizeControl::MarkerInit()
 {
     //// input line
-    m_input_line.line_strip.ns = "lane";
+    m_input_line.line_strip.ns = "input_line/lane";
     m_input_line.line_strip.id = 0;
     m_input_line.line_strip.type = visualization_msgs::Marker::LINE_STRIP;
     m_input_line.line_strip.action = visualization_msgs::Marker::ADD;
@@ -119,7 +49,7 @@ void Display::MarkerInit()
     m_input_line.line_strip.color.a = 1.0;
     m_input_line.line_strip.lifetime = ros::Duration();
 
-    m_input_line.orientation.ns = "orientation";
+    m_input_line.orientation.ns = "input_line/orientation";
     m_input_line.orientation.id = 0;
     m_input_line.orientation.type = visualization_msgs::Marker::ARROW;
     m_input_line.orientation.action = visualization_msgs::Marker::ADD;
@@ -132,7 +62,7 @@ void Display::MarkerInit()
     m_input_line.orientation.color.a = 1.0;
     m_input_line.orientation.lifetime = ros::Duration();
 
-    m_input_line.center_point.ns = "center_point";
+    m_input_line.center_point.ns = "input_line/center_point";
     m_input_line.center_point.id = 0;
     m_input_line.center_point.type = visualization_msgs::Marker::SPHERE;
     m_input_line.center_point.action = visualization_msgs::Marker::ADD;
@@ -150,7 +80,7 @@ void Display::MarkerInit()
     m_input_line.center_point.lifetime = ros::Duration();
 
     //// desired line
-    m_desired_line.line_strip.ns = "lane";
+    m_desired_line.line_strip.ns = "desired_line/lane";
     m_desired_line.line_strip.id = 0;
     m_desired_line.line_strip.type = visualization_msgs::Marker::LINE_STRIP;
     m_desired_line.line_strip.action = visualization_msgs::Marker::ADD;
@@ -166,7 +96,7 @@ void Display::MarkerInit()
     m_desired_line.line_strip.lifetime = ros::Duration();
 
     //// roi line
-    m_roi_line.line_strip.ns = "lane";
+    m_roi_line.line_strip.ns = "roi_line/lane";
     m_roi_line.line_strip.id = 0;
     m_roi_line.line_strip.type = visualization_msgs::Marker::LINE_STRIP;
     m_roi_line.line_strip.action = visualization_msgs::Marker::ADD;
@@ -181,7 +111,7 @@ void Display::MarkerInit()
     m_roi_line.line_strip.color.a = 1.0;
     m_roi_line.line_strip.lifetime = ros::Duration();
 
-    m_roi_line.center_point.ns = "center_point";
+    m_roi_line.center_point.ns = "roi_line/center_point";
     m_roi_line.center_point.id = 0;
     m_roi_line.center_point.type = visualization_msgs::Marker::SPHERE;
     m_roi_line.center_point.action = visualization_msgs::Marker::ADD;
@@ -198,7 +128,7 @@ void Display::MarkerInit()
     m_roi_line.center_point.color.a = 1.0;
     m_roi_line.center_point.lifetime = ros::Duration();
 
-    m_roi_line.roi.ns = "roi";
+    m_roi_line.roi.ns = "roi_line/roi";
     m_roi_line.roi.id = 0;
     m_roi_line.roi.type = visualization_msgs::Marker::CUBE;
     m_roi_line.roi.action = visualization_msgs::Marker::ADD;
@@ -209,7 +139,7 @@ void Display::MarkerInit()
     m_roi_line.roi.lifetime = ros::Duration();
 }
 
-void Display::InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &input_waypoints_ptr)
+void VisualizeControl::InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &input_waypoints_ptr)
 {
     // line strip
     m_input_line.line_strip.header.frame_id = input_waypoints_ptr->header.frame_id;
@@ -227,7 +157,7 @@ void Display::InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &i
     m_input_line.orientation.pose = input_waypoints_ptr->poses.back();
 }
 
-void Display::InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr)
+void VisualizeControl::InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr)
 {
     // center_point
     m_input_line.center_point.header.frame_id = current_point_ptr->header.frame_id;
@@ -238,7 +168,7 @@ void Display::InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_
     m_input_line.center_point.pose.position.z = current_point_ptr->pose.pose.position.z;
 }
 
-void Display::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &desired_waypoints_ptr)
+void VisualizeControl::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &desired_waypoints_ptr)
 {
     // line_strip
     m_desired_line.line_strip.header.frame_id = desired_waypoints_ptr->header.frame_id;
@@ -250,7 +180,7 @@ void Display::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr 
     }
 }
 
-void Display::ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_waypoints_ptr)
+void VisualizeControl::ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_waypoints_ptr)
 {
     // line_strip
     m_roi_line.line_strip.header.frame_id = roi_waypoints_ptr->header.frame_id;
@@ -262,7 +192,7 @@ void Display::ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_wa
     }
 }
 
-void Display::ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &current_point_ptr)
+void VisualizeControl::ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &current_point_ptr)
 {
     // center_point
     m_roi_line.center_point.header.frame_id = current_point_ptr->header.frame_id;
@@ -273,7 +203,7 @@ void Display::ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &curren
     m_roi_line.center_point.pose.position.z = current_point_ptr->pose.pose.position.z;
 }
 
-void Display::ROICallback(const uav_msgs::Roi::ConstPtr &roi_ptr)
+void VisualizeControl::ROICallback(const uav_msgs::Roi::ConstPtr &roi_ptr)
 {
     // roi
     m_roi_line.roi.header.frame_id = roi_ptr->header.frame_id;
@@ -293,33 +223,28 @@ void Display::ROICallback(const uav_msgs::Roi::ConstPtr &roi_ptr)
     m_roi_line.roi.scale.z = roi_ptr->scale.z;
 }
 
-void Display::TimerCallback(const ros::TimerEvent& event)
+void VisualizeControl::TimerCallback(const ros::TimerEvent& event)
 {
     m_input_line.self.markers.clear();
     m_input_line.self.markers.push_back(m_input_line.line_strip);
     m_input_line.self.markers.push_back(m_input_line.orientation);
     m_input_line.self.markers.push_back(m_input_line.center_point);
-    m_input_line_pub.publish(m_input_line.self);
 
     m_desired_line.self.markers.clear();
     m_desired_line.self.markers.push_back(m_desired_line.line_strip);
-    m_desired_line_pub.publish(m_desired_line.self);    
 
     m_roi_line.self.markers.clear();
     m_roi_line.self.markers.push_back(m_roi_line.line_strip);
     m_roi_line.self.markers.push_back(m_roi_line.center_point);
     m_roi_line.self.markers.push_back(m_roi_line.roi);
-    m_roi_line_pub.publish(m_roi_line.self);
-}
 
-int main(int argc, char ** argv)
-{
-    // Initialize ROS
-	ros::init (argc, argv, "display_node");
-    Display display;
-    // display.Run();
+    visualization_msgs::MarkerArray visualization_markers;
+    visualization_markers.markers.insert(visualization_markers.markers.end(), 
+                                        m_input_line.self.markers.begin(), m_input_line.self.markers.end());
+    visualization_markers.markers.insert(visualization_markers.markers.end(),
+                                        m_desired_line.self.markers.begin(), m_desired_line.self.markers.end());
+    visualization_markers.markers.insert(visualization_markers.markers.end(),
+                                        m_roi_line.self.markers.begin(), m_roi_line.self.markers.end());
 
-    ros::spin();
-
-    return 0;
+    m_markers_pub.publish(visualization_markers);
 }

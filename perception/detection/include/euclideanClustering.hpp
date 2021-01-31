@@ -42,10 +42,7 @@ private:
     std_msgs::Header _velodyne_header;
 
     // Param
-<<<<<<< HEAD
-=======
     std::string ros_namespace_;   
->>>>>>> perception
     bool _remove_ground_ransac;
     bool _remove_ground_rayGroundFilter;
     bool _downsample_cloud;

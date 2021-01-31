@@ -1,4 +1,4 @@
-#include "visualize_detected_objects.hpp"
+#include "visualization/visualize_detected_objects.hpp"
 
 VisualizeDetectedObjects::VisualizeDetectedObjects() : _arrow_height(0.5),_label_height(1.0), _object_max_linear_size(50.0)
 {

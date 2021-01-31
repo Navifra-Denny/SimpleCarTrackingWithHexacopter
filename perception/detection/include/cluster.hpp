@@ -72,11 +72,8 @@ public:
   bool IsValid();
   /* \brief Sets whether the Cluster is valid or not*/
   void SetValidity(bool in_valid);
-<<<<<<< HEAD
-=======
   //지워 
   int Id();
->>>>>>> perception
  
 };
 

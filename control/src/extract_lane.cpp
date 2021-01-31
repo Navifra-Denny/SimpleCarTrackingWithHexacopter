@@ -99,25 +99,6 @@ bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstP
 }
 
 bool ExtractLane::Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr)
-<<<<<<< HEAD
-{
-	auto diff_x = lane_ptr->poses.back().position.x - m_curr_uav_position.point.x;
-	auto diff_y = lane_ptr->poses.back().position.y - m_curr_uav_position.point.y;
-	auto diff_z = lane_ptr->poses.back().position.z - m_curr_uav_position.point.z;
-
-	geometry_msgs::Point diff_msg;
-	diff_msg.x = diff_x;
-	diff_msg.y = diff_y;
-	diff_msg.z = diff_z;
-
-	m_evaulation_pub.publish(diff_msg);
-
-	return true;
-}
-
-void ExtractLane::PolyfitLane ()
-=======
->>>>>>> control
 {
 	auto diff_x = lane_ptr->poses.back().position.x - m_curr_uav_position.point.x;
 	auto diff_y = lane_ptr->poses.back().position.y - m_curr_uav_position.point.y;
