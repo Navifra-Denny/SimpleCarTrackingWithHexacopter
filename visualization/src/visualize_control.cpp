@@ -27,8 +27,8 @@ VisualizeControl::~VisualizeControl()
 
 void VisualizeControl::SetParam()
 {
-	m_nh.getParam("visualization_control_node/uav_name", m_ugv_name_param);
-	m_nh.getParam("visualization_control_node/ugv_name", m_uav_name_param);
+	m_nh.getParam("visualize_control_node/ugv_name", m_ugv_name_param);
+	m_nh.getParam("visualize_control_node/uav_name", m_uav_name_param);
 }
 
 void VisualizeControl::MarkerInit()

@@ -5,7 +5,7 @@
 int main(int argc, char ** argv)
 {
     // Initialize ROS
-	ros::init (argc, argv, "visualization_control_node");
+	ros::init (argc, argv, "visualize_control_node");
     VisualizeControl visualize_control;
 
     ros::spin();

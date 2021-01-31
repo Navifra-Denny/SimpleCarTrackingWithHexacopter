@@ -58,5 +58,5 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
-add_executable(visualization_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
-target_link_libraries(visualization_control_node ${catkin_LIBRARIES})
+add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
+target_link_libraries(visualize_control_node ${catkin_LIBRARIES})
