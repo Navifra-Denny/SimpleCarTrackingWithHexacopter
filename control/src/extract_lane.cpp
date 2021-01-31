@@ -1,4 +1,4 @@
-#include "off_board_control/extract_lane.h"
+#include "off_board_control/extract_lane_node.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
@@ -8,17 +8,19 @@ ExtractLane::ExtractLane()
 	// Set Param
 	SetParam();
 
-	// Topic name
+    // package, node, topic name
+    std::string self_pkg_name = "/control";
+    std::string self_node_name = "/extract_lane_node";
 	std::string uav_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/odom_local_ned";
 
 	// Initialize subscriber 
-	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/desired_waypoints", 10, boost::bind(&ExtractLane::DesiredWaypointsCallback, this, _1));
+	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/desired_waypoints", 10, boost::bind(&ExtractLane::DesiredWaypointsCallback, this, _1));
 	m_uav_state_sub = m_nh.subscribe<nav_msgs::Odometry>(uav_state_sub_topic_name, 10, boost::bind(&ExtractLane::UavStateCallback, this, _1));
 
 	// Initialize publisher 
-	m_roi_box_pub = m_nh.advertise<uav_msgs::Roi> ("/extract_lane_node/roi", 1);
-	m_roi_lane_pub = m_nh.advertise<uav_msgs::PolyfitLane> ("/extract_lane_node/poly_fit_lane", 1);
-	m_evaulation_pub = m_nh.advertise<geometry_msgs::Point> ("/extract_lane_node/evaluation", 1);
+	m_roi_box_pub = m_nh.advertise<uav_msgs::Roi> (self_pkg_name + self_node_name + "/roi", 1);
+	m_roi_lane_pub = m_nh.advertise<uav_msgs::PolyfitLane> (self_pkg_name + self_node_name + "/poly_fit_lane", 1);
+	m_evaulation_pub = m_nh.advertise<geometry_msgs::Point> (self_pkg_name + self_node_name + "/evaluation", 1);
 	
 	// m_poly_fit_lane_pub = m_nh.advertise<uav_msgs::PolyfitLaneData> ("polyfit_lanes", 10);
 }

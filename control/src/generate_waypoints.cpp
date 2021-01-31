@@ -1,4 +1,4 @@
-#include "off_board_control/generate_waypoints.h"
+#include "off_board_control/generate_waypoints_node.h"
 #include "uav_msgs/SetLocalPosition.h"
 #include "tf2_ros/transform_listener.h"
 
@@ -7,15 +7,19 @@ GenerateWaypoints::GenerateWaypoints()
     // Set Param
     SetParam();
 
+    // package, node, topic name
+    std::string self_pkg_name = "/control";
+    std::string self_node_name = "/generate_waypoints_node";
+
     // Initialize subscriber
     std::string m_car_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/car_state";
     m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>(m_car_state_sub_topic_name, 10, boost::bind(&GenerateWaypoints::CarStateCallback, this, _1));
 
     // Initialize publisher
-    m_input_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>("/generate_waypoints_node/input_waypoints", 1);
-    m_desired_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>("/generate_waypoints_node/desired_waypoints", 1);
-    m_world_enu_input_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>("/generate_waypoints_node/world_enu_input_waypoints", 1);
-    m_world_enu_desired_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>("/generate_waypoints_node/world_enu_desired_waypoints", 1);
+    m_input_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>(self_pkg_name + self_node_name + "/input_waypoints", 1);
+    m_desired_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>(self_pkg_name + self_node_name + "/desired_waypoints", 1);
+    m_world_enu_input_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>(self_pkg_name + self_node_name + "/world_enu_input_waypoints", 1);
+    m_world_enu_desired_waypoints_pub = m_nh.advertise<geometry_msgs::PoseArray>(self_pkg_name + self_node_name + "/world_enu_desired_waypoints", 1);
 
     // Initialize service client
     m_desired_waypoints_srv_client = m_nh.serviceClient<uav_msgs::SetLocalPosition>("/airsim_node/local_position_goal");

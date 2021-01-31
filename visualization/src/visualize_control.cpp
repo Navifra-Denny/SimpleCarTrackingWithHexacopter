@@ -5,20 +5,22 @@ VisualizeControl::VisualizeControl()
     SetParam();
     MarkerInit();
 
-    // topic name
+    // package, node, topic name
+    std::string self_pkg_name = "/control";
+    std::string self_node_name = "/visualzie_control_node";
     std::string input_curr_position_sub_topic_name = "/airsim_node/" + m_ugv_name_param + "/car_state";
 	std::string roi_curr_position_sub_topic_name = "/airsim_node/" + m_uav_name_param + "/odom_local_ned";
 
     // subscriber init
-	m_input_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/input_waypoints", 1, boost::bind(&VisualizeControl::InputWaypointsCallback, this, _1));
-	m_input_curr_position_sub = m_nh.subscribe<uav_msgs::CarState>(input_curr_position_sub_topic_name, 10, boost::bind(&VisualizeControl::InputPositionCallback, this, _1));
-	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>("/generate_waypoints_node/desired_waypoints", 1, boost::bind(&VisualizeControl::DesiredWaypointsCallback, this, _1));
-	m_roi_waypoints_sub = m_nh.subscribe<uav_msgs::PolyfitLane>("/extract_lane_node/poly_fit_lane", 1, boost::bind(&VisualizeControl::ROIWaypointsCallback, this, _1));
 	m_roi_curr_position_sub = m_nh.subscribe<nav_msgs::Odometry>(roi_curr_position_sub_topic_name, 1, boost::bind(&VisualizeControl::ROICurrPositionCallback, this, _1));
-	m_roi_box_sub = m_nh.subscribe<uav_msgs::Roi>("/extract_lane_node/roi", 1, boost::bind(&VisualizeControl::ROICallback, this, _1));
+	m_input_curr_position_sub = m_nh.subscribe<uav_msgs::CarState>(input_curr_position_sub_topic_name, 10, boost::bind(&VisualizeControl::InputPositionCallback, this, _1));
+	m_input_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/input_waypoints", 1, boost::bind(&VisualizeControl::InputWaypointsCallback, this, _1));
+	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/desired_waypoints", 1, boost::bind(&VisualizeControl::DesiredWaypointsCallback, this, _1));
+	m_roi_waypoints_sub = m_nh.subscribe<uav_msgs::PolyfitLane>(self_pkg_name + "/extract_lane_node/poly_fit_lane", 1, boost::bind(&VisualizeControl::ROIWaypointsCallback, this, _1));
+	m_roi_box_sub = m_nh.subscribe<uav_msgs::Roi>(self_pkg_name + "/extract_lane_node/roi", 1, boost::bind(&VisualizeControl::ROICallback, this, _1));
 
     // publisher init
-    m_markers_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/control_marekrs", 1);
+    m_markers_pub = m_nh.advertise<visualization_msgs::MarkerArray> (self_pkg_name + self_node_name + "/control_marekrs", 1);
     m_roi_line_update_timer = m_nh.createTimer(ros::Duration(0.1), &VisualizeControl::TimerCallback, this);
 }
 

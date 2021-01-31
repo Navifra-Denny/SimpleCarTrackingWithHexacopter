@@ -6,8 +6,6 @@ Panels:
       Expanded:
         - /TF1/Frames1
         - /Odometry1/Shape1
-        - /control_markers1
-        - /control_markers1/Namespaces1
       Splitter Ratio: 0.5794117450714111
     Tree Height: 728
   - Class: rviz/Selection
@@ -228,7 +226,7 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /Marker/control_marekrs
+      Marker Topic: /control/visualzie_control_node/control_marekrs
       Name: control_markers
       Namespaces:
         desired_line/lane: true
