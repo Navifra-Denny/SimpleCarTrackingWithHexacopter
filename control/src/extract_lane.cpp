@@ -1,6 +1,6 @@
-#include "extract_lane.h"
-#include "tf2_ros/transform_listener.h"
+#include "off_board_control/extract_lane.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "tf2_ros/transform_listener.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 ExtractLane::ExtractLane()
@@ -48,7 +48,7 @@ void ExtractLane::UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr)
 	
 	m_roi_msg.header = odm_ptr->header;
 
-	auto euler = Quat2Euler(odm_ptr->pose.pose.orientation);
+	auto euler = m_utils.Quat2Euler(odm_ptr->pose.pose.orientation);
 	auto roll = euler.r;
 	auto pitch = euler.p;
 	auto yaw = euler.y;
@@ -89,17 +89,7 @@ bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstP
 			((pose.position.y > m_roi_msg.pose.position.y - m_roi_lateral_param) && (pose.position.y < m_roi_msg.pose.position.y + m_roi_lateral_param)) &&
 			((pose.position.z > m_roi_msg.pose.position.z - m_roi_vertical_param) && (pose.position.z < m_roi_msg.pose.position.z + m_roi_vertical_param))){
 			m_roi_lane.points.push_back(pose.position);
-		}
-
-		// double delta_x = m_curr_uav_position.point.x - pose.position.x;
-		// double delta_y = m_curr_uav_position.point.y - pose.position.y;
-		// double delta_z = m_curr_uav_position.point.z - pose.position.z;
-		
-		// if ((delta_x <= m_roi_front_param) && 
-		// 	(delta_x >= -1*m_roi_rear_param) &&
-		// 	(std::fabs(delta_y) <= m_roi_lateral_param) &&
-		// 	(std::fabs(delta_z) <= m_roi_vertical_param)){
-			
+		}			
 	}
 	if (m_roi_lane.points.size() < 1) return false;
 
@@ -109,6 +99,25 @@ bool ExtractLane::ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstP
 }
 
 bool ExtractLane::Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr)
+<<<<<<< HEAD
+{
+	auto diff_x = lane_ptr->poses.back().position.x - m_curr_uav_position.point.x;
+	auto diff_y = lane_ptr->poses.back().position.y - m_curr_uav_position.point.y;
+	auto diff_z = lane_ptr->poses.back().position.z - m_curr_uav_position.point.z;
+
+	geometry_msgs::Point diff_msg;
+	diff_msg.x = diff_x;
+	diff_msg.y = diff_y;
+	diff_msg.z = diff_z;
+
+	m_evaulation_pub.publish(diff_msg);
+
+	return true;
+}
+
+void ExtractLane::PolyfitLane ()
+=======
+>>>>>>> control
 {
 	auto diff_x = lane_ptr->poses.back().position.x - m_curr_uav_position.point.x;
 	auto diff_y = lane_ptr->poses.back().position.y - m_curr_uav_position.point.y;
@@ -127,16 +136,4 @@ bool ExtractLane::Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr)
 void ExtractLane::PolyfitLane ()
 {
     
-}
-
-Euler ExtractLane::Quat2Euler(const geometry_msgs::Quaternion& quat_msg)
-{
-	tf2::Quaternion quat_tf;
-	double roll, pitch, yaw;
-	tf2::fromMsg(quat_msg, quat_tf);
-	tf2::Matrix3x3(quat_tf).getRPY(roll, pitch, yaw);
-	
-	Euler euler = {roll, pitch, yaw};
-
-	return euler;
 }
