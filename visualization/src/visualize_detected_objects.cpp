@@ -327,9 +327,13 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToCentroids(con
             centroid_marker.scale.y = 0.2;
             centroid_marker.scale.z = 0.2;
 
-            centroid_marker.color.r = object.color.r/255.0f;
-            centroid_marker.color.g = object.color.g/255.0f;
-            centroid_marker.color.b = object.color.b/255.0f;
+            // centroid_marker.color.r = object.color.r/255.0f;
+            // centroid_marker.color.g = object.color.g/255.0f;
+            // centroid_marker.color.b = object.color.b/255.0f;
+
+            centroid_marker.color.r = 0.0f;
+            centroid_marker.color.g = 0.0f;
+            centroid_marker.color.b = 0.0f;
             centroid_marker.color.a = 1.0;
             centroid_marker.id = object.id;
             
