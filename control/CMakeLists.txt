@@ -58,13 +58,13 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
 ## generate_waypoints_node
-add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp)
+add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
 target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 
-## display_node add_executable(display_node src/display_node.cpp)
+## display_node add_executable(display_node src/display_node.cpp )
 add_executable(display_node src/display_node.cpp)
 target_link_libraries(display_node ${catkin_LIBRARIES})
 
 ## extract_lane_node add_executable(display_node src/display_node.cpp)
-add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp)
+add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
 target_link_libraries(extract_lane_node ${catkin_LIBRARIES})

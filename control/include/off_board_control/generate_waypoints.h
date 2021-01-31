@@ -9,6 +9,7 @@
 #include "uav_msgs/CarState.h"
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "off_board_control/utils.h"
 
 using Vector3f = Eigen::Vector3f;
 
@@ -18,6 +19,7 @@ class GenerateWaypoints
 private:
     // Node Handler
 	ros::NodeHandle m_nh;
+    offboard::Utils m_utils;
 
 	
 public:
@@ -49,11 +51,9 @@ private: // function
     void SetParam();
 
     void CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state);
-    bool ConvertStateToWaypoints(geometry_msgs::PoseStamped pose);
+    bool ConvertStateToWaypoints(geometry_msgs::PoseStamped pose_stamped);
 
-    geometry_msgs::PoseStamped CreateDesiredWaypoint(geometry_msgs::PoseStamped pose);
-    float Distance (geometry_msgs::Point point1, geometry_msgs::Point point2);
-    double Yaw(geometry_msgs::Pose pose);
+    geometry_msgs::PoseStamped CreateDesiredWaypoint(geometry_msgs::PoseStamped pose_stamped);
     geometry_msgs::PoseArray ConvertWorldEnu(geometry_msgs::PoseArray source_pose_array);
 
 private: // attribute

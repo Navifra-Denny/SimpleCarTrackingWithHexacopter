@@ -62,8 +62,6 @@ private:
     Line m_input_line;
     Line m_desired_line;
     Line m_roi_line;
-    // visualization_msgs::MarkerArray desired_line;
-    // visualization_msgs::Marker line_strip;
 
 private:
     void GenerateDesiredWaypoints();
@@ -87,7 +85,6 @@ Display::Display()
 	m_roi_box_sub = m_nh.subscribe<uav_msgs::Roi>("/extract_lane_node/roi", 1, boost::bind(&Display::ROICallback, this, _1));
 
     // publisher init
-    // m_input_line_pub = m_nh.advertise<visualization_msgs::Marker> ("/Marker/input_line", 1);
     m_input_line_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/input_line", 1);
     m_desired_line_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/desired_line", 1);
     m_roi_line_pub = m_nh.advertise<visualization_msgs::MarkerArray> ("/Marker/roi_line", 1);
@@ -232,6 +229,7 @@ void Display::InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &i
 
 void Display::InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr)
 {
+    // center_point
     m_input_line.center_point.header.frame_id = current_point_ptr->header.frame_id;
     m_input_line.center_point.header.stamp = ros::Time(0);
 
@@ -242,6 +240,7 @@ void Display::InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_
 
 void Display::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &desired_waypoints_ptr)
 {
+    // line_strip
     m_desired_line.line_strip.header.frame_id = desired_waypoints_ptr->header.frame_id;
     m_desired_line.line_strip.header.stamp = ros::Time(0);
 
@@ -253,6 +252,7 @@ void Display::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr 
 
 void Display::ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_waypoints_ptr)
 {
+    // line_strip
     m_roi_line.line_strip.header.frame_id = roi_waypoints_ptr->header.frame_id;
     m_roi_line.line_strip.header.stamp = ros::Time(0);
 
@@ -264,6 +264,7 @@ void Display::ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_wa
 
 void Display::ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &current_point_ptr)
 {
+    // center_point
     m_roi_line.center_point.header.frame_id = current_point_ptr->header.frame_id;
     m_roi_line.center_point.header.stamp = ros::Time(0);
 
@@ -274,6 +275,7 @@ void Display::ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &curren
 
 void Display::ROICallback(const uav_msgs::Roi::ConstPtr &roi_ptr)
 {
+    // roi
     m_roi_line.roi.header.frame_id = roi_ptr->header.frame_id;
     m_roi_line.roi.header.stamp = ros::Time(0);
 
