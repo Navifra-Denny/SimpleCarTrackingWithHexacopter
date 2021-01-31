@@ -1,0 +1,99 @@
+[global_config]
+[keybindings]
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = pane0
+      profile = default
+      type = Terminal
+    [[[window0]]]
+      parent = ""
+      size = 800, 500
+      type = Window
+  [[waypoints_following]]
+    [[[down]]]
+      order = 1
+      parent = pannel
+      position = 942
+      type = HPaned
+    [[[down_left]]]
+      order = 0
+      parent = down
+      position = 471
+      type = HPaned
+    [[[down_right]]]
+      order = 1
+      parent = down
+      position = 471
+      type = HPaned
+    [[[pannel]]]
+      order = 0
+      parent = root
+      position = 0
+      type = VPaned
+    [[[root]]]
+      order = 0
+      parent = ""
+      position = 0:25
+      size = 1800, 1000
+      type = Window
+    [[[terminal1]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source /home/ys/catkin_ws/devel/setup.bash; roslaunch visualization visualize_rviz.launch; $SHELL'"
+      directory = ""
+      order = 0
+      parent = up_left
+      profile = default
+      type = Terminal
+    [[[terminal2]]]
+      command = "bash -c 'sleep 2; source /opt/ros/melodic/setup.bash; source /home/ys/git_ws/AirSim/ros/devel/setup.bash; roslaunch airsim_ros_pkgs airsim_node.launch; $SHELL'"
+      order = 1
+      parent = up_left
+      profile = default
+      type = Terminal
+    [[[terminal3]]]
+      command = "bash -c 'sleep 4; source /opt/ros/melodic/setup.bash; source /home/ys/git_ws/AirSim/ros/devel/setup.bash; roslaunch airsim_ros_pkgs airsim_with_simple_PD_position_controller.launch; $SHELL'"
+      directory = ""
+      order = 0
+      parent = up_right
+      profile = default
+      type = Terminal
+    [[[terminal4]]]
+      command = "bash -c 'sleep 4; source /opt/ros/melodic/setup.bash; source /home/ys/catkin_ws/devel/setup.bash; roslaunch control generate_waypoints_node.launch; $SHELL'"
+      directory = 
+      order = 1
+      parent = up_right
+      profile = default
+      type = Terminal
+    [[[terminal5]]]
+      command = "bash -c 'sleep 4; source /opt/ros/melodic/setup.bash; source /home/ys/catkin_ws/devel/setup.bash; roslaunch control extract_lane_node.launch; $SHELL'"
+      directory = ""
+      order = 0
+      parent = down_left
+      profile = default
+      type = Terminal
+    [[[terminal6]]]
+      command = "bash -c 'sleep 6; source /opt/ros/melodic/setup.bash; rosbag play ugv_drone1_state_long.bag; $SHELL'"
+      directory = /home/ys/catkin_ws/src/uav_object_tracking/control/bag
+      order = 1
+      parent = down_left
+      profile = default
+      type = Terminal
+    [[[up]]]
+      order = 0
+      parent = pannel
+      position = 942
+      type = HPaned
+    [[[up_left]]]
+      order = 0
+      parent = up
+      position = 471
+      type = HPaned
+    [[[up_right]]]
+      order = 1
+      parent = up
+      position = 471
+      type = HPaned
+[plugins]
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
