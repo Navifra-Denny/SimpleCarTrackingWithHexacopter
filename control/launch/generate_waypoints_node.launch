@@ -1,5 +1,5 @@
 <launch>
-1	<arg name="output" default="screen"/>
+	<arg name="output" default="screen"/>
 	<arg name="x_offset_m" default="2" />
 	<arg name="z_offset_m" default="10" />
 	<arg name="ugv_name" default="drone_1" />
@@ -7,18 +7,15 @@
 	<arg name="use_sim_time" default="false"/>
 	<param name="use_sim_time" value="$(arg use_sim_time)"/>
 
-	<node name="generate_waypoints_node" pkg="control" type="generate_waypoints_node" output="$(arg output)">
+	<node pkg="control" type="generate_waypoints_node" name="generate_waypoints_node" output="$(arg output)">
 		<param name="x_offset_m" value="$(arg x_offset_m)" />
 		<param name="z_offset_m" value="$(arg z_offset_m)" />
 		<param name="ugv_name" value="$(arg ugv_name)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 
-	<node name="display_node" pkg="control" type="display_node" output="$(arg output)" >
+	<node pkg="visualization" type="visualization_control_node" name="visualization_control_node" output="$(arg output)" >
 		<param name="ugv_name" value="$(arg ugv_name)" />
 		<param name="uav_name" value="$(arg uav_name)" />
 	</node>
-
-	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find control)/rviz/default.rviz" />
-
 </launch>

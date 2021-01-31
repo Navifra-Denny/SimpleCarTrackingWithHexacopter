@@ -8,7 +8,7 @@
 	<arg name="use_sim_time" default="false"/>
 	<param name="use_sim_time" value="$(arg use_sim_time)"/>
 
-	<node name="extract_lane_node" pkg="control" type="extract_lane_node" output="$(arg output)">
+	<node pkg="control" type="extract_lane_node" name="extract_lane_node" output="$(arg output)">
 		<param name="ROI_front_m" value="$(arg ROI_front_m)" />
         <param name="ROI_rear_m" value="$(arg ROI_rear_m)" />
 		<param name="ROI_lateral_m" value="$(arg ROI_lateral_m)" />

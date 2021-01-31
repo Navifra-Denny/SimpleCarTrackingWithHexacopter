@@ -1,7 +1,5 @@
 #include "euclideanClustering.hpp"
 
-// extern void generateColors(std::vector<Scalar>& colors, size_t count, size_t factor = 100);
-
 EuclideanClustering::EuclideanClustering() 
 : current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), removed_points_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
   downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), inlanes_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
@@ -10,22 +8,25 @@ EuclideanClustering::EuclideanClustering()
   clipped_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), colored_clustered_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>),     // PointCloud initialization
   nofloor_cloud_ptr_Rayground(new sensor_msgs::PointCloud2), onlyfloor_cloud_ptr_Rayground(new sensor_msgs::PointCloud2)
 {
+    ros_namespace_ = ros::this_node::getNamespace(); 
+    if (ros_namespace_.substr(0, 2) == "//") ros_namespace_.erase(ros_namespace_.begin()); 
+    
     // Publisher
-    _pub_cluster_cloud = nh.advertise<sensor_msgs::PointCloud2>("/points_cluster", 1);
-    _pub_ground_cloud = nh.advertise<sensor_msgs::PointCloud2>("/points_ground", 1);
-    _pub_centroid = nh.advertise<uav_msgs::Centroids>("/cluster_centroids",1);
+    _pub_cluster_cloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/points_cluster", 1);
+    _pub_ground_cloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/points_ground", 1);
+    _pub_centroid = nh.advertise<uav_msgs::Centroids>(ros_namespace_ + "/cluster_centroids",1);
 
-    _pub_noground_cloud = nh.advertise<sensor_msgs::PointCloud2>("/points_nogroud",1);
-    _pub_clusters_message = nh.advertise<uav_msgs::CloudClusterArray>("/cloud_clusters",1);
-    _pub_detected_objects = nh.advertise<uav_msgs::DetectedObjectArray>("/objects",1);
+    _pub_noground_cloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/points_nogroud",1);
+    _pub_clusters_message = nh.advertise<uav_msgs::CloudClusterArray>(ros_namespace_ + "/cloud_clusters",1);
+    _pub_detected_objects = nh.advertise<uav_msgs::DetectedObjectArray>(ros_namespace_ + "/objects",1);
 
     // Check Publisher
-    _pub_removePointsUpTo = nh.advertise<sensor_msgs::PointCloud2>("/removePointsUpTo", 1);
-    _pub_downsampleCloud = nh.advertise<sensor_msgs::PointCloud2>("/downsampleCloud", 1);
-    _pub_clipCloud = nh.advertise<sensor_msgs::PointCloud2>("/clipCloud",1);
-    _pub_keepLanePoints = nh.advertise<sensor_msgs::PointCloud2>("/keepLanePoints", 1);
-    _pub_toRayGroundFilter = nh.advertise<sensor_msgs::PointCloud2>("/toRayGroundFilter", 1);
-    _pub_DoNSegmentation = nh.advertise<sensor_msgs::PointCloud2>("/DoNSegmentation", 1);
+    _pub_removePointsUpTo = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/removePointsUpTo", 1);
+    _pub_downsampleCloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/downsampleCloud", 1);
+    _pub_clipCloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/clipCloud",1);
+    _pub_keepLanePoints = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/keepLanePoints", 1);
+    _pub_toRayGroundFilter = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/toRayGroundFilter", 1);
+    _pub_DoNSegmentation = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/DoNSegmentation", 1);
 
     // Subscriber
    _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);
@@ -394,10 +395,10 @@ bool EuclideanClustering::segmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
   if (all_clusters.size() > 0) checkAllForMerge(all_clusters, mid_clusters, _cluster_merge_threshold);
   else mid_clusters = all_clusters;
   
-  ROS_INFO_STREAM(mid_clusters.size());
+  // ROS_INFO_STREAM(mid_clusters.size());
   if (mid_clusters.size() > 0) checkAllForMerge(mid_clusters, final_clusters, _cluster_merge_threshold);
   else final_clusters = mid_clusters;
-  ROS_WARN_STREAM(final_clusters.size());
+  // ROS_WARN_STREAM(final_clusters.size());
   
   // Initialization
   in_out_centroids.points.clear();
@@ -405,11 +406,12 @@ bool EuclideanClustering::segmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
   // Get final PointCloud to be published
   for (unsigned int i = 0; i < final_clusters.size(); i++)
   {
+    // ROS_INFO_STREAM(final_clusters[i]->Id());
     *out_cloud_ptr = *out_cloud_ptr + *(final_clusters[i]->GetCloud());
 
     jsk_recognition_msgs::BoundingBox bounding_box = final_clusters[i]->GetBoundingBox();
     geometry_msgs::PolygonStamped polygon = final_clusters[i]->GetPolygon();
-    jsk_rviz_plugins::Pictogram pictogram_cluster;
+    // jsk_rviz_plugins::Pictogram pictogram_cluster;
     // pictogram_cluster.header = _velodyne_header;
     // // PICTO
     // pictogram_cluster.mode = pictogram_cluster.STRING_MODE;
@@ -434,15 +436,26 @@ bool EuclideanClustering::segmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
     bounding_box.header = _velodyne_header;
     polygon.header = _velodyne_header;
 
+    // CloudCluster msg 에 color 입혀주기 
+    std_msgs::ColorRGBA color;
+    int k = final_clusters[i]->Id();
+    color.a = _colors[k].val[3];
+    color.r = _colors[k].val[0];
+    color.g = _colors[k].val[1];
+    color.b = _colors[k].val[2];
 
+    ROS_WARN_STREAM(color);
     if (final_clusters[i]->IsValid())
     {
       in_out_centroids.points.push_back(centroid);
       uav_msgs::CloudCluster cloud_cluster;
       final_clusters[i]->ToROSMessage(_velodyne_header, cloud_cluster);
-      in_out_clusters.clusters.push_back(cloud_cluster);
+      cloud_cluster.color = color;
+      cloud_cluster.id = final_clusters[i]->Id();
+      in_out_clusters.clusters.push_back(cloud_cluster);  
     }
   }
+  ROS_WARN_STREAM("---------");
   return true;
 }
 
@@ -522,7 +535,7 @@ void EuclideanClustering::checkAllForMerge(std::vector<ClusterPtr> &in_clusters,
       out_clusters.push_back(in_clusters[i]);
     }
   } 
-  ROS_ERROR_STREAM(out_clusters.size());
+  // ROS_ERROR_STREAM(out_clusters.size());
 
 }
 
@@ -589,7 +602,6 @@ bool EuclideanClustering::publishColorCloud(const ros::Publisher *in_publisher, 
   cloud_msg.header = _velodyne_header;
   in_publisher->publish(cloud_msg); 
 
-  // ROS_INFO_STREAM("Hi");
   return true;
 }
 
@@ -620,6 +632,8 @@ bool EuclideanClustering::publishDetectedObjects(const uav_msgs::CloudClusterArr
   for(size_t i = 0; i < in_clusters.clusters.size(); i++)
   {
     uav_msgs::DetectedObject detected_object;
+    detected_object.id = in_clusters.clusters[i].id;
+    detected_object.color = in_clusters.clusters[i].color;
     detected_object.header = in_clusters.header;
     detected_object.label = "unknown";
     detected_object.score = 1.;
@@ -631,9 +645,6 @@ bool EuclideanClustering::publishDetectedObjects(const uav_msgs::CloudClusterArr
     detected_object.valid = true;
 
     detected_objects.objects.push_back(detected_object);
-    ROS_INFO_STREAM("HI");
-    ROS_INFO_STREAM(detected_object.pose_reliable);
-    ROS_INFO_STREAM("HI");  
   }
   _pub_detected_objects.publish(detected_objects);
 
