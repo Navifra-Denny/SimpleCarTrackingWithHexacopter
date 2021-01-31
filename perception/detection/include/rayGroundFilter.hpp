@@ -42,6 +42,7 @@ private:
     double _clipping_height;              // the points higher than this will be removed from the input cloud.
     double _min_point_distance;           // minimum distance from the origin to consider a point as valid
     double _reclass_distance_threshold;   // distance between points at which re classification will occur
+    double _sensor_height;
 
     // Param
     size_t _radial_dividers_num;

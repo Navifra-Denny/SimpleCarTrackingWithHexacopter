@@ -435,7 +435,7 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: true
           Value: true
-      Enabled: true
+      Enabled: false
       Name: Segmentation
   Enabled: true
   Global Options:
