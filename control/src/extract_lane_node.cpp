@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "off_board_control/extract_lane_node.h"
+#include "off_board_control/extract_lane.h"
 #include <ros/spinner.h>
 
 int main(int argc, char ** argv)
