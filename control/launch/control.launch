@@ -1,5 +1,5 @@
 <launch>
-	<arg name="uav_name" default="drone_1" />
+	<arg name="uav_name" default="PX4" />
 	<arg name="ugv_name" default="drone_1" />
     
     

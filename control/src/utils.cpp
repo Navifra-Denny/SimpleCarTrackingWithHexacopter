@@ -1,6 +1,6 @@
 #include "control/utils.h"
 
-namespace offboard
+namespace control
 {
 
 Utils::Utils() {}
