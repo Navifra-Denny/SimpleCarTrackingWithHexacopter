@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "off_board_control/generate_waypoints.h"
+#include "control/generate_waypoints.h"
 #include <ros/spinner.h>
 
 int main(int argc, char ** argv)

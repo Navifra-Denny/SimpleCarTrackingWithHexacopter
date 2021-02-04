@@ -1,4 +1,4 @@
-#include "off_board_control/generate_waypoints.h"
+#include "control/generate_waypoints.h"
 #include "uav_msgs/SetLocalPosition.h"
 #include "tf2_ros/transform_listener.h"
 
