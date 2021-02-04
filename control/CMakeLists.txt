@@ -53,9 +53,8 @@ include_directories(
 )
 
 ## control_node
-add_executable(${PROJECT_NAME}_node src/offb_node.cpp)
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
+add_executable(offb_node src/offb_node.cpp)
+target_link_libraries(offb_node ${catkin_LIBRARIES})
 
 ## generate_waypoints_node
 add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
