@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="GV_to_PX4" args="0 0 0 0 0 0 world_ned GV 100"/>
+</launch>

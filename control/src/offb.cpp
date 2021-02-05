@@ -46,6 +46,6 @@ void Offboard::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr
     auto target_y = target_position.y;
     auto target_z = target_position.z;
 
-    const float speed = 5.0f;
+    const float speed = 7.0f;
     m_client.moveToPositionAsync(target_x, target_y, target_z, speed);
 }

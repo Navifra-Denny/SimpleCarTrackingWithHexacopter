@@ -1,6 +1,6 @@
 <launch>
 	<arg name="uav_name" default="PX4" />
-	<arg name="ugv_name" default="drone_1" />
+	<arg name="ugv_name" default="GV" />
     
     
     <node name="offb_node" pkg="control" type="offb_node" output="screen"/>
@@ -13,4 +13,6 @@
     <include file="$(find control)/launch/extract_lane_node.launch">
         <arg name="uav_name" value="$(arg uav_name)" />
 	</include>
+
+    <include file="$(find control)/launch/static_transforms.launch"/>
 </launch>
