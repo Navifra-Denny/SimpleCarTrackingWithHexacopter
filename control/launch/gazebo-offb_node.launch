@@ -2,5 +2,5 @@
 <launch>
     <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
 
-    <node name="control_node" pkg="control" type="control_node" output="screen"/>
+    <node name="offb_node" pkg="control" type="offb_node" output="screen"/>
 </launch>

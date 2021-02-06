@@ -58,22 +58,22 @@
       profile = default
       type = Terminal
     [[[terminal4]]]
-      command = "bash -c 'sleep 4; source /opt/ros/melodic/setup.bash; source /home/ys/catkin_ws/devel/setup.bash; roslaunch control generate_waypoints_node.launch; $SHELL'"
-      directory = 
+      command = "bash -c 'sleep 4; source /opt/ros/melodic/setup.bash; source /home/ys/catkin_ws/devel/setup.bash; roslaunch control control.launch; $SHELL'"
+      directory = ""
       order = 1
       parent = up_right
       profile = default
       type = Terminal
     [[[terminal5]]]
-      command = "bash -c 'sleep 4; source /opt/ros/melodic/setup.bash; source /home/ys/catkin_ws/devel/setup.bash; roslaunch control extract_lane_node.launch; $SHELL'"
-      directory = ""
+      command = "bash -c 'sleep 6; source /opt/ros/melodic/setup.bash; rosbag play ugv_drone1_state_long.bag; $SHELL'"
+      directory = /home/ys/catkin_ws/src/uav_object_tracking/control/bag
       order = 0
       parent = down_left
       profile = default
       type = Terminal
     [[[terminal6]]]
-      command = "bash -c 'sleep 6; source /opt/ros/melodic/setup.bash; rosbag play ugv_drone1_state_long.bag; $SHELL'"
-      directory = /home/ys/catkin_ws/src/uav_object_tracking/control/bag
+      command = ""
+      directory = ""
       order = 1
       parent = down_left
       profile = default
@@ -97,3 +97,4 @@
 [profiles]
   [[default]]
     cursor_color = "#aaaaaa"
+    scrollback_infinite = True
