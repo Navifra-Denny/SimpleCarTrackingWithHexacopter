@@ -6,7 +6,7 @@
 ExtractLane::ExtractLane()
 {
 	// Set Param
-	SetParam();
+	GetParam();
 
     // package, node, topic name
     std::string self_pkg_name = "/control";
@@ -28,7 +28,7 @@ ExtractLane::ExtractLane()
 ExtractLane::~ExtractLane()
 { }
 
-void ExtractLane::SetParam()
+void ExtractLane::GetParam()
 {
 	m_nh.getParam("extract_lane_node/ROI_front_m", m_roi_front_param);
 	m_nh.getParam("extract_lane_node/ROI_rear_m", m_roi_rear_param);

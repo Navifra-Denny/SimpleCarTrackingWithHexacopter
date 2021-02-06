@@ -52,7 +52,7 @@ private:
     geometry_msgs::PointStamped m_curr_uav_position;
     uav_msgs::Roi m_roi_msg;
 
-    void SetParam();
+    void GetParam();
     void UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr);
     void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
     bool Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr);

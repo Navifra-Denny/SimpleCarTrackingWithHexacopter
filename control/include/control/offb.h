@@ -17,6 +17,8 @@ STRICT_MODE_ON
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
+
+#include "uav_msgs/CarState.h"
 #include "control/utils.h"
 // #include <mavros_msgs/CommandBool.h>
 // #include <mavros_msgs/SetMode.h>
@@ -49,17 +51,20 @@ private:
 
     // service client
     ros::Subscriber m_desired_waypoints_sub;
+    ros::Subscriber m_car_state_sub;
 
     // param
-    // std::string m_vehicle_name_param;
+    float m_speed_ms_param;
+    std::string m_ue_target_name_param;
+    std::string m_target_vehicle_name_param;
     // float m_x_offset_m_param;
     // float m_z_offset_m_param;
 
 private: // function
-    void SetParam();
+    void GetParam();
     
     void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array);
-
+    void CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
 };
 
 #endif //  __OFFB_H__

@@ -48,7 +48,7 @@ private:
     float m_z_offset_m_param;
 
 private: // function
-    void SetParam();
+    void GetParam();
 
     void CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state);
     bool ConvertStateToWaypoints(geometry_msgs::PoseStamped pose_stamped);

@@ -5,7 +5,7 @@
 GenerateWaypoints::GenerateWaypoints()
 {
     // Set Param
-    SetParam();
+    GetParam();
 
     // package, node, topic name
     std::string self_pkg_name = "/control";
@@ -28,7 +28,7 @@ GenerateWaypoints::~GenerateWaypoints()
 {
 }
 
-void GenerateWaypoints::SetParam()
+void GenerateWaypoints::GetParam()
 {
     m_nh.getParam("generate_waypoints_node/x_offset_m", m_x_offset_m_param);
     m_nh.getParam("generate_waypoints_node/z_offset_m", m_z_offset_m_param);

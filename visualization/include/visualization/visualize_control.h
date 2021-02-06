@@ -45,7 +45,7 @@ private:
     std::string m_uav_name_param;
 
     // Marker Init
-    void SetParam();
+    void GetParam();
     void MarkerInit();
 
     // Callback
