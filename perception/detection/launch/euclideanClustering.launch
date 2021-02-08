@@ -1,6 +1,7 @@
 <launch>
   <!-- Eulcidean clustering Parameter -->
   <arg name="namespace" default="detection" />
+  <arg name="lidar_frame_id" default="world_enu" />
 
   <arg name="remove_ground_ransac" default="false" />
   <arg name="remove_ground_rayGroundFilter" default="true" />
@@ -68,6 +69,7 @@
   <group ns="$(arg namespace)">  
     <node pkg="detection" type="detection" name="euclideanClustering" output="screen">
       <!-- Eulcidean clustering Parameter -->
+      <param name="lidar_frame_id" value="$(arg lidar_frame_id)"/>
       <param name="remove_ground_ransac" value="$(arg remove_ground_ransac)"/>
       <param name="remove_ground_rayGroundFilter" value="$(arg remove_ground_rayGroundFilter)"/>
       <param name="downsample_cloud" value="$(arg downsample_cloud)"/>

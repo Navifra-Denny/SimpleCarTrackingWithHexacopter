@@ -66,6 +66,7 @@ private:
     std::string _output_frame;
     float _in_max_height;
     float _in_floor_max_angle;
+    std::string _lidar_frame_id;
    
 
 

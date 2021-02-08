@@ -1,0 +1,38 @@
+<launch>
+    <!-- PerceptionParams -->
+    <arg name="vehicle_width" default="1.85" />
+    <arg name="vehicle_length" default="4.2" />
+    <arg name="min_object_size" default="1.0" />
+    <arg name="max_object_size" default="30.0" />
+    <arg name="polygon_quarters" default="16" />
+    <arg name="polygon_resolution" default="0.5" />
+    <arg name="tracking_type" default="1" />
+    
+    <!-- SimpleTracker -->
+    <arg name="max_association_distance" default="4.5" />
+    <arg name="max_association_size_diff" default="2.0" />
+    
+    <!-- etc -->
+    <arg name="horizonDistance" default="10" />
+
+    <!-- detection launch file -->
+    <include file="$(find detection)/launch/euclideanClustering.launch"/>
+
+
+    <node pkg="tracking" type="tracking" name="kfTracker" output="screen">
+        <param name= "vehicle_width" value="$(arg vehicle_width)" />
+        <param name= "vehicle_length" value="$(arg vehicle_length)" />
+        <param name= "min_object_size" value="$(arg min_object_size)" />
+        <param name= "max_object_size" value="$(arg max_object_size)" />
+        <param name= "polygon_quarters" value="$(arg polygon_quarters)" />
+        <param name= "polygon_resolution" value="$(arg polygon_resolution)" />
+        <param name= "tracking_type" value="$(arg tracking_type)" />
+
+        <!-- SimpleTracker -->
+        <param name="max_association_distance" value="$(arg max_association_distance)" />
+        <param name="max_association_size_diff" value="$(arg max_association_size_diff)" />
+
+    </node>
+
+
+</launch>

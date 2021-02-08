@@ -21,7 +21,8 @@ void RayGroundFilter::initParam(
     double min_height_threshold,
     double clipping_height,
     double min_point_distance,
-    double reclass_distance_threshold
+    double reclass_distance_threshold,
+    std::string lidar_frame_id
 )
 {
     _general_max_slope = general_max_slope;
@@ -33,6 +34,7 @@ void RayGroundFilter::initParam(
     _min_point_distance = min_point_distance;
     _reclass_distance_threshold = reclass_distance_threshold;   
     _radial_dividers_num = ceil(360.0 / _radial_divider_angle);
+    _lidar_frame_id = lidar_frame_id;
 
 }
 
@@ -320,7 +322,7 @@ bool RayGroundFilter::FilterROSMsg(const sensor_msgs::PointCloud2ConstPtr in_sen
   out_filtered_msg->height = 1;
 
   out_filtered_msg->fields            = in_sensor_cloud->fields;
-  out_filtered_msg->header.frame_id   = "os1_lidar";
+  out_filtered_msg->header.frame_id   = _lidar_frame_id;
   out_filtered_msg->header.stamp      = in_sensor_cloud->header.stamp;
   out_filtered_msg->point_step        = in_sensor_cloud->point_step;
   out_filtered_msg->row_step          = point_size * in_selector.size();
