@@ -4,13 +4,16 @@
 	<arg name="z_offset_m" default="10" />
 	<arg name="ugv_name" default="drone_1" />
 	<arg name="uav_name" default="drone_1" />
+	<arg name="distance_threshold" default="0.1"/>
 	<arg name="use_sim_time" default="false"/>
 	<param name="use_sim_time" value="$(arg use_sim_time)"/>
+	
 
 	<node pkg="control" type="generate_waypoints_node" name="generate_waypoints_node" output="$(arg output)">
 		<param name="x_offset_m" value="$(arg x_offset_m)" />
 		<param name="z_offset_m" value="$(arg z_offset_m)" />
 		<param name="ugv_name" value="$(arg ugv_name)" />
+		<param name="distance_threshold" value="$(arg distance_threshold)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 

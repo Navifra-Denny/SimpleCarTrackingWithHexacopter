@@ -28,4 +28,10 @@ float Utils::Distance(geometry_msgs::Point point1, geometry_msgs::Point point2)
 
     return distance_m;
 }
+
+float Utils::Degree2Rad(float degree)
+{
+	float rad = degree * M_PI/180;
+	return rad; 
+}
 }

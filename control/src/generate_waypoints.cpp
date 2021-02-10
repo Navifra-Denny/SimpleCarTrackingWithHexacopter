@@ -33,6 +33,7 @@ void GenerateWaypoints::GetParam()
     m_nh.getParam("generate_waypoints_node/x_offset_m", m_x_offset_m_param);
     m_nh.getParam("generate_waypoints_node/z_offset_m", m_z_offset_m_param);
     m_nh.getParam("generate_waypoints_node/ugv_name", m_vehicle_name_param);
+    m_nh.getParam("generate_waypoints_node/distance_threshold", m_distance_thresh_param);
 }
 
 void GenerateWaypoints::CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr)
@@ -52,7 +53,7 @@ bool GenerateWaypoints::ConvertStateToWaypoints(geometry_msgs::PoseStamped pose_
     else
     {
         auto distance_m = m_utils.Distance(m_input_waypoints.back().pose.position, pose_stamped.pose.position);
-        if (distance_m > 0.2)
+        if (distance_m > m_distance_thresh_param)
             do_push_waypoints = true;
     }
 
@@ -60,14 +61,14 @@ bool GenerateWaypoints::ConvertStateToWaypoints(geometry_msgs::PoseStamped pose_
     {
         m_input_waypoints.push_back(pose_stamped);
 
-        auto desired_point = CreateDesiredWaypoint(pose_stamped);
-        m_desired_waypoints.push_back(desired_point);
+        auto desired_pose = CreateDesiredWaypoint(pose_stamped);
+        m_desired_waypoints.push_back(desired_pose);
 
         uav_msgs::SetLocalPosition desired_local_position;
-        desired_local_position.request.x = desired_point.pose.position.x;
-        desired_local_position.request.y = desired_point.pose.position.y;
-        desired_local_position.request.z = desired_point.pose.position.z;
-        auto euler = m_utils.Quat2Euler(desired_point.pose.orientation);
+        desired_local_position.request.x = desired_pose.pose.position.x;
+        desired_local_position.request.y = desired_pose.pose.position.y;
+        desired_local_position.request.z = desired_pose.pose.position.z;
+        auto euler = m_utils.Quat2Euler(desired_pose.pose.orientation);
         desired_local_position.request.yaw = euler.y;
 
         m_desired_waypoints_srv_client.call(desired_local_position);

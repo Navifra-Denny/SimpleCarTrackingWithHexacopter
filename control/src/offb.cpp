@@ -1,21 +1,30 @@
 #include "control/offb.h"
+#include <math.h>
 
 using namespace msr::airlib;
 
 Offboard::Offboard()
 {
     GetParam();
-    
-    // package, node, topic name
-    std::string car_state_sub_topic_name = "/airsim_node/" + m_target_vehicle_name_param + "/car_state";
+    InitClient();
+    InitRos();
+}
 
-    // Initialize subscriber
-    m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>
-            ("/control/generate_waypoints_node/desired_waypoints", 10, boost::bind(&Offboard::DesiredWaypointsCallback, this, _1));
-    m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>
-            (car_state_sub_topic_name, 10, boost::bind(&Offboard::CarStateCallback, this, _1));
+Offboard::~Offboard()
+{}
 
-    
+void Offboard::GetParam()
+{
+    m_nh.getParam("offb_node/uav_speed", m_speed_ms_param);
+    m_nh.getParam("offb_node/UE_target_name", m_ue_target_name_param);
+    m_nh.getParam("offb_node/uav_name", m_uav_name_param);
+    m_nh.getParam("offb_node/ugv_name", m_target_vehicle_name_param);
+    m_nh.getParam("offb_node/waypoint_pub_interval", m_waypoint_pub_interval_param);
+    m_nh.getParam("offb_node/dt", m_dt_param);
+}
+
+void Offboard::InitClient()
+{
     try {
         m_client.confirmConnection();
         // auto object_names = m_client.simListSceneObjects();
@@ -35,38 +44,61 @@ Offboard::Offboard()
     float takeoffTimeout = 5; 
     m_client.takeoffAsync(takeoffTimeout)->waitOnLastTask();
 
+    //the setpoint publishing rate MUST be faster than 2Hz
+    ros::Rate rate(1/m_waypoint_pub_interval_param);
+
+    // wait for FCU connection
+    while(ros::ok() && (RpcLibClientBase::ConnectionState::Connected != m_client.getConnectionState())){
+        ros::spinOnce();
+        rate.sleep();
+    }
+
     const float START_HEIGHT_M = -5.0;
     const float START_VELOCITY_MS = 3.0;
     YawMode yaw_mode(true, 0);
-    m_client.moveToZAsync(START_HEIGHT_M, START_VELOCITY_MS, 5, yaw_mode);
 
-    std::this_thread::sleep_for(std::chrono::duration<double>(2));
+    m_target_pose.position.x = 0.0;
+    m_target_pose.position.y = 0.0;
+    m_target_pose.position.z = START_HEIGHT_M;
+
+    m_client.enableApiControl(true); 
+    //send a few setpoints before starting
+    for(int i = 100; ros::ok() && i > 0; --i){
+        m_client.moveToZAsync(START_HEIGHT_M, START_VELOCITY_MS, 5, yaw_mode);
+        ros::spinOnce();
+        rate.sleep();
+    }
+
     m_client.hoverAsync()->waitOnLastTask();
-
     m_client.enableApiControl(true); 
 }
 
-Offboard::~Offboard()
-{}
-
-void Offboard::GetParam()
+void Offboard::InitRos()
 {
-    m_nh.getParam("offb_node/uav_speed", m_speed_ms_param);
-    m_nh.getParam("offb_node/UE_target_name", m_ue_target_name_param);
-    m_nh.getParam("offb_node/ugv_name", m_target_vehicle_name_param);
-}
+    // package, node, topic name
+    std::string car_state_sub_topic_name = "/airsim_node/" + m_target_vehicle_name_param + "/car_state";
+	std::string odom_topic_name = "/airsim_node/" + m_uav_name_param + "/odom_local_ned";
 
+    // Initialize subscriber
+    m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>
+            ("/control/generate_waypoints_node/desired_waypoints", 10, boost::bind(&Offboard::DesiredWaypointsCallback, this, _1));
+    m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>
+            (car_state_sub_topic_name, 10, boost::bind(&Offboard::CarStateCallback, this, _1));
+    m_odom_sub = m_nh.subscribe<nav_msgs::Odometry>
+            (odom_topic_name, 10, boost::bind(&Offboard::OdomCallback, this, _1));
+
+    // Initialize publisher
+    m_target_waypoint_pub = m_nh.createTimer(ros::Duration(m_waypoint_pub_interval_param), &Offboard::TimerCallback, this);
+}
 
 void Offboard::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array)
 {
-    auto target_position = pose_array->poses.back().position;
-    auto target_x = target_position.x;
-    auto target_y = target_position.y;
-    auto target_z = target_position.z;
-    YawMode yaw_mode(true, 0);
+    m_target_pose = pose_array->poses.back();
+}
 
-    m_client.moveToPositionAsync(target_x, target_y, target_z, m_speed_ms_param, Utils::max<float>(), DrivetrainType::MaxDegreeOfFreedom, yaw_mode,
-    -1, 1);
+void Offboard::OdomCallback(const nav_msgs::Odometry::ConstPtr &odom_ptr)
+{
+    m_current_pose = odom_ptr->pose.pose;
 }
 
 void Offboard::CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr)
@@ -87,4 +119,30 @@ void Offboard::CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_pt
     pose.position[2] = object_pose.position.z();
 
     m_client.simSetObjectPose(m_ue_target_name_param, pose, true);
+}
+
+void Offboard::TimerCallback(const ros::TimerEvent& event)
+{
+    // auto euler = m_utils.Quat2Euler(m_target_pose.orientation);
+    // YawMode yaw_mode(false, euler.y);
+    // m_client.moveToPositionAsync((double)m_target_pose.position.x, (double)m_target_pose.position.y, (double)m_target_pose.position.z, 
+    //     m_speed_ms_param, Utils::max<float>(), DrivetrainType::ForwardOnly, yaw_mode);
+
+    // ROS_INFO("x: %f, y: %f, z: %f, vel: %f", 
+    // (double)m_target_pose.position.x, (double)m_target_pose.position.y, (double)m_target_pose.position.z, (double)m_speed_ms_param);
+    
+    float dt = m_dt_param;
+
+    auto euler = m_utils.Quat2Euler(m_target_pose.orientation);
+    YawMode yaw_mode(false, euler.y);
+    auto ned_vx = (m_target_pose.position.x - m_current_pose.position.x)/dt;
+    auto ned_vy = (m_target_pose.position.y - m_current_pose.position.y)/dt;
+    auto body_vx = cos(m_utils.Degree2Rad(euler.y))*ned_vx - sin(m_utils.Degree2Rad(euler.y))*ned_vy;
+    auto body_vy = sin(m_utils.Degree2Rad(euler.y))*ned_vx + cos(m_utils.Degree2Rad(euler.y))*ned_vy;
+    m_client.moveByVelocityZAsync((float)body_vx, (float)body_vy, (float)m_target_pose.position.z, dt,
+    DrivetrainType::ForwardOnly, yaw_mode);
+
+    ROS_ERROR("dt: %f", (double)dt);
+    ROS_INFO("vx: %f, vy: %f, z: %f", 
+    (double)body_vx, (double)body_vy, (double)m_target_pose.position.z);
 }

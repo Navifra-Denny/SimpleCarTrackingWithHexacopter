@@ -46,6 +46,7 @@ private:
     std::string m_vehicle_name_param;
     float m_x_offset_m_param;
     float m_z_offset_m_param;
+    float m_distance_thresh_param;
 
 private: // function
     void GetParam();

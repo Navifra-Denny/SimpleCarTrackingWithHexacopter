@@ -22,6 +22,7 @@ public:
 
     Euler Quat2Euler(const geometry_msgs::Quaternion& quat_msg);
     float Distance(geometry_msgs::Point point1, geometry_msgs::Point point2);
+    float Degree2Rad(float degree);
 };
 
 }
