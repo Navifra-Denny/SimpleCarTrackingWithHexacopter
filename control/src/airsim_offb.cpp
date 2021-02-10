@@ -1,4 +1,4 @@
-#include "control/offb.h"
+#include "control/airsim_offb.h"
 #include <math.h>
 
 using namespace msr::airlib;
@@ -15,12 +15,12 @@ Offboard::~Offboard()
 
 void Offboard::GetParam()
 {
-    m_nh.getParam("offb_node/uav_speed", m_speed_ms_param);
-    m_nh.getParam("offb_node/UE_target_name", m_ue_target_name_param);
-    m_nh.getParam("offb_node/uav_name", m_uav_name_param);
-    m_nh.getParam("offb_node/ugv_name", m_target_vehicle_name_param);
-    m_nh.getParam("offb_node/waypoint_pub_interval", m_waypoint_pub_interval_param);
-    m_nh.getParam("offb_node/dt", m_dt_param);
+    m_nh.getParam("airsim_offb_node/uav_speed", m_speed_ms_param);
+    m_nh.getParam("airsim_offb_node/UE_target_name", m_ue_target_name_param);
+    m_nh.getParam("airsim_offb_node/uav_name", m_uav_name_param);
+    m_nh.getParam("airsim_offb_node/ugv_name", m_target_vehicle_name_param);
+    m_nh.getParam("airsim_offb_node/waypoint_pub_interval", m_waypoint_pub_interval_param);
+    m_nh.getParam("airsim_offb_node/dt", m_dt_param);
 }
 
 void Offboard::InitClient()

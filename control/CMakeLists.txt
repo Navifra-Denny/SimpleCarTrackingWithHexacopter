@@ -73,8 +73,8 @@ include_directories(
 )
 
 ## control_node
-add_executable(offb_node src/offb_node.cpp src/offb.cpp src/utils.cpp)
-target_link_libraries(offb_node ${catkin_LIBRARIES} AirLib)
+add_executable(airsim_offb_node src/airsim_offb_node.cpp src/airsim_offb.cpp src/utils.cpp)
+target_link_libraries(airsim_offb_node ${catkin_LIBRARIES} AirLib)
 
 ## generate_waypoints_node
 add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)

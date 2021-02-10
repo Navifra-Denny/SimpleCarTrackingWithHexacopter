@@ -5,7 +5,7 @@
 	<arg name="z_offset_m" default="10" />
     
     
-    <node name="offb_node" pkg="control" type="offb_node" output="screen">
+    <node name="airsim_offb_node" pkg="control" type="airsim_offb_node" output="screen">
 		<param name="uav_speed" value="6.0" />
 		<param name="UE_target_name" value="BP_BoxTruck_3" />
         <param name="waypoint_pub_interval" value="0.1" />
