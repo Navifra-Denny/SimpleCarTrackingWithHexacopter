@@ -6,7 +6,7 @@ int main(int argc, char ** argv)
 {
     // Initialize ROS
 	ros::init (argc, argv, "airsim_offb_node");
-    Offboard offboard;
+    airsim::Offboard offboard;
 
     ros::spin();
 

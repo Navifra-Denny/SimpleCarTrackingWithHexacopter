@@ -84,3 +84,5 @@ target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
 target_link_libraries(extract_lane_node ${catkin_LIBRARIES})
 
+add_executable(mavros_offb_node src/mavros_offb_node.cpp src/mavros_offb.cpp src/utils.cpp)
+target_link_libraries(mavros_offb_node ${catkin_LIBRARIES})

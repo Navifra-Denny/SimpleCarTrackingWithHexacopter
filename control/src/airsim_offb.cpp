@@ -3,6 +3,7 @@
 
 using namespace msr::airlib;
 
+namespace airsim {
 Offboard::Offboard()
 {
     GetParam();
@@ -19,7 +20,7 @@ void Offboard::GetParam()
     m_nh.getParam("airsim_offb_node/UE_target_name", m_ue_target_name_param);
     m_nh.getParam("airsim_offb_node/uav_name", m_uav_name_param);
     m_nh.getParam("airsim_offb_node/ugv_name", m_target_vehicle_name_param);
-    m_nh.getParam("airsim_offb_node/waypoint_pub_interval", m_waypoint_pub_interval_param);
+    m_nh.getParam("airsim_offb_node/setpoint_pub_interval", m_setpoint_pub_interval_param);
     m_nh.getParam("airsim_offb_node/dt", m_dt_param);
 }
 
@@ -45,7 +46,7 @@ void Offboard::InitClient()
     m_client.takeoffAsync(takeoffTimeout)->waitOnLastTask();
 
     //the setpoint publishing rate MUST be faster than 2Hz
-    ros::Rate rate(1/m_waypoint_pub_interval_param);
+    ros::Rate rate(1/m_setpoint_pub_interval_param);
 
     // wait for FCU connection
     while(ros::ok() && (RpcLibClientBase::ConnectionState::Connected != m_client.getConnectionState())){
@@ -88,7 +89,7 @@ void Offboard::InitRos()
             (odom_topic_name, 10, boost::bind(&Offboard::OdomCallback, this, _1));
 
     // Initialize publisher
-    m_target_waypoint_pub = m_nh.createTimer(ros::Duration(m_waypoint_pub_interval_param), &Offboard::TimerCallback, this);
+    m_target_waypoint_pub = m_nh.createTimer(ros::Duration(m_setpoint_pub_interval_param), &Offboard::TimerCallback, this);
 }
 
 void Offboard::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array)
@@ -145,4 +146,5 @@ void Offboard::TimerCallback(const ros::TimerEvent& event)
     ROS_ERROR("dt: %f", (double)dt);
     ROS_INFO("vx: %f, vy: %f, z: %f", 
     (double)body_vx, (double)body_vy, (double)m_target_pose.position.z);
+}
 }

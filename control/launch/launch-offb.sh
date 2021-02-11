@@ -5,4 +5,4 @@ killall gzserver
 
 source ./launch-common.sh
 
-roslaunch control offb_node.launch
+roslaunch control mavros_offb_node.launch
