@@ -34,6 +34,7 @@ private:
 	ros::Subscriber m_desired_waypoints_sub;
     ros::Subscriber m_roi_waypoints_sub;
     ros::Subscriber m_roi_curr_position_sub;
+    ros::Subscriber m_current_pose_sub;
     ros::Subscriber m_roi_box_sub;
     
     // publisher
@@ -54,6 +55,7 @@ private:
     void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
     void ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_waypoints);
     void ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &current_point_ptr);
+    void PositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
     void ROICallback(const uav_msgs::Roi::ConstPtr &current_point_ptr);
     void TimerCallback(const ros::TimerEvent& event);
 

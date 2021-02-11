@@ -1,19 +1,38 @@
 <launch>
+    <arg name="do_airsim" default="true" />
 	<arg name="uav_name" default="PX4" />
 	<arg name="ugv_name" default="GV" />
-	<arg name="x_offset_m" default="2" />
-	<arg name="z_offset_m" default="10" />
+	<arg name="x_offset_m" default="2.0" />
+	<arg name="z_offset_m" default="5.0" />
+	<arg name="uav_speed" default="6.0" />
+	<arg name="setpoint_pub_interval" default="0.1" />
+	<arg name="dt" default="0.25" />
     
+    <group if="$(arg do_airsim)">
+        <node name="airsim_offb_node" pkg="control" type="airsim_offb_node" output="screen">
+            <param name="uav_speed" value="$(arg uav_speed)" />
+            <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+            <param name="dt" value="$(arg dt)" />
+            <param name="uav_name" value="$(arg uav_name)" />
+            <param name="ugv_name" value="$(arg ugv_name)" />
+            <param name="UE_target_name" value="BP_BoxTruck_3" />
+        </node>
+    </group>
     
-    <node name="airsim_offb_node" pkg="control" type="airsim_offb_node" output="screen">
-		<param name="uav_speed" value="6.0" />
-		<param name="UE_target_name" value="BP_BoxTruck_3" />
-        <param name="setpoint_pub_interval" value="0.1" />
-        <param name="dt" value="0.25" />
-        <param name="uav_name" value="$(arg uav_name)" />
-        <param name="ugv_name" value="$(arg ugv_name)" />
-	</node>
-
+    <group unless="$(arg do_airsim)">
+        <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
+        <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
+            <param name="uav_speed" value="$(arg uav_speed)" />
+            <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+            <param name="dt" value="$(arg dt)" />
+            <param name="uav_name" value="$(arg uav_name)" />
+            <param name="ugv_name" value="$(arg ugv_name)" />
+            <param name="init_x" value="0.0" />
+            <param name="init_y" value="0.0" />
+            <param name="init_z" value="5.0" />
+        </node>
+    </group>
+    
     <include file="$(find control)/launch/generate_waypoints_node.launch">
         <arg name="uav_name" value="$(arg uav_name)" />
         <arg name="ugv_name" value="$(arg ugv_name)" />

@@ -30,8 +30,7 @@ private:
     // Subscriber
     ros::Subscriber m_state_sub;
     ros::Subscriber m_desired_waypoints_sub;
-    ros::Subscriber m_car_state_sub;
-    //ros::Subscriber m_odom_sub;
+    ros::Subscriber m_current_pose_sub;
 
     // Publisher
     ros::Publisher m_local_pose_pub;
@@ -45,7 +44,6 @@ private:
 
     // param
     float m_speed_ms_param;
-    std::string m_ue_target_name_param;
     std::string m_uav_name_param;
     std::string m_target_vehicle_name_param;
     float m_setpoint_pub_interval_param;
@@ -53,8 +51,9 @@ private:
     float m_init_pos_x_param;
     float m_init_pos_y_param;
     float m_init_pos_z_param;
-    // float m_x_offset_m_param;
-    // float m_z_offset_m_param;
+
+    // flag
+    bool m_is_ready_to_flight;
 
     ros::Time m_last_request;
 
@@ -62,16 +61,18 @@ private:
     geometry_msgs::PoseStamped m_current_pose;
     geometry_msgs::PoseStamped m_target_pose;
 
+	tf2_ros::Buffer m_tfBuffer;
+	tf2_ros::TransformListener m_tfListener;
 
 private: // function
-    void GetParam();
-    void InitRos();
-    void InitClient();
+    bool GetParam();
+    bool InitFlag();
+    bool InitRos();
+    bool InitClient();
     
     void StatusCallback(const mavros_msgs::State::ConstPtr &state_ptr);
-    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array);
-    void CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
-    void OdomCallback(const nav_msgs::Odometry::ConstPtr &odom_ptr);
+    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array_ptr);
+    void PositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
     void TimerCallback(const ros::TimerEvent& event);
 
     void OffboardReConnection();
