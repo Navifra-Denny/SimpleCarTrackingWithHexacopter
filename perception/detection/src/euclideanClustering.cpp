@@ -18,7 +18,7 @@ EuclideanClustering::EuclideanClustering()
     _pub_centroid = nh.advertise<uav_msgs::Centroids>(ros_namespace_ + "/cluster_centroids",1);
 
     _pub_noground_cloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/points_nogroud",1);
-    _pub_clusters_message = nh.advertise<uav_msgs::CloudClusterArray>(ros_namespace_ + "/cloud_clusters",1);
+    _pub_clusters_message = nh.advertise<uav_msgs::CloudClusterArray>(ros_namespace_ + "/cloud_clusters",100);
     _pub_detected_objects = nh.advertise<uav_msgs::DetectedObjectArray>(ros_namespace_ + "/objects",1);
 
     // Check Publisher
@@ -31,8 +31,8 @@ EuclideanClustering::EuclideanClustering()
     _pub_DoNSegmentation = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/DoNSegmentation", 1);
 
     // Subscriber
-   _sub_velodyne = nh.subscribe("/os_cloud_node/transformed_cloud", 1, &EuclideanClustering::PointCloudCallback, this);
-  //  _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);
+  //  _sub_velodyne = nh.subscribe("/os_cloud_node/transformed_cloud", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
+    _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);
   //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
 
     // getParam();
@@ -46,7 +46,8 @@ EuclideanClustering::EuclideanClustering()
         _clipping_height,
         _min_point_distance,
         _reclass_distance_threshold,
-        _lidar_frame_id
+        _lidar_frame_id, 
+        _sensor_height
     );
 
 
@@ -96,6 +97,7 @@ void EuclideanClustering::getParam()
     nh.getParam("euclideanClustering/clipping_height", _clipping_height);
     nh.getParam("euclideanClustering/min_point_distance", _min_point_distance);
     nh.getParam("euclideanClustering/reclass_distance_threshold", _reclass_distance_threshold);
+    nh.getParam("euclideanClustering/sensor_height", _sensor_height);
 }
 
 
@@ -112,7 +114,6 @@ void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::Con
     /************************************/
   
     if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
-    PublishCloud(&_pub_check, preprocessed_cloud_ptr);
 
     /************************************/
     //          Segmentation            //
@@ -144,7 +145,7 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     // Ground Removal 
     if (_remove_ground_rayGroundFilter){
         rayGroundFilter.initParam(_general_max_slope, _local_max_slope, _radial_divider_angle, _concentric_divider_distance, 
-                                  _min_height_threshold, _clipping_height, _min_point_distance, _reclass_distance_threshold, _lidar_frame_id);  
+                                  _min_height_threshold, _clipping_height, _min_point_distance, _reclass_distance_threshold, _lidar_frame_id, _sensor_height);  
         if(!rayGroundFilter.removeFloor_rayGroundFilter(in_sensor_cloud, nofloor_cloud_ptr_Rayground, onlyfloor_cloud_ptr_Rayground)) ROS_ERROR_STREAM("Fail to remove floor with Rayground filter");
         _pub_noground_cloud.publish(*nofloor_cloud_ptr_Rayground);
         _pub_ground_cloud.publish(*onlyfloor_cloud_ptr_Rayground);
@@ -159,6 +160,8 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
         nofloor_cloud_ptr = current_sensor_cloud_ptr;
     }
+    
+    // PublishCloud(&_pub_check, nofloor_cloud_ptr);
 
     // Remove pointcloud within Threshold
     pcl::PointCloud<pcl::PointXYZ>::Ptr threshold_removed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -230,6 +233,8 @@ bool EuclideanClustering::RemovePointsUpTo(const pcl::PointCloud<pcl::PointXYZ>:
       out_cloud_ptr->points.push_back(in_cloud_ptr->points[i]);
     }
   }
+  if (out_cloud_ptr->points.size() < 1) return false;
+  
   return true;
 }
 
@@ -643,7 +648,7 @@ bool EuclideanClustering::PublishColorCloud(const ros::Publisher *in_publisher, 
 
 bool EuclideanClustering::PublishCentroids(const ros::Publisher *in_publisher, const uav_msgs::Centroids &in_centroids)
 {
-  ROS_WARN_STREAM(in_centroids.points.size());
+  std::cout << "number of Clustering: " << in_centroids.points.size() << std::endl;
   in_publisher->publish(in_centroids);
   
   return true;
@@ -693,6 +698,7 @@ bool EuclideanClustering::PublishDetectedObjects(const uav_msgs::CloudClusterArr
 // Generate colors
 void EuclideanClustering::GenerateColors(std::vector<Scalar>& colors, size_t count, size_t factor)
 {
+  ROS_WARN_STREAM("Generating Colors ... ");
   if (count < 1)
     return;
 
@@ -736,6 +742,8 @@ void EuclideanClustering::GenerateColors(std::vector<Scalar>& colors, size_t cou
     Point3_<uchar> c = bgr_subset.at<Point3_<uchar> >((int)i);
     colors[i] = Scalar(c.x, c.y, c.z);
   }
+
+  ROS_WARN_STREAM("Generating Colors ... Done ");
 }
 
 void EuclideanClustering::DownsamplePoints(const Mat& src, Mat& dst, size_t count)

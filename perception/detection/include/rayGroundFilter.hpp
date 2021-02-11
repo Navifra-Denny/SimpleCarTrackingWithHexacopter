@@ -77,7 +77,8 @@ public:
         double clipping_height,
         double min_point_distance,
         double reclass_distance_threshold,
-        std::string lidar_frame_id
+        std::string lidar_frame_id,
+        double sensor_height
     );
 
 

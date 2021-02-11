@@ -5,6 +5,9 @@
 #include <string>
 #include <math.h>
 
+namespace UtilityHNS
+{
+
 class UtilityH
 {
 public:
@@ -12,6 +15,8 @@ public:
     virtual ~UtilityH();
 
     static double FixNegativeAngle(const double& a);
+    static void GetTickCount(struct timespec& t);
+    static double GetTimeDiffNow(const struct timespec& old_t);
 };
-
+}
 #endif

@@ -79,6 +79,7 @@ private:
     double _clipping_height;
     double _min_point_distance;
     double _reclass_distance_threshold;
+    double _sensor_height;
     
   
     std::string str_distances;

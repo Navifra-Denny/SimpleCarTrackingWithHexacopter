@@ -1,5 +1,6 @@
 #include "tracking/kfTrackerCore.hpp"
 #include "tracking/PolygonGenerator.hpp"
+#include "tracking/UtilityH.hpp"
 
 #define __APP_NAME__ "kfTracker"
 
@@ -38,11 +39,18 @@ void Tracker::ReadNodeParams()
     ROS_INFO("[%s] max_association_size_diff: %f", __APP_NAME__, m_ObstacleTracking.m_MAX_ASSOCIATION_SIZE_DIFF);
     
 }
-
 void Tracker::callbackGetCloudClusters(const uav_msgs::CloudClusterArrayConstPtr &msg)
 {
-    ROS_ERROR_STREAM(msg->clusters.size());
+    // Filter the detected obstacles
     ImportCloudClusters(msg, m_OriginalClusters);
+    std::cout << "Filter the detected Obstacles: " << msg->clusters.size() << "->" << m_OriginalClusters.size() << std::endl;
+    
+    // Tracking 
+    struct timespec tracking_timer;
+    UtilityHNS::UtilityH::GetTickCount(tracking_timer);
+    m_ObstacleTracking.DoOneStep(m_OriginalClusters);
+
+
 }
 
 void Tracker::ImportCloudClusters(const uav_msgs::CloudClusterArrayConstPtr& msg, std::vector<DetectedObject>& originalClusters)
@@ -56,7 +64,7 @@ void Tracker::ImportCloudClusters(const uav_msgs::CloudClusterArrayConstPtr& msg
     struct timespec poly_est_time;
 
     DetectedObject obj;
-    tracking::Point avg_center;
+    Point avg_center;
     PolygonGenerator polyGen(m_Params.nQuarters);   // nQuarters = 16
     pcl::PointCloud<pcl::PointXYZ> point_cloud;
 
@@ -74,37 +82,39 @@ void Tracker::ImportCloudClusters(const uav_msgs::CloudClusterArrayConstPtr& msg
         obj.h = msg->clusters.at(i).dimensions.z;
         
         // CAR Filtering 
+        UtilityHNS::UtilityH::GetTickCount(filter_time);
         if(!IsCar(obj)){
             ROS_ERROR_STREAM("Is not a car");               
             continue;
         }
+        m_FilteringTime += UtilityHNS::UtilityH::GetTimeDiffNow(filter_time);
+        // ROS_INFO_STREAM(m_FilteringTime);
+        // std::cout << "m_FilteringTime :" << m_FilteringTime << std::endl;
 
         obj.id = msg->clusters.at(i).id;
         obj.label = msg->clusters.at(i).label;
 
+        UtilityHNS::UtilityH::GetTickCount(poly_est_time);
         point_cloud.clear();
         pcl::fromROSMsg(msg->clusters.at(i).cloud, point_cloud);
 
-        obj.contour = polyGen.EstimateClusterPolygon(point_cloud, obj.center, avg_center, m_Params.DetectionRadius);
+        obj.contour = polyGen.EstimateClusterPolygon(point_cloud, obj.center, avg_center, m_Params.PolygonRes);
         
+        m_PolyEstimationTime += UtilityHNS::UtilityH::GetTimeDiffNow(poly_est_time);
+        std::cout << "Contouring Time :" << m_PolyEstimationTime << std::endl;
+
         m_nOriginalPoints += point_cloud.points.size();
         m_nContourPoints += obj.contour.size();
-
-        ROS_INFO_STREAM(m_nOriginalPoints);
-        ROS_INFO_STREAM(m_nContourPoints);
         
         originalClusters.push_back(obj);
-    }
 
+    }
 }
 
 
 bool Tracker::IsCar(const DetectedObject& obj)
 {
     double object_size = hypot(obj.w, obj.l);
-    // ROS_INFO_STREAM(obj.w);
-    // ROS_INFO_STREAM(obj.l);
-
 
     if(object_size < m_Params.MinObjSize || object_size > m_Params.MaxObjSize)
         return false;    

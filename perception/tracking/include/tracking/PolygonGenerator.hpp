@@ -10,7 +10,7 @@ public:
     int id;
     int min_ang;
     int max_ang;
-    tracking::Point max_from_center;
+    Point max_from_center;
     bool bFirst;
 
     QuarterView(const int& min_a, const int& max_a, const int& index){
@@ -31,7 +31,7 @@ public:
       bFirst = true;
     }
   
-    bool UpdateQuarterView(const tracking::Point& v)
+    bool UpdateQuarterView(const Point& v)
     {
         if(v.a <= min_ang || v.a > max_ang)
           return false;   
@@ -47,7 +47,7 @@ public:
         return true;
     }
 
-    bool GetMaxPoint(tracking::Point& maxPoint)
+    bool GetMaxPoint(Point& maxPoint)
     {
         if(bFirst)
             return false;
@@ -62,16 +62,16 @@ public:
 class PolygonGenerator
 {
 public:
-    tracking::Point m_centroid;
+    Point m_centroid;
     std::vector<QuarterView> m_Quarters;
-    std::vector<tracking::Point> m_Polygon;
+    std::vector<Point> m_Polygon;
 
     PolygonGenerator(int nQuarters);
     virtual ~PolygonGenerator();
     std::vector<QuarterView> CreateQuarterViews(const int& nResolution);
-    std::vector<tracking::Point> EstimateClusterPolygon(const pcl::PointCloud<pcl::PointXYZ>& cluster, 
-                                                        const tracking::Point& original_centroid, 
-                                                        tracking::Point& new_centroid, 
+    std::vector<Point> EstimateClusterPolygon(const pcl::PointCloud<pcl::PointXYZ>& cluster, 
+                                                        const Point& original_centroid, 
+                                                        Point& new_centroid, 
                                                         const double& polygon_resolution = 1.0);
 
 

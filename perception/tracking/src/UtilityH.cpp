@@ -6,6 +6,9 @@
 
 using namespace std;
 
+namespace UtilityHNS
+{
+
 UtilityH::UtilityH()
 {
 }
@@ -27,4 +30,19 @@ double UtilityH::FixNegativeAngle(const double& a)
     }
 
     return angle;
+}
+
+void UtilityH::GetTickCount(struct timespec& t)
+{
+  while(clock_gettime(0, & t) == -1);
+}
+
+double UtilityH::GetTimeDiffNow(const struct timespec& old_t)
+{
+  struct timespec curr_t;
+  GetTickCount(curr_t);
+  return (curr_t.tv_sec - old_t.tv_sec) + ((double)(curr_t.tv_nsec - old_t.tv_nsec)/ 1000000000.0);
+}
+
+
 }

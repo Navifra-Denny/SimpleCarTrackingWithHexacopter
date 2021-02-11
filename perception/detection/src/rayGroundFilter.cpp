@@ -22,7 +22,8 @@ void RayGroundFilter::initParam(
     double clipping_height,
     double min_point_distance,
     double reclass_distance_threshold,
-    std::string lidar_frame_id
+    std::string lidar_frame_id,
+    double sensor_height
 )
 {
     _general_max_slope = general_max_slope;
@@ -35,6 +36,7 @@ void RayGroundFilter::initParam(
     _reclass_distance_threshold = reclass_distance_threshold;   
     _radial_dividers_num = ceil(360.0 / _radial_divider_angle);
     _lidar_frame_id = lidar_frame_id;
+    _sensor_height = sensor_height;
 
 }
 
@@ -225,8 +227,9 @@ bool RayGroundFilter::ClassifyPointCloud(const std::vector<PointCloudRH>& in_rad
   const float general_slope_ratio = tan(DEG2RAD(_general_max_slope));
   for (size_t i = 0; i < in_radial_ordered_clouds.size(); i++)  // sweep through each radial division
   {
-    float prev_radius = 0.f;
-    float prev_height = 0.f;
+    float prev_radius = 0.f; 
+    // float prev_height = 0.f;
+    float prev_height = -_sensor_height;
     bool prev_ground = false;
     bool current_ground = false;
     for (size_t j = 0; j < in_radial_ordered_clouds[i].size(); j++)  // loop through each point in the radial div
@@ -248,7 +251,8 @@ bool RayGroundFilter::ClassifyPointCloud(const std::vector<PointCloudRH>& in_rad
         // Check again using general geometry (radius from origin) if previous points wasn't ground
         if (!prev_ground)
         {
-          if (current_height <= general_height_threshold && current_height >= -general_height_threshold)
+          // if (current_height <= general_height_threshold && current_height >= -general_height_threshold)
+          if (current_height <= (-_sensor_height + general_height_threshold) && current_height >= (-_sensor_height-general_height_threshold))
           {
             current_ground = true;
           }
@@ -265,8 +269,10 @@ bool RayGroundFilter::ClassifyPointCloud(const std::vector<PointCloudRH>& in_rad
       else
       {
         // check if previous point is too far from previous one, if so classify again
+        // if (points_distance > _reclass_distance_threshold &&
+            // (current_height <= height_threshold && current_height >= -height_threshold))
         if (points_distance > _reclass_distance_threshold &&
-            (current_height <= height_threshold && current_height >= -height_threshold))
+            (current_height <= (-_sensor_height + height_threshold) && current_height >= (-_sensor_height-height_threshold)))
         {
           current_ground = true;
         }
