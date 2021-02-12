@@ -31,7 +31,7 @@ public:
 
 private:
     // Subscriber
-	ros::Subscriber m_desired_waypoints_sub;
+	ros::Subscriber m_desired_local_waypoints_pub;
     ros::Subscriber m_uav_state_sub;
 	// publisher
     ros::Publisher m_roi_box_pub;
@@ -54,7 +54,7 @@ private:
 
     void GetParam();
     void UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr);
-    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
+    void DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
     bool Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr);
     
     bool ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstPtr lane_ptr);

@@ -34,4 +34,12 @@ float Utils::Degree2Rad(float degree)
 	float rad = degree * M_PI/180;
 	return rad; 
 }
+
+double Utils::MeridionalRadius(double a, double b, double lat){
+    return pow(a*b, 2) / sqrt( pow((pow( a*cos(lat), 2) + pow( b*sin(lat), 2 )), 3));
+}
+
+double Utils::NormalRadius(double a, double b, double lat){
+    return (a*a) / sqrt(pow( a*cos(lat), 2 ) + pow( b*sin(lat), 2));
+}
 }

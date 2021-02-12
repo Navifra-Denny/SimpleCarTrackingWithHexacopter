@@ -6,6 +6,9 @@
 	<arg name="uav_name" default="drone_1" />
 	<arg name="distance_threshold" default="0.1"/>
 	<arg name="use_sim_time" default="false"/>
+	<arg name="init_gps_lat" default="37.5448512603" />
+	<arg name="init_gps_lon" default="127.078822504" />
+	<arg name="init_gps_alt" default="5.0" />
 	<param name="use_sim_time" value="$(arg use_sim_time)"/>
 	
 
@@ -14,6 +17,9 @@
 		<param name="z_offset_m" value="$(arg z_offset_m)" />
 		<param name="ugv_name" value="$(arg ugv_name)" />
 		<param name="distance_threshold" value="$(arg distance_threshold)" />
+		<param name="init_gps_lat" value="$(arg init_gps_lat)" />
+		<param name="init_gps_lon" value="$(arg init_gps_lon)" />
+		<param name="init_gps_alt" value="$(arg init_gps_alt)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 

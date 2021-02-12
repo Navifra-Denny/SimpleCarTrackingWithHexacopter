@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-
-set(CONTROL_ROOT "/home/ys/catkin_ws/src/uav_object_tracking/control")
+set(CONTROL_ROOT "$ENV{HOME}/catkin_ws/src/uav_object_tracking/control")
 
 add_subdirectory("${CONTROL_ROOT}/cmake/rpclib_wrapper" rpclib_wrapper)
 add_subdirectory("${CONTROL_ROOT}/cmake/AirLib" AirLib)

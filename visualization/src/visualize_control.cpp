@@ -12,11 +12,15 @@ VisualizeControl::VisualizeControl()
 	std::string roi_curr_position_sub_topic_name = "/airsim_node/" + m_uav_name_param + "/odom_local_ned";
 
     // subscriber init
-	m_roi_curr_position_sub = m_nh.subscribe<nav_msgs::Odometry>(roi_curr_position_sub_topic_name, 1, boost::bind(&VisualizeControl::ROICurrPositionCallback, this, _1));
-    m_current_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&VisualizeControl::PositionCallback, this, _1));
-	m_input_curr_position_sub = m_nh.subscribe<uav_msgs::CarState>(input_curr_position_sub_topic_name, 10, boost::bind(&VisualizeControl::InputPositionCallback, this, _1));
-	m_input_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/input_waypoints", 1, boost::bind(&VisualizeControl::InputWaypointsCallback, this, _1));
-	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/desired_waypoints", 1, boost::bind(&VisualizeControl::DesiredWaypointsCallback, this, _1));
+    m_ego_vehicle_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&VisualizeControl::EgoVehicleLocalPositionCallback, this, _1));
+	m_target_vehicle_local_ned_position_sub = m_nh.subscribe<uav_msgs::CarState>(input_curr_position_sub_topic_name, 10, boost::bind(&VisualizeControl::TargetVehicleLocalNedPositionCallback, this, _1));
+	m_target_vehicle_local_enu_position_sub = m_nh.subscribe<geometry_msgs::PoseStamped>
+            (self_pkg_name + "/generate_waypoints_node/global_to_enu_target_vehicle_pose", 10, boost::bind(&VisualizeControl::TargetVehicleLocalEnuPositionCallback, this, _1));
+
+    m_input_local_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/input_waypoints", 1, boost::bind(&VisualizeControl::InputLocalWaypointsCallback, this, _1));
+	m_desired_local_waypoints_pub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/desired_local_waypoints", 1, boost::bind(&VisualizeControl::DesiredLocalWaypointsCallback, this, _1));
+	
+    m_roi_position_sub = m_nh.subscribe<nav_msgs::Odometry>(roi_curr_position_sub_topic_name, 1, boost::bind(&VisualizeControl::ROICurrPositionCallback, this, _1));
 	m_roi_waypoints_sub = m_nh.subscribe<uav_msgs::PolyfitLane>(self_pkg_name + "/extract_lane_node/poly_fit_lane", 1, boost::bind(&VisualizeControl::ROIWaypointsCallback, this, _1));
 	m_roi_box_sub = m_nh.subscribe<uav_msgs::Roi>(self_pkg_name + "/extract_lane_node/roi", 1, boost::bind(&VisualizeControl::ROICallback, this, _1));
 
@@ -142,7 +146,7 @@ void VisualizeControl::MarkerInit()
     m_roi_line.roi.lifetime = ros::Duration();
 }
 
-void VisualizeControl::InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &input_waypoints_ptr)
+void VisualizeControl::InputLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &input_waypoints_ptr)
 {
     // line strip
     m_input_line.line_strip.header.frame_id = input_waypoints_ptr->header.frame_id;
@@ -160,7 +164,7 @@ void VisualizeControl::InputWaypointsCallback(const geometry_msgs::PoseArray::Co
     m_input_line.orientation.pose = input_waypoints_ptr->poses.back();
 }
 
-void VisualizeControl::InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr)
+void VisualizeControl::TargetVehicleLocalNedPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr)
 {
     // center_point
     m_input_line.center_point.header.frame_id = current_point_ptr->header.frame_id;
@@ -171,14 +175,25 @@ void VisualizeControl::InputPositionCallback(const uav_msgs::CarState::ConstPtr 
     m_input_line.center_point.pose.position.z = current_point_ptr->pose.pose.position.z;
 }
 
-void VisualizeControl::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &desired_waypoints_ptr)
+void VisualizeControl::TargetVehicleLocalEnuPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_point_ptr)
+{
+    // center_point
+    m_input_line.center_point.header.frame_id = current_point_ptr->header.frame_id;
+    m_input_line.center_point.header.stamp = ros::Time(0);
+
+    m_input_line.center_point.pose.position.x = current_point_ptr->pose.position.x;
+    m_input_line.center_point.pose.position.y = current_point_ptr->pose.position.y;
+    m_input_line.center_point.pose.position.z = current_point_ptr->pose.position.z;
+}
+
+void VisualizeControl::DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &desired_local_waypoints_ptr)
 {
     // line_strip
-    m_desired_line.line_strip.header.frame_id = desired_waypoints_ptr->header.frame_id;
+    m_desired_line.line_strip.header.frame_id = desired_local_waypoints_ptr->header.frame_id;
     m_desired_line.line_strip.header.stamp = ros::Time(0);
 
     m_desired_line.line_strip.points.clear();
-    for (auto p : desired_waypoints_ptr->poses){
+    for (auto p : desired_local_waypoints_ptr->poses){
         m_desired_line.line_strip.points.push_back(p.position);
     }
 }
@@ -207,7 +222,7 @@ void VisualizeControl::ROICurrPositionCallback(const nav_msgs::Odometry::ConstPt
 }
 
 
-void VisualizeControl::PositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr)
+void VisualizeControl::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr)
 {
     // center_point
     m_roi_line.center_point.header.frame_id = current_pose_ptr->header.frame_id;

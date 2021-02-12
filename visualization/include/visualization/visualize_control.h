@@ -5,6 +5,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Point.h>
+#include <novatel_oem7_msgs/INSPVA.h>
+
 #include "uav_msgs/PolyfitLane.h"
 #include "uav_msgs/CarState.h"
 #include "nav_msgs/Odometry.h"
@@ -29,12 +31,13 @@ private:
 	ros::NodeHandle m_nh;
 
 	// subscriber
-	ros::Subscriber m_input_waypoints_sub;
-	ros::Subscriber m_input_curr_position_sub;
-	ros::Subscriber m_desired_waypoints_sub;
+	ros::Subscriber m_input_local_waypoints_sub;
+	ros::Subscriber m_target_vehicle_local_ned_position_sub;
+	ros::Subscriber m_target_vehicle_local_enu_position_sub;
+	ros::Subscriber m_desired_local_waypoints_pub;
     ros::Subscriber m_roi_waypoints_sub;
-    ros::Subscriber m_roi_curr_position_sub;
-    ros::Subscriber m_current_pose_sub;
+    ros::Subscriber m_roi_position_sub;
+    ros::Subscriber m_ego_vehicle_local_pose_sub;
     ros::Subscriber m_roi_box_sub;
     
     // publisher
@@ -50,12 +53,14 @@ private:
     void MarkerInit();
 
     // Callback
-    void InputWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
-    void InputPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr);
-    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
+    void InputLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
+    void TargetVehicleLocalNedPositionCallback(const uav_msgs::CarState::ConstPtr &current_point_ptr);
+    void TargetVehicleLocalEnuPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_point_ptr);
+    void DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array);
     void ROIWaypointsCallback(const uav_msgs::PolyfitLane::ConstPtr &roi_waypoints);
     void ROICurrPositionCallback(const nav_msgs::Odometry::ConstPtr &current_point_ptr);
-    void PositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
+    void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
+    void EgoVehicleGlobalPositionCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
     void ROICallback(const uav_msgs::Roi::ConstPtr &current_point_ptr);
     void TimerCallback(const ros::TimerEvent& event);
 

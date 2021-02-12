@@ -58,9 +58,9 @@ void Offboard::InitClient()
     const float START_VELOCITY_MS = 3.0;
     YawMode yaw_mode(true, 0);
 
-    m_target_pose.position.x = 0.0;
-    m_target_pose.position.y = 0.0;
-    m_target_pose.position.z = START_HEIGHT_M;
+    m_local_setpoint.position.x = 0.0;
+    m_local_setpoint.position.y = 0.0;
+    m_local_setpoint.position.z = START_HEIGHT_M;
 
     m_client.enableApiControl(true); 
     //send a few setpoints before starting
@@ -81,10 +81,10 @@ void Offboard::InitRos()
 	std::string odom_topic_name = "/airsim_node/" + m_uav_name_param + "/odom_local_ned";
 
     // Initialize subscriber
-    m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>
-            ("/control/generate_waypoints_node/desired_waypoints", 10, boost::bind(&Offboard::DesiredWaypointsCallback, this, _1));
-    m_car_state_sub = m_nh.subscribe<uav_msgs::CarState>
-            (car_state_sub_topic_name, 10, boost::bind(&Offboard::CarStateCallback, this, _1));
+    m_desired_local_waypoints_pub = m_nh.subscribe<geometry_msgs::PoseArray>
+            ("/control/generate_waypoints_node/desired_local_waypoints", 10, boost::bind(&Offboard::DesiredLocalWaypointsCallback, this, _1));
+    m_target_vehicle_local_state_sub = m_nh.subscribe<uav_msgs::CarState>
+            (car_state_sub_topic_name, 10, boost::bind(&Offboard::TargetVehicleLocalStateCallback, this, _1));
     m_odom_sub = m_nh.subscribe<nav_msgs::Odometry>
             (odom_topic_name, 10, boost::bind(&Offboard::OdomCallback, this, _1));
 
@@ -92,17 +92,17 @@ void Offboard::InitRos()
     m_target_waypoint_pub = m_nh.createTimer(ros::Duration(m_setpoint_pub_interval_param), &Offboard::TimerCallback, this);
 }
 
-void Offboard::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array)
+void Offboard::DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array)
 {
-    m_target_pose = pose_array->poses.back();
+    m_local_setpoint = pose_array->poses.back();
 }
 
 void Offboard::OdomCallback(const nav_msgs::Odometry::ConstPtr &odom_ptr)
 {
-    m_current_pose = odom_ptr->pose.pose;
+    m_ego_vehicle_local_pose = odom_ptr->pose.pose;
 }
 
-void Offboard::CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr)
+void Offboard::TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr)
 {
     auto position_x = car_state_ptr->pose.pose.position.x;
     auto position_y = car_state_ptr->pose.pose.position.y;
@@ -124,27 +124,27 @@ void Offboard::CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_pt
 
 void Offboard::TimerCallback(const ros::TimerEvent& event)
 {
-    // auto euler = m_utils.Quat2Euler(m_target_pose.orientation);
+    // auto euler = m_utils.Quat2Euler(m_local_setpoint.orientation);
     // YawMode yaw_mode(false, euler.y);
-    // m_client.moveToPositionAsync((double)m_target_pose.position.x, (double)m_target_pose.position.y, (double)m_target_pose.position.z, 
+    // m_client.moveToPositionAsync((double)m_local_setpoint.position.x, (double)m_local_setpoint.position.y, (double)m_local_setpoint.position.z, 
     //     m_speed_ms_param, Utils::max<float>(), DrivetrainType::ForwardOnly, yaw_mode);
 
     // ROS_INFO("x: %f, y: %f, z: %f, vel: %f", 
-    // (double)m_target_pose.position.x, (double)m_target_pose.position.y, (double)m_target_pose.position.z, (double)m_speed_ms_param);
+    // (double)m_local_setpoint.position.x, (double)m_local_setpoint.position.y, (double)m_local_setpoint.position.z, (double)m_speed_ms_param);
     
     float dt = m_dt_param;
 
-    auto euler = m_utils.Quat2Euler(m_target_pose.orientation);
+    auto euler = m_utils.Quat2Euler(m_local_setpoint.orientation);
     YawMode yaw_mode(false, euler.y);
-    auto ned_vx = (m_target_pose.position.x - m_current_pose.position.x)/dt;
-    auto ned_vy = (m_target_pose.position.y - m_current_pose.position.y)/dt;
+    auto ned_vx = (m_local_setpoint.position.x - m_ego_vehicle_local_pose.position.x)/dt;
+    auto ned_vy = (m_local_setpoint.position.y - m_ego_vehicle_local_pose.position.y)/dt;
     auto body_vx = cos(m_utils.Degree2Rad(euler.y))*ned_vx - sin(m_utils.Degree2Rad(euler.y))*ned_vy;
     auto body_vy = sin(m_utils.Degree2Rad(euler.y))*ned_vx + cos(m_utils.Degree2Rad(euler.y))*ned_vy;
-    m_client.moveByVelocityZAsync((float)body_vx, (float)body_vy, (float)m_target_pose.position.z, dt,
+    m_client.moveByVelocityZAsync((float)body_vx, (float)body_vy, (float)m_local_setpoint.position.z, dt,
     DrivetrainType::ForwardOnly, yaw_mode);
 
     ROS_ERROR("dt: %f", (double)dt);
     ROS_INFO("vx: %f, vy: %f, z: %f", 
-    (double)body_vx, (double)body_vy, (double)m_target_pose.position.z);
+    (double)body_vx, (double)body_vy, (double)m_local_setpoint.position.z);
 }
 }

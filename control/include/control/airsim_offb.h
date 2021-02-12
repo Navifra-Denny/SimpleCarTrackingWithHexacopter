@@ -52,8 +52,8 @@ public:
 
 private:
     // Subscriber
-    ros::Subscriber m_desired_waypoints_sub;
-    ros::Subscriber m_car_state_sub;
+    ros::Subscriber m_desired_local_waypoints_pub;
+    ros::Subscriber m_target_vehicle_local_state_sub;
     ros::Subscriber m_odom_sub;
 
     // Publisher
@@ -69,8 +69,8 @@ private:
     // float m_x_offset_m_param;
     // float m_z_offset_m_param;
 
-    geometry_msgs::Pose m_current_pose;
-    geometry_msgs::Pose m_target_pose;
+    geometry_msgs::Pose m_ego_vehicle_local_pose;
+    geometry_msgs::Pose m_local_setpoint;
 
 
 private: // function
@@ -78,8 +78,8 @@ private: // function
     void InitRos();
     void InitClient();
     
-    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array);
-    void CarStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
+    void DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array);
+    void TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
     void OdomCallback(const nav_msgs::Odometry::ConstPtr &odom_ptr);
     void TimerCallback(const ros::TimerEvent& event);
 };
