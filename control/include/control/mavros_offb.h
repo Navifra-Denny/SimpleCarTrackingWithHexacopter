@@ -2,6 +2,7 @@
 #define __MAVROS_OFFB_H__
 
 #include <mavros_msgs/CommandBool.h>
+#include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/HomePosition.h>
@@ -19,8 +20,10 @@
 
 #include "uav_msgs/CarState.h"
 #include "control/utils.h"
+#include <std_msgs/String.h>
 
 namespace mavros{
+
 class Offboard
 {
 private:
@@ -40,6 +43,7 @@ private:
     ros::Subscriber m_desired_global_waypoint_sub;
     ros::Subscriber m_current_local_pose_sub;
     ros::Subscriber m_current_global_pose_sub;
+    ros::Subscriber m_debugging_sub;
 
     // Publisher
     ros::Publisher m_local_pose_pub;
@@ -49,6 +53,7 @@ private:
     
     // ServiceClient
     ros::ServiceClient m_arming_serv_client;
+    ros::ServiceClient m_takeoff_serv_client;
     ros::ServiceClient m_set_mode_serv_client;
 
     ros::Timer m_timer;
@@ -66,18 +71,22 @@ private:
     float m_init_gps_lon_param;
     float m_init_gps_alt_param;
     bool m_use_global_setpoint_param;
+    bool m_is_debug_mode_param;
 
     // flag
-    bool m_is_ready_to_flight;
     bool m_get_gps_origin;
+    bool m_detected_object;
+    bool m_do_takeoff;
 
-    ros::Time m_last_request;
+    ros::Time m_last_request_time;
+    ros::Time m_last_detected_object_time;
 
     mavros_msgs::HomePosition m_home_pos;
     geographic_msgs::GeoPointStamped m_gp_origin;
     mavros_msgs::State m_current_status;
     geometry_msgs::PoseStamped m_local_setpoint;
     geographic_msgs::GeoPoseStamped m_global_setpoint;
+    std::string m_debugging_msg;
 
 	tf2_ros::Buffer m_tfBuffer;
 	tf2_ros::TransformListener m_tfListener;
@@ -93,9 +102,12 @@ private: // function
     void DesiredGlobalWaypointCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_ptr);
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
     void EgoVehicleGlobalPositionCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
+    void DebuggingStringCallback(const std_msgs::String::ConstPtr &debugging_msgs);
     void TimerCallback(const ros::TimerEvent& event);
 
     void OffboardReConnection();
+    void CheckObjectDetected();
+    void PublishSetpoint(bool do_hover=false);
 };
 }
 #endif //  __MAVROS_OFFB_H__

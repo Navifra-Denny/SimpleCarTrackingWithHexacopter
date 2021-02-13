@@ -1,9 +1,11 @@
 <launch>
-    <!-- MAVROS configs -->
-    <arg name="fcu_url" default="udp://:14540@localhost:14557"/>
-    <arg name="respawn_mavros" default="false"/>
-    
-    <arg name="do_airsim" default="true" />
+    <!-- shell script -->
+    <arg name="simulator" default="false" />
+    <arg name="airsim" default="false" />
+    <arg name="gazebo" default="false" />
+
+    <arg name="fcu_url" default="/dev/ttyPixhawk"/>
+
 	<arg name="uav_name" default="PX4" />
 	<arg name="ugv_name" default="GV" />
 	<arg name="x_offset_m" default="2.0" />
@@ -12,11 +14,36 @@
 	<arg name="setpoint_pub_interval" default="0.1" />
 	<arg name="dt" default="0.25" />
 	<arg name="use_global_setpoint" default="true" />
-    <arg name="init_gps_lat" default="37.5448512603" />
-    <arg name="init_gps_lon" default="127.078822504" />
-    <arg name="init_gps_alt" default="5.0" />
+    <arg name="init_local_x" default="0.0" />
+    <arg name="init_local_y" default="0.0" />
+    <arg name="init_local_z" default="3.0" />
+    <arg name="init_gps_lat" default="37.5445466424" />
+    <arg name="init_gps_lon" default="127.079172409" />
+    <arg name="init_gps_alt" default="44.0" />
+    <arg name="is_debug_mode" default="true" />
     
-    <group if="$(arg do_airsim)">
+    <group unless="$(arg simulator)">
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+        </include>
+        <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
+            <param name="uav_speed" value="$(arg uav_speed)" />
+            <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+            <param name="dt" value="$(arg dt)" />
+            <param name="uav_name" value="$(arg uav_name)" />
+            <param name="ugv_name" value="$(arg ugv_name)" />
+            <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
+            <param name="init_local_x" value="$(arg init_local_x)" />
+            <param name="init_local_y" value="$(arg init_local_y)" />
+            <param name="init_local_z" value="$(arg init_local_z)" />
+            <param name="init_gps_lat" value="$(arg init_gps_lat)" />
+            <param name="init_gps_lon" value="$(arg init_gps_lon)" />
+            <param name="init_gps_alt" value="$(arg init_gps_alt)" />
+            <param name="is_debug_mode" value="$(arg is_debug_mode)" />
+        </node>
+    </group>
+    
+    <group if="$(arg airsim)">
         <node name="airsim_offb_node" pkg="control" type="airsim_offb_node" output="screen">
             <param name="uav_speed" value="$(arg uav_speed)" />
             <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
@@ -28,15 +55,8 @@
         </node>
     </group>
     
-    <group unless="$(arg do_airsim)">
-        <!-- <include file="$(find px4)/launch/mavros_posix_sitl.launch"/> -->
-        <include file="$(find mavros)/launch/px4.launch">
-            <!-- GCS link is provided by SITL -->
-            <arg name="gcs_url" value=""/>
-            <arg name="fcu_url" value="$(arg fcu_url)"/>
-            <arg name="respawn_mavros" value="$(arg respawn_mavros)"/>
-        </include>
-        <node name="sitl" pkg="px4" type="px4" output="screen" args="$(find px4)/build/px4_sitl_default/etc -s etc/init.d-posix/rcS" required="true"/>
+    <group if="$(arg gazebo)">
+        <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
         <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
             <param name="uav_speed" value="$(arg uav_speed)" />
             <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
@@ -44,15 +64,16 @@
             <param name="uav_name" value="$(arg uav_name)" />
             <param name="ugv_name" value="$(arg ugv_name)" />
             <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
-            <param name="init_local_x" value="0.0" />
-            <param name="init_local_y" value="0.0" />
-            <param name="init_local_z" value="5.0" />
+            <param name="init_local_x" value="$(arg init_local_x)" />
+            <param name="init_local_y" value="$(arg init_local_y)" />
+            <param name="init_local_z" value="$(arg init_local_z)" />
             <param name="init_gps_lat" value="$(arg init_gps_lat)" />
             <param name="init_gps_lon" value="$(arg init_gps_lon)" />
             <param name="init_gps_alt" value="$(arg init_gps_alt)" />
+            <param name="is_debug_mode" value="$(arg is_debug_mode)" />
         </node>
     </group>
-    
+
     <include file="$(find control)/launch/generate_waypoints_node.launch">
         <arg name="uav_name" value="$(arg uav_name)" />
         <arg name="ugv_name" value="$(arg ugv_name)" />
