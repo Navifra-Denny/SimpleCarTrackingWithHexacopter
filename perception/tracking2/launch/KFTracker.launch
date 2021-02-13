@@ -1,0 +1,19 @@
+<launch>
+    <arg name="namespace" default="tracking" />
+    <arg name="tracker_input_topic" default="/detection/objects" />
+    <arg name="gating_threshold" default="4.5" />
+
+
+    <!-- Include detection launch file -->
+    <include file="$(find detection)/launch/euclideanClustering.launch" />
+
+    <group ns="$(arg namespace)">
+        <remap from="objects_in" to="$(arg tracker_input_topic)" />
+        
+        <!-- Tracker -->
+        <node pkg="tracking2" type="tracking2" name="kfTracker" output="screen">
+            <param name="gating_threshold" value="$(arg gating_threshold)" />
+        </node> 
+    </group>
+
+</launch>
