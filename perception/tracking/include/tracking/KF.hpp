@@ -41,6 +41,8 @@ public:
     std::string label_;
 
     // for env classification
+    double vel_;
+    double yaw_;
     std::vector<double> vel_history_;
 
     // LiDAR measurement noise standard deviation in [m]

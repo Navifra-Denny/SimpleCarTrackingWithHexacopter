@@ -99,8 +99,7 @@
       <param name="clip_max_height" value="$(arg clip_max_height)"/>
       <param name="output_frame" value="$(arg output_frame)"/>
       <param name="remove_points_upto" value="$(arg remove_points_upto)"/>
-      <param name="clustering_distance" value="$(arg clustering_distance)"/>
-      <param name="in_max_height" value="$(arg in_max_height)"/>
+      <param name="clustering_distance" value="$(arg clustering_distance)"/>S_NAME
       <param name="in_floor_max_angle" value="$(arg in_floor_max_angle)"/>
       <param name="cluster_merge_threshold" value="$(arg cluster_merge_threshold)"/>
       <param name="use_gpu" value="$(arg use_gpu)"/>

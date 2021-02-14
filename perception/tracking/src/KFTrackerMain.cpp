@@ -4,7 +4,7 @@
  * Authors : myu6715@gmail.com
  * Requirements : EuclideanClustering node
  * Input : uav_msgs::DetectedObjectArray
- * Output : 
+ * Output : uav_msgs::DetectedObjectArray
  **********************************************************************************************************/
 
 #include "tracking/KFTracker.hpp"

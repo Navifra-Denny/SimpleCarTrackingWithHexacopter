@@ -5,6 +5,8 @@
 
 #include <ros/ros.h>
 
+#include <tf/transform_listener.h>
+
 #include "uav_msgs/DetectedObject.h"
 #include "uav_msgs/DetectedObjectArray.h"
 #include "tracking/KF.hpp"
@@ -29,9 +31,12 @@ private:
 
     ros::NodeHandle node_handle_;
     ros::Subscriber sub_detected_array_;
-    
+    ros::Publisher pub_object_array_;
+
     std_msgs::Header input_header_;
 
+    double merge_distance_threshold_;
+    const double CENTROID_DISTANCE = 0.2;
 
     void GetParam();
     void callback(const uav_msgs::DetectedObjectArray& input);
@@ -54,7 +59,19 @@ private:
     void makeNewTargets(const double timestamp, const uav_msgs::DetectedObjectArray& input, 
                         const std::vector<bool>& matching_vec);
     void staticClassification();
+    void makeOutput(const uav_msgs::DetectedObjectArray& input, const std::vector<bool>& matching_vec, 
+                    uav_msgs::DetectedObjectArray& detected_objects_output);
     void removeUnnecessaryTarget();
+    uav_msgs::DetectedObjectArray removeRedundantObjects(const uav_msgs::DetectedObjectArray& in_detected_objects, 
+                                                         const std::vector<size_t> in_tracker_indices);
+
+
+    // Helper
+    bool isPointInPool(const std::vector<geometry_msgs::Point>& in_pool, 
+                              const geometry_msgs::Point& in_point);
+    bool arePointsEqual(const geometry_msgs::Point& in_point_a, const geometry_msgs::Point& in_point_b);
+    bool arePointsClose(const geometry_msgs::Point& in_point_a, const geometry_msgs::Point& in_point_b, float in_radius);
+
 
 
 

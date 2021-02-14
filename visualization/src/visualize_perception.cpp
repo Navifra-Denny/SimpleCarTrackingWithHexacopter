@@ -130,7 +130,10 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToLabels(const 
 
             if (object.velocity_reliable)
             {
-                double velocity = object.velocity.linear.x;
+                double v_x = object.velocity.linear.x;
+                double v_y = object.velocity.linear.y;
+                double velocity = hypot(v_x, v_y);
+
                 if (velocity < -0.1) velocity *= -1;
                 if (abs(velocity) < _object_speed_threshold) velocity = 0.0; 
 
@@ -148,6 +151,7 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToLabels(const 
 
 
             }
+            
             label_marker.pose.position.x = object.pose.position.x;
             label_marker.pose.position.y = object.pose.position.y;
             label_marker.pose.position.z = _label_height;
