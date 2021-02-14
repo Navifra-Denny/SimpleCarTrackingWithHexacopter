@@ -7,7 +7,7 @@
 
 #include "uav_msgs/DetectedObject.h"
 #include "uav_msgs/DetectedObjectArray.h"
-#include "tracking2/KF.hpp"
+#include "tracking/KF.hpp"
 
 class KFTracker
 {
@@ -19,6 +19,10 @@ private:
     std::vector<KF> targets_;
 
     int life_time_threshold_;
+    
+    // static classification param
+    double static_velocity_threshold_;
+    int static_num_history_threshold_;
 
     // paramteter
     double gating_threshold_;
@@ -50,6 +54,8 @@ private:
     void makeNewTargets(const double timestamp, const uav_msgs::DetectedObjectArray& input, 
                         const std::vector<bool>& matching_vec);
     void staticClassification();
+    void removeUnnecessaryTarget();
+
 
 
 public:

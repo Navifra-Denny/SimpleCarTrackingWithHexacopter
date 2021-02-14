@@ -1,4 +1,4 @@
-#include "tracking2/KFTracker.hpp"
+#include "tracking/KFTracker.hpp"
 
 #define __APP_NAME__ "kfTracker"
 
@@ -20,8 +20,11 @@ void KFTracker::GetParam()
     ROS_INFO("[%s] gating_threshold: %f", __APP_NAME__, gating_threshold_);
     node_handle_.getParam("kfTracker/life_time_threshold", life_time_threshold_);
     ROS_INFO("[%s] life_time_threshold: %d", __APP_NAME__, life_time_threshold_);
-    // node_handle_.getParam("kfTracker/static_num_history_threshold", static_num_history_threshold_);
-    // ROS_INFO("[%s] static_num_history_threshold: %d", __APP_NAME__, static_num_history_threshold_);
+    node_handle_.getParam("kfTracker/static_num_history_threshold", static_num_history_threshold_);
+    ROS_INFO("[%s] static_num_history_threshold: %d", __APP_NAME__, static_num_history_threshold_);
+    node_handle_.getParam("kfTracker/static_velocity_threshold", static_velocity_threshold_);
+    ROS_INFO("[%s] static_velocity_threshold: %f", __APP_NAME__, static_velocity_threshold_);
+
 
 
 }
@@ -78,7 +81,11 @@ void KFTracker::tracker(const uav_msgs::DetectedObjectArray& input,
     makeNewTargets(timestamp, input, matching_vec);
 
     // static dynamic classification
-    
+    staticClassification();
+
+
+    // remove unnecessary kf object
+    removeUnnecessaryTarget();
 
 }
 
@@ -268,8 +275,7 @@ void KFTracker::makeNewTargets(const double timestamp, const uav_msgs::DetectedO
             targets_.push_back(kf);
             target_id_++;
 
-            ROS_WARN_STREAM("응애");
-
+            ROS_WARN("New track id: %d", target_id_);
         }
     }
 }
@@ -278,18 +284,48 @@ void KFTracker::staticClassification()
 {
     for (size_t i = 0; i < targets_.size(); i++)
     {
-        // double v = hypot(targets_[i].state_post_(2), targets_[i].state_post_(3));
-        // double current_velocity = std::abs(v);
+        double v = hypot(targets_[i].state_post_(2), targets_[i].state_post_(3));
+        double current_velocity = std::abs(v);
         
-        // targets_[i].vel_history_.push_back(current_velocity);
-        // if(targets_[i].tracking_num_ == TrackingState::Stable && targets_[i].lifetime_ > life_time_threshold_)
-        // {
-        //     int index = 0;
-        //     double sum_vel = 0;
-        //     double avg_vel = 0;
+        // ROS_ERROR_STREAM(current_velocity);
+        
+        targets_[i].vel_history_.push_back(current_velocity);
+        if(targets_[i].tracking_num_ == TrackingState::Stable && targets_[i].lifetime_ > life_time_threshold_)
+        {
+            int index = 0;
+            double sum_vel = 0;
+            double avg_vel = 0;
 
-        //     for (auto rit = targets_[i].vel_history_.rbegin(); index < static_num_history_threshold_; ++rit)
-        // }
+            for (auto rit = targets_[i].vel_history_.rbegin(); index < static_num_history_threshold_; ++rit)
+            {
+                index++;
+                sum_vel += *rit;
+            }
+
+            avg_vel = double(sum_vel / static_num_history_threshold_);
+
+            if(avg_vel < static_velocity_threshold_ && current_velocity < static_velocity_threshold_)
+            {
+                targets_[i].is_static_ = true;
+            }
+
+        }
 
     }
+}
+
+void KFTracker::removeUnnecessaryTarget()
+{
+    std::vector<KF> temp_targets;
+    for (size_t i = 0; i < targets_.size(); i++)
+    {
+        if (targets_[i].tracking_num_ != TrackingState::Die)
+        {
+            temp_targets.push_back(targets_[i]);
+        }
+    }
+
+    std::vector<KF>().swap(targets_);
+    targets_ = temp_targets;
+
 }
