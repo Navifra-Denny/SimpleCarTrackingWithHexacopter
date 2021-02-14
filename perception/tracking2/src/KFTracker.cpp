@@ -18,6 +18,11 @@ void KFTracker::GetParam()
 {
     node_handle_.getParam("kfTracker/gating_threshold", gating_threshold_);
     ROS_INFO("[%s] gating_threshold: %f", __APP_NAME__, gating_threshold_);
+    node_handle_.getParam("kfTracker/life_time_threshold", life_time_threshold_);
+    ROS_INFO("[%s] life_time_threshold: %d", __APP_NAME__, life_time_threshold_);
+    // node_handle_.getParam("kfTracker/static_num_history_threshold", static_num_history_threshold_);
+    // ROS_INFO("[%s] static_num_history_threshold: %d", __APP_NAME__, static_num_history_threshold_);
+
 
 }
 
@@ -266,5 +271,25 @@ void KFTracker::makeNewTargets(const double timestamp, const uav_msgs::DetectedO
             ROS_WARN_STREAM("응애");
 
         }
+    }
+}
+
+void KFTracker::staticClassification()
+{
+    for (size_t i = 0; i < targets_.size(); i++)
+    {
+        // double v = hypot(targets_[i].state_post_(2), targets_[i].state_post_(3));
+        // double current_velocity = std::abs(v);
+        
+        // targets_[i].vel_history_.push_back(current_velocity);
+        // if(targets_[i].tracking_num_ == TrackingState::Stable && targets_[i].lifetime_ > life_time_threshold_)
+        // {
+        //     int index = 0;
+        //     double sum_vel = 0;
+        //     double avg_vel = 0;
+
+        //     for (auto rit = targets_[i].vel_history_.rbegin(); index < static_num_history_threshold_; ++rit)
+        // }
+
     }
 }

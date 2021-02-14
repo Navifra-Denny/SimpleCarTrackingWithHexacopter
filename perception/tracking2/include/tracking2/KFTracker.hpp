@@ -18,6 +18,8 @@ private:
 
     std::vector<KF> targets_;
 
+    int life_time_threshold_;
+
     // paramteter
     double gating_threshold_;
 
@@ -47,7 +49,7 @@ private:
     void updateTrackingNum(const std::vector<uav_msgs::DetectedObject>& object_vec, KF& target);
     void makeNewTargets(const double timestamp, const uav_msgs::DetectedObjectArray& input, 
                         const std::vector<bool>& matching_vec);
-
+    void staticClassification();
 
 
 public:

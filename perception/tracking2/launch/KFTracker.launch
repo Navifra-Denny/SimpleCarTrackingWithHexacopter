@@ -2,6 +2,8 @@
     <arg name="namespace" default="tracking" />
     <arg name="tracker_input_topic" default="/detection/objects" />
     <arg name="gating_threshold" default="4.5" />
+    <arg name="life_time_threshold" default="5" />
+    <arg name="static_num_history_threshold" default="3" />
 
 
     <!-- Include detection launch file -->
@@ -13,6 +15,8 @@
         <!-- Tracker -->
         <node pkg="tracking2" type="tracking2" name="kfTracker" output="screen">
             <param name="gating_threshold" value="$(arg gating_threshold)" />
+            <param name="life_time_threshold" value="$(arg life_time_threshold)" />
+            <param name="static_num_history_threshold" value="$(arg static_num_history_threshold)" />
         </node> 
     </group>
 

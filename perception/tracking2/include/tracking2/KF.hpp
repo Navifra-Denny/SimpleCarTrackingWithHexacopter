@@ -33,11 +33,15 @@ public:
 
 
     int lifetime_;
+    
     //object msg information
     bool is_static_;
     bool is_stable_;
     uav_msgs::DetectedObject object_;
     std::string label_;
+
+    // for env classification
+    std::vector<double> vel_history_;
 
     // LiDAR measurement noise standard deviation in [m]
     double std_lidar_px_;
