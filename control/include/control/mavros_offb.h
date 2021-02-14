@@ -44,6 +44,7 @@ private:
     ros::Subscriber m_current_local_pose_sub;
     ros::Subscriber m_current_global_pose_sub;
     ros::Subscriber m_debugging_sub;
+    ros::Subscriber m_z_target_sub;
 
     // Publisher
     ros::Publisher m_curr_status_pub;
@@ -66,6 +67,7 @@ private:
     float m_init_gps_lat_param;
     float m_init_gps_lon_param;
     float m_init_gps_alt_param;
+    float m_z_offset_param_m;
     bool m_use_global_setpoint_param;
     bool m_is_debug_mode_param;
 
@@ -100,6 +102,7 @@ private: // function
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
     void EgoVehicleGlobalPositionCallback(const sensor_msgs::NavSatFix::ConstPtr &current_pose_ptr);
     void DebuggingStringCallback(const std_msgs::String::ConstPtr &debugging_msgs);
+    void ZOffsetCallback(const geometry_msgs::Point::ConstPtr &z_target_point_ptr);
     void TimerCallback(const ros::TimerEvent& event);
 
     void OffboardReConnection();

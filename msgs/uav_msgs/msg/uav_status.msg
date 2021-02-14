@@ -9,6 +9,7 @@ float32 init_local_z
 float32 init_gps_lat
 float32 init_gps_lon
 float32 init_gps_alt
+float32 z_offset_m
 
 float32 setpoint_pub_interval
 

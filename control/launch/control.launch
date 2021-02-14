@@ -9,18 +9,18 @@
 	<arg name="uav_name" default="PX4" />
 	<arg name="ugv_name" default="GV" />
 	<arg name="x_offset_m" default="2.0" />
-	<arg name="z_offset_m" default="5.0" />
+	<arg name="z_offset_m" default="50.0" />
 	<arg name="uav_speed" default="6.0" />
 	<arg name="setpoint_pub_interval" default="0.1" />
 	<arg name="dt" default="0.25" />
 	<arg name="use_global_setpoint" default="true" />
     <arg name="init_local_x" default="0.0" />
     <arg name="init_local_y" default="0.0" />
-    <arg name="init_local_z" default="3.0" />
+    <arg name="init_local_z" default="3.5" />
     <arg name="init_gps_lat" default="37.5445466424" />
     <arg name="init_gps_lon" default="127.079172409" />
-    <arg name="init_gps_alt" default="44.0" />
-    <arg name="is_debug_mode" default="true" />
+    <arg name="init_gps_alt" default="47.0" />
+    <arg name="is_debug_mode" default="false" />
     
     <group unless="$(arg simulation)">
         <include file="$(find mavros)/launch/px4.launch">
@@ -36,6 +36,7 @@
             <param name="init_gps_lon" value="$(arg init_gps_lon)" />
             <param name="init_gps_alt" value="$(arg init_gps_alt)" />
             <param name="is_debug_mode" value="$(arg is_debug_mode)" />
+            <param name="z_offset_m" value="$(arg z_offset_m)" />
         </node>
     </group>
     
@@ -63,6 +64,7 @@
             <param name="init_gps_lon" value="$(arg init_gps_lon)" />
             <param name="init_gps_alt" value="$(arg init_gps_alt)" />
             <param name="is_debug_mode" value="$(arg is_debug_mode)" />
+            <param name="z_offset_m" value="$(arg z_offset_m)" />
         </node>
     </group>
 

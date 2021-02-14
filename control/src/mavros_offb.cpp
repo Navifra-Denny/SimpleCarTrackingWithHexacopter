@@ -12,7 +12,8 @@ Offboard::Offboard() :
     m_init_pos_z_param(NAN),
     m_init_gps_lat_param(NAN),
     m_init_gps_lon_param(NAN),
-    m_init_gps_alt_param(NAN)
+    m_init_gps_alt_param(NAN),
+    m_z_offset_param_m(NAN)
 {
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
     else if (!InitFlag()) ROS_ERROR_STREAM("Fail InitFlag");
@@ -32,6 +33,7 @@ bool Offboard::GetParam()
     m_nh.getParam("mavros_offb_node/init_gps_lat", m_init_gps_lat_param);
     m_nh.getParam("mavros_offb_node/init_gps_lon", m_init_gps_lon_param);
     m_nh.getParam("mavros_offb_node/init_gps_alt", m_init_gps_alt_param);
+    m_nh.getParam("mavros_offb_node/z_offset_m", m_z_offset_param_m);
     m_nh.getParam("mavros_offb_node/use_global_setpoint", m_use_global_setpoint_param);
     m_nh.getParam("mavros_offb_node/is_debug_mode", m_is_debug_mode_param);
 
@@ -41,7 +43,8 @@ bool Offboard::GetParam()
         m_init_pos_z_param == NAN ||
         m_init_gps_lat_param == NAN ||
         m_init_gps_lon_param == NAN ||
-        m_init_gps_alt_param == NAN)
+        m_init_gps_alt_param == NAN ||
+        m_z_offset_param_m == NAN)
     {
         return false;
     }
@@ -70,9 +73,10 @@ bool Offboard::InitRos()
     m_current_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&Offboard::EgoVehicleLocalPositionCallback, this, _1));
     m_current_global_pose_sub = m_nh.subscribe<sensor_msgs::NavSatFix>("/mavros/global_position/global", 10, boost::bind(&Offboard::EgoVehicleGlobalPositionCallback, this, _1));
     m_debugging_sub = m_nh.subscribe<std_msgs::String>("/chatter", 10, boost::bind(&Offboard::DebuggingStringCallback, this, _1));
+    m_z_target_sub = m_nh.subscribe<geometry_msgs::Point>("/z_target", 10, boost::bind(&Offboard::ZOffsetCallback, this, _1));
 
     // Initialize publisher
-    m_curr_status_pub = m_nh.advertise<uav_msgs::uav_status>("/control/mavros_offb/current_status", 10);
+    m_curr_status_pub = m_nh.advertise<uav_msgs::uav_status>("/control/mavros_offb_node/current_status", 10);
     m_local_pose_pub = m_nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     m_global_pose_pub = m_nh.advertise<geographic_msgs::GeoPoseStamped>("mavros/setpoint_position/global", 10);
     m_gp_origin_pub = m_nh.advertise<geographic_msgs::GeoPointStamped>("/mavros/global_position/set_gp_origin", 10);
@@ -158,8 +162,7 @@ void Offboard::DesiredGlobalWaypointCallback(const novatel_oem7_msgs::INSPVA::Co
     m_global_setpoint.header.frame_id = "map";
     m_global_setpoint.pose.position.latitude = inspva_ptr->latitude;
     m_global_setpoint.pose.position.longitude = inspva_ptr->longitude;
-    m_global_setpoint.pose.position.altitude = 50; 
-    
+    m_global_setpoint.pose.position.altitude = m_z_offset_param_m;
 }
 
 void Offboard::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr)
@@ -178,6 +181,11 @@ void Offboard::DebuggingStringCallback(const std_msgs::String::ConstPtr &debuggi
 {
     if (debugging_msgs->data == "offboard") m_debugging_msg = "OFFBOARD";
     else if (debugging_msgs->data == "manual") m_debugging_msg = "MANUAL";
+}
+
+void Offboard::ZOffsetCallback(const geometry_msgs::Point::ConstPtr &z_target_point_ptr)
+{
+    m_z_offset_param_m = (float)z_target_point_ptr->z;
 }
 
 void Offboard::TimerCallback(const ros::TimerEvent& event)
@@ -278,6 +286,7 @@ void Offboard::ParamLog()
     m_uav_status_msg.init_gps_lat = m_init_gps_lat_param;
     m_uav_status_msg.init_gps_lon = m_init_gps_lon_param;
     m_uav_status_msg.init_gps_alt = m_init_gps_alt_param;
+
     m_uav_status_msg.setpoint_pub_interval = m_setpoint_pub_interval_param;
 }
 
@@ -292,5 +301,7 @@ void Offboard::StatusLog()
     m_uav_status_msg.lat = m_ego_vehicle.global_pose_raw.pose.position.latitude;
     m_uav_status_msg.lon = m_ego_vehicle.global_pose_raw.pose.position.longitude;
     m_uav_status_msg.alt = m_ego_vehicle.global_pose_raw.pose.position.altitude;
+
+    m_uav_status_msg.z_offset_m = m_z_offset_param_m;
 }
 }
