@@ -2,7 +2,6 @@
 #define __MAVROS_OFFB_H__
 
 #include <mavros_msgs/CommandBool.h>
-#include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/HomePosition.h>
@@ -19,6 +18,7 @@
 #include <novatel_oem7_msgs/INSPVA.h>
 
 #include "uav_msgs/CarState.h"
+#include "uav_msgs/uav_status.h"
 #include "control/utils.h"
 #include <std_msgs/String.h>
 
@@ -46,6 +46,7 @@ private:
     ros::Subscriber m_debugging_sub;
 
     // Publisher
+    ros::Publisher m_curr_status_pub;
     ros::Publisher m_local_pose_pub;
     ros::Publisher m_global_pose_pub;
     ros::Publisher m_gp_origin_pub;
@@ -53,17 +54,12 @@ private:
     
     // ServiceClient
     ros::ServiceClient m_arming_serv_client;
-    ros::ServiceClient m_takeoff_serv_client;
     ros::ServiceClient m_set_mode_serv_client;
 
     ros::Timer m_timer;
 
     // param
-    float m_speed_ms_param;
-    std::string m_uav_name_param;
-    std::string m_target_vehicle_name_param;
     float m_setpoint_pub_interval_param;
-    float m_dt_param;
     float m_init_pos_x_param;
     float m_init_pos_y_param;
     float m_init_pos_z_param;
@@ -90,6 +86,7 @@ private:
 
 	tf2_ros::Buffer m_tfBuffer;
 	tf2_ros::TransformListener m_tfListener;
+    uav_msgs::uav_status m_uav_status_msg;
 
 private: // function
     bool GetParam();
@@ -101,13 +98,17 @@ private: // function
     void DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr &pose_array_ptr);
     void DesiredGlobalWaypointCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_ptr);
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
-    void EgoVehicleGlobalPositionCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
+    void EgoVehicleGlobalPositionCallback(const sensor_msgs::NavSatFix::ConstPtr &current_pose_ptr);
     void DebuggingStringCallback(const std_msgs::String::ConstPtr &debugging_msgs);
     void TimerCallback(const ros::TimerEvent& event);
 
     void OffboardReConnection();
     void CheckObjectDetected();
     void PublishSetpoint(bool do_hover=false);
+
+    void PublishCurrentStatus();
+    void ParamLog();
+    void StatusLog();
 };
 }
 #endif //  __MAVROS_OFFB_H__

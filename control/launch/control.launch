@@ -1,6 +1,6 @@
 <launch>
     <!-- shell script -->
-    <arg name="simulator" default="false" />
+    <arg name="simulation" default="false" />
     <arg name="airsim" default="false" />
     <arg name="gazebo" default="false" />
 
@@ -22,16 +22,12 @@
     <arg name="init_gps_alt" default="44.0" />
     <arg name="is_debug_mode" default="true" />
     
-    <group unless="$(arg simulator)">
+    <group unless="$(arg simulation)">
         <include file="$(find mavros)/launch/px4.launch">
             <arg name="fcu_url" value="$(arg fcu_url)"/>
         </include>
         <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
-            <param name="uav_speed" value="$(arg uav_speed)" />
             <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
-            <param name="dt" value="$(arg dt)" />
-            <param name="uav_name" value="$(arg uav_name)" />
-            <param name="ugv_name" value="$(arg ugv_name)" />
             <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
             <param name="init_local_x" value="$(arg init_local_x)" />
             <param name="init_local_y" value="$(arg init_local_y)" />
@@ -58,11 +54,7 @@
     <group if="$(arg gazebo)">
         <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
         <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
-            <param name="uav_speed" value="$(arg uav_speed)" />
             <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
-            <param name="dt" value="$(arg dt)" />
-            <param name="uav_name" value="$(arg uav_name)" />
-            <param name="ugv_name" value="$(arg ugv_name)" />
             <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
             <param name="init_local_x" value="$(arg init_local_x)" />
             <param name="init_local_y" value="$(arg init_local_y)" />

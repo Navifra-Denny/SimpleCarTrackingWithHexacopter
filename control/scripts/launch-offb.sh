@@ -20,7 +20,7 @@ else
     fi
 fi
 
-simulator="false"
+simulation="false"
 airsim="false"
 gazebo="false"
 
@@ -30,16 +30,16 @@ if [ "$1" == "-h" ]; then
     echo "  -s, px4 sitl. Please select simulator airsim or gazebo. launch-offb.sh -s [SIMULATOR]    "
     echo "  -r, real flight with px4."
 elif [ "$1" == "-r" ]; then
-    simulator="false"
+    simulation="false"
 elif [ "$2" == "-h" ]; then
     echo -e "Usage: launch-offb.sh -s [SIMULATOR]\n"
     echo "  airsim, px4 sitl with airsim."
     echo "  gazebo, px4 sitl with gazebo."
 elif [ "$2" == "airsim" ]; then
-    simulator="true"
+    simulation="true"
     airsim="true"
 elif [ "$2" == "gazebo" ]; then
-    simulator="true"
+    simulation="true"
     gazebo="true"
 fi
 
@@ -47,13 +47,13 @@ export PX4_HOME_LAT=37.5448339959
 export PX4_HOME_LON=127.078887657
 export PX4_HOME_ALT=44.0
 
-if [ $simulator == "false" ] || [ $airsim == "true" ]; then
-    roslaunch control control.launch simulator:="$simulator" airsim:="$airsim" gazebo:="$gazebo"
+if [ $simulation == "false" ] || [ $airsim == "true" ]; then
+    roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo"
 elif [ $gazebo == "true" ]; then
     killall gzclient
     killall gzserver
 
     source ./launch-common.sh
 
-    roslaunch control control.launch simulator:="$simulator" airsim:="$airsim" gazebo:="$gazebo" init_gps_lat:="${PX4_HOME_LAT}" init_gps_lon:="${PX4_HOME_LON}" init_gps_alt:="${PX4_HOME_ALT}"
+    roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo" init_gps_lat:="${PX4_HOME_LAT}" init_gps_lon:="${PX4_HOME_LON}" init_gps_alt:="${PX4_HOME_ALT}"
 fi
