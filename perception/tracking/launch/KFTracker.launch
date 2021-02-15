@@ -2,7 +2,7 @@
     <arg name="namespace" default="tracking" />
     <arg name="tracker_input_topic" default="/detection/objects" />
     <arg name="tracker_output_topic" default="/tracking/objects" />
-    <arg name="gating_threshold" default="1.5" />
+    <arg name="gating_threshold" default="1.8" />
     <arg name="life_time_threshold" default="5" />
     <arg name="static_num_history_threshold" default="3" />
     <arg name="static_velocity_threshold" default="0.5" />

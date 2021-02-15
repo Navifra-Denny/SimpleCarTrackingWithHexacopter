@@ -7,7 +7,7 @@
     <arg name="remove_ground_rayGroundFilter" default="true" />
     <arg name="downsample_cloud" default="true" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
     <arg name="leaf_size" default="0.2" /><!-- Voxel Grid Filter leaf size-->
-    <arg name="cluster_size_min" default="20" /><!-- Minimum number of points to consider a cluster as valid-->
+    <arg name="cluster_size_min" default="28" /><!-- Minimum number of points to consider a cluster as valid-->
     <arg name="cluster_size_max" default="100000" /><!-- Maximum number of points to allow inside a cluster-->
     <arg name="sync" default="false" />
     <arg name="use_diffnormals" default="false" />
@@ -15,13 +15,13 @@
     <arg name="ClipCloud" default="true" />
     <arg name="clip_min_height" default="-1.2" />
     <arg name="clip_max_height" default="0.5" />
-    <arg name="in_max_height" default="0.2" />
-    <arg name="in_floor_max_angle" default="0.1" />
+    <arg name="in_max_height" default="2.0" />
+    <arg name="in_floor_max_angle" default="10.0" />
     <arg name="keep_lanes" default="true" />
     <arg name="keep_lane_left_distance" default="5" />
     <arg name="keep_lane_right_distance" default="4" />
-    <arg name="cluster_merge_threshold" default="0.5" />
-    <arg name="clustering_distance" default="0.85" />
+    <arg name="cluster_merge_threshold" default="0.1" />
+    <arg name="clustering_distance" default="0.50" />
     <arg name="wayarea_gridmap_layer" default="wayarea" />
     <arg name="output_frame" default="/os1_lidar" />
     <!-- <arg name="output_frame" default="velodyne" /> -->
@@ -30,9 +30,12 @@
     <arg name="use_multiple_thres" default="false"/>
     <arg name="clustering_ranges" default="[15,30,45,60]"/><!-- Distances to segment pointcloud -->
     <arg name="clustering_distances" default="[0.5,1.1,1.6,2.1,2.6]"/><!-- Euclidean Clustering threshold distance for each segment -->
+    <arg name="remove_points_outside" default="15.0"/><!-- Euclidean Clustering threshold distance for each segment -->
+
+
 
     <!-- Ray ground Parameter --> 
-    <arg name="sensor_height" default="1.6"/> -->
+    <arg name="sensor_height" default="1.6"/> 
     <arg name="general_max_slope" default="5.0" />    
     <arg name="local_max_slope" default="8.0" />     
     <arg name="radial_divider_angle" default="0.08" />   
@@ -107,6 +110,7 @@
       <param name="clustering_ranges" value="$(arg clustering_ranges)"/><!-- Distances to segment pointcloud -->
       <param name="clustering_distances" value="$(arg clustering_distances)"/><!-- Euclidean Clustering threshold distance for each segment -->
       <param name="sensor_height" value="$(arg sensor_height)"/><!-- Euclidean Clustering threshold distance for each segment -->
+      <param name="remove_points_outside" value="$(arg remove_points_outside)"/>
 
 
       <!-- Ray ground Parameter -->

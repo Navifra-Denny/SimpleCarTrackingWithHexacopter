@@ -18,6 +18,8 @@ private:
     bool init_;
     double timestamp_;
 
+    std_msgs::ColorRGBA color;
+
     std::vector<KF> targets_;
 
     int life_time_threshold_;
@@ -36,7 +38,7 @@ private:
     std_msgs::Header input_header_;
 
     double merge_distance_threshold_;
-    const double CENTROID_DISTANCE = 0.2;
+    const double CENTROID_DISTANCE = 0.05;
 
     void GetParam();
     void callback(const uav_msgs::DetectedObjectArray& input);

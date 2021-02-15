@@ -40,6 +40,8 @@ public:
     uav_msgs::DetectedObject object_;
     std::string label_;
 
+    std_msgs::ColorRGBA color_;
+
     // for env classification
     double vel_;
     double yaw_;
@@ -78,7 +80,7 @@ public:
     KF();
     virtual ~KF();
 
-    void initialize(const Eigen::VectorXd& z, const double timestamp, const int target_id);
+    void initialize(const Eigen::VectorXd& z, const double timestamp, const int target_id, const std_msgs::ColorRGBA color);
     void prediction(const double dt);
     void predictionMotion(const double dt);
     void predictionLidarMeasurement();

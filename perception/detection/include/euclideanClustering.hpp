@@ -42,6 +42,9 @@ private:
     // velodyne header 
     std_msgs::Header _velodyne_header;
 
+    //coloring
+    unsigned int color_index;
+
     // Param
     std::string ros_namespace_;   
     bool _remove_ground_ransac;
@@ -67,6 +70,7 @@ private:
     float _in_max_height;
     float _in_floor_max_angle;
     std::string _lidar_frame_id;
+    float _remove_points_outside;
    
 
 
@@ -128,6 +132,7 @@ private:
     bool ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
 
     bool RemovePointsUpTo(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, const double in_distance);
+    bool RemovePointsOutside(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, const double in_distance);
     bool DownsampleCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, float in_leaf_size = 0.2);
     bool ClipCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, float in_min_height = -1.3, float in_max_height = 0.5);
     bool KeepLanePoints(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, float in_left_lane_threshold = 1.5, float in_right_lane_threshold = 1.5);

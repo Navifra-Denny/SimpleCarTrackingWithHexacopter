@@ -61,7 +61,8 @@ void KFTracker::tracker(const uav_msgs::DetectedObjectArray& input,
         return;
     }
 
-    double dt = (timestamp - timestamp_);       // 대략 0.09 ~ 0.10 초씩 tracking update
+    double dt = (timestamp - timestamp_);       // 대략 0.099 ~ 0.102 초씩 tracking update
+    ROS_ERROR("dt : %f", dt);
     timestamp_ = timestamp;
 
     // Start KF process
@@ -106,11 +107,10 @@ void KFTracker::initTracker(const uav_msgs::DetectedObjectArray& input, double t
         Eigen::VectorXd init_meas = Eigen::VectorXd(2);
         init_meas << px, py;
 
-        // std::cout << px << ", " << py << std::endl;
-        // std::cout << init_meas(0) << ", " << init_meas(1) << std::endl;
-        
+        color = input.objects[i].color;
+
         KF kf;
-        kf.initialize(init_meas, timestamp, target_id_);
+        kf.initialize(init_meas, timestamp, target_id_, color);
         targets_.push_back(kf);
         target_id_++;
     }
@@ -279,8 +279,10 @@ void KFTracker::makeNewTargets(const double timestamp, const uav_msgs::DetectedO
             Eigen::VectorXd init_meas = Eigen::VectorXd(2);
             init_meas << px, py;
 
+            color = input.objects[i].color;
+
             KF kf;
-            kf.initialize(init_meas, timestamp, target_id_);
+            kf.initialize(init_meas, timestamp, target_id_, color);
             kf.object_ = input.objects[i];
             targets_.push_back(kf);
             target_id_++;
@@ -369,25 +371,28 @@ void KFTracker::makeOutput(const uav_msgs::DetectedObjectArray& input,
         dd.velocity.linear.y = vy;
         dd.velocity_reliable = targets_[i].is_stable_;
         dd.pose_reliable = targets_[i].is_stable_;
+        // std::cout << "color : " << color(0) << ", " << color(1) << ", " << color(2) << std::endl;
+        dd.color = targets_[i].color_;
 
-        if (!targets_[i].is_static_ && targets_[i].is_stable_)
-        {
-            if(targets_[i].object_.dimensions.x < targets_[i].object_.dimensions.y)
-            {
-                dd.dimensions.x = targets_[i].object_.dimensions.y;
-                dd.dimensions.y = targets_[i].object_.dimensions.x;
-            }
+        
+        // if (!targets_[i].is_static_ && targets_[i].is_stable_)
+        // {
 
-            // posteriori state 
-            dd.pose.position.x = tx;
-            dd.pose.position.y = ty;
+        //     if(targets_[i].object_.dimensions.x < targets_[i].object_.dimensions.y)
+        //     {
+        //         dd.dimensions.x = targets_[i].object_.dimensions.y;
+        //         dd.dimensions.y = targets_[i].object_.dimensions.x;
+        //     }
+        //     // posteriori state 
+        //     dd.pose.position.x = tx;
+        //     dd.pose.position.y = ty;
 
-            if (!std::isnan(q[0])) dd.pose.orientation.x = q[0];
-            if (!std::isnan(q[1])) dd.pose.orientation.y = q[1];
-            if (!std::isnan(q[2])) dd.pose.orientation.z = q[2];
-            if (!std::isnan(q[3])) dd.pose.orientation.w = q[3];
+        //     // if (!std::isnan(q[0])) dd.pose.orientation.x = q[0];
+        //     // if (!std::isnan(q[1])) dd.pose.orientation.y = q[1];
+        //     // if (!std::isnan(q[2])) dd.pose.orientation.z = q[2];
+        //     // if (!std::isnan(q[3])) dd.pose.orientation.w = q[3];
 
-        }
+        // }
         
         if (targets_[i].is_stable_ || (targets_[i].tracking_num_ >= TrackingState::Init && targets_[i].tracking_num_ < TrackingState::Stable))
         {
@@ -396,6 +401,7 @@ void KFTracker::makeOutput(const uav_msgs::DetectedObjectArray& input,
         }
 
         detected_objects_output =removeRedundantObjects(tmp_objects, used_targets_indices);
+        // detected_objects_output = tmp_objects;
 
     }
 }

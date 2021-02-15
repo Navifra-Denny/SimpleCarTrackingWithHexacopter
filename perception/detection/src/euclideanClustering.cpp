@@ -52,7 +52,7 @@ EuclideanClustering::EuclideanClustering()
 
 
     GenerateColors(_colors, 255);
-
+    color_index = 0;
 }
 
 EuclideanClustering::~EuclideanClustering()
@@ -70,7 +70,6 @@ void EuclideanClustering::getParam()
     nh.getParam("euclideanClustering/cluster_size_min", _cluster_size_min);
     nh.getParam("euclideanClustering/cluster_size_max", _cluster_size_max);
     nh.getParam("euclideanClustering/pose_estimation", _pose_estimation);
-    nh.getParam("euclideanClustering/ClipCloud", _ClipCloud);
     nh.getParam("euclideanClustering/clip_min_height", _clip_min_height);
     nh.getParam("euclideanClustering/clip_max_height", _clip_max_height);
     nh.getParam("euclideanClustering/keep_lanes", _keep_lanes);
@@ -87,6 +86,8 @@ void EuclideanClustering::getParam()
     nh.getParam("euclideanClustering/in_max_height", _in_max_height);
     nh.getParam("euclideanClustering/in_floor_max_angle", _in_floor_max_angle);
     nh.getParam("euclideanClustering/use_diffnormals", _use_diffnormals);
+    nh.getParam("euclideanClustering/remove_points_outside", _remove_points_outside);
+
 
     // Ray Ground Get Param
     nh.getParam("euclideanClustering/general_max_slope", _general_max_slope);
@@ -192,17 +193,20 @@ bool EuclideanClustering::ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointX
 {
 
     // Remove pointcloud within ROI 
+    pcl::PointCloud<pcl::PointXYZ>::Ptr removed_points_cloud_upto_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr removed_points_cloud_outside_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr removed_points_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     if (_remove_points_upto > 0.0){
-        if (!RemovePointsUpTo(in_cloud_ptr, removed_points_cloud_ptr, _remove_points_upto)) ROS_ERROR_STREAM("Fail Convert Message to PointCloud");
-        PublishCloud(&_pub_RemovePointsUpTo, removed_points_cloud_ptr);
+        if (!RemovePointsUpTo(in_cloud_ptr, removed_points_cloud_upto_ptr, _remove_points_upto)) ROS_ERROR_STREAM("Fail Convert Message to PointCloud");
+        if (!RemovePointsOutside(removed_points_cloud_upto_ptr, removed_points_cloud_outside_ptr, _remove_points_outside));
+        PublishCloud(&_pub_RemovePointsUpTo, removed_points_cloud_outside_ptr);
     }
-    else removed_points_cloud_ptr = in_cloud_ptr;
+    else removed_points_cloud_outside_ptr = in_cloud_ptr;
 
     // Trim with z axis
     pcl::PointCloud<pcl::PointXYZ>::Ptr clipped_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     if (_ClipCloud){
-       if (!ClipCloud(removed_points_cloud_ptr, clipped_cloud_ptr, _clip_min_height, _clip_max_height)) ROS_ERROR_STREAM("Fail to clip"); 
+       if (!ClipCloud(removed_points_cloud_outside_ptr, clipped_cloud_ptr, _clip_min_height, _clip_max_height)) ROS_ERROR_STREAM("Fail to clip"); 
        PublishCloud(&_pub_ClipCloud, clipped_cloud_ptr);      
     }
     else clipped_cloud_ptr = removed_points_cloud_ptr;
@@ -229,6 +233,23 @@ bool EuclideanClustering::RemovePointsUpTo(const pcl::PointCloud<pcl::PointXYZ>:
   {
     float origin_distance = sqrt(pow(in_cloud_ptr->points[i].x, 2) + pow(in_cloud_ptr->points[i].y, 2));
     if (origin_distance > in_distance)
+    {
+      out_cloud_ptr->points.push_back(in_cloud_ptr->points[i]);
+    }
+  }
+  if (out_cloud_ptr->points.size() < 1) return false;
+  
+  return true;
+}
+
+bool EuclideanClustering::RemovePointsOutside(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
+                                              pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, const double in_distance)
+{
+  out_cloud_ptr->points.clear();
+  for (unsigned int i = 0; i < in_cloud_ptr->points.size(); i++)
+  {
+    float origin_distance = sqrt(pow(in_cloud_ptr->points[i].x, 2) + pow(in_cloud_ptr->points[i].y, 2));
+    if (origin_distance < in_distance)
     {
       out_cloud_ptr->points.push_back(in_cloud_ptr->points[i]);
     }
@@ -447,6 +468,8 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
   // Get final PointCloud to be published
   for (unsigned int i = 0; i < final_clusters.size(); i++)
   {
+    if (color_index > 100) color_index = 0;
+
     // ROS_INFO_STREAM(final_clusters[i]->Id());
     *out_cloud_ptr = *out_cloud_ptr + *(final_clusters[i]->GetCloud());
 
@@ -479,8 +502,9 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
 
     // CloudCluster msg 에 color 입혀주기 
     std_msgs::ColorRGBA color;
-    int k = final_clusters[i]->Id();
-    color.a = _colors[k].val[3];
+    // int k = final_clusters[i]->Id();
+    int k = color_index;
+    color.a = 0.8;
     color.r = _colors[k].val[0];
     color.g = _colors[k].val[1];
     color.b = _colors[k].val[2];
@@ -495,6 +519,8 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
       cloud_cluster.id = final_clusters[i]->Id();
       in_out_clusters.clusters.push_back(cloud_cluster);  
     }
+
+    color_index ++;
   }
   // ROS_WARN_STREAM("---------");
   return true;
