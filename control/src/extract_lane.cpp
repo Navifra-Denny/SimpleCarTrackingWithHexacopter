@@ -14,7 +14,7 @@ ExtractLane::ExtractLane()
 	std::string uav_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/odom_local_ned";
 
 	// Initialize subscriber 
-	m_desired_local_waypoints_pub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/desired_local_waypoints", 10, boost::bind(&ExtractLane::DesiredLocalWaypointsCallback, this, _1));
+	m_desired_local_waypoints_pub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/target_waypoints", 10, boost::bind(&ExtractLane::DesiredLocalWaypointsCallback, this, _1));
 	m_uav_state_sub = m_nh.subscribe<nav_msgs::Odometry>(uav_state_sub_topic_name, 10, boost::bind(&ExtractLane::UavStateCallback, this, _1));
 
 	// Initialize publisher 

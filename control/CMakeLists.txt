@@ -72,16 +72,28 @@ include_directories(
 )
 
 ## control_node
-add_executable(airsim_offb_node src/airsim_offb_node.cpp src/airsim_offb.cpp src/utils.cpp)
-target_link_libraries(airsim_offb_node ${catkin_LIBRARIES} AirLib)
+# add_executable(airsim_offb_node src/airsim_offb_node.cpp src/airsim_offb.cpp src/utils.cpp)
+# target_link_libraries(airsim_offb_node ${catkin_LIBRARIES} AirLib)
 
 ## generate_waypoints_node
 add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
 target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 
 ## extract_lane_node add_executable(display_node src/display_node.cpp)
-add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
-target_link_libraries(extract_lane_node ${catkin_LIBRARIES})
+# add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
+# target_link_libraries(extract_lane_node ${catkin_LIBRARIES})
 
 add_executable(mavros_offb_node src/mavros_offb_node.cpp src/mavros_offb.cpp src/utils.cpp)
 target_link_libraries(mavros_offb_node ${catkin_LIBRARIES})
+
+# add_executable(tf_broadcaster_node src/tf_broadcaster_node.cpp src/tf_broadcaster.cpp src/utils.cpp)
+# target_link_libraries(tf_broadcaster_node ${catkin_LIBRARIES})
+
+add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
+target_link_libraries(visualize_control_node ${catkin_LIBRARIES})
+
+add_executable(checker_node src/checker_node.cpp)
+target_link_libraries(checker_node ${catkin_LIBRARIES})
+
+add_executable(char_pub_node src/char_pub_node.cpp)
+target_link_libraries(char_pub_node ${catkin_LIBRARIES})

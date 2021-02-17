@@ -1,4 +1,5 @@
 #include "control/utils.h"
+#include "math.h"
 
 namespace control
 {
@@ -24,15 +25,21 @@ float Utils::Distance(geometry_msgs::Point point1, geometry_msgs::Point point2)
     auto delta_x = point1.x - point2.x;
     auto delta_y = point1.y - point2.y;
     auto delta_z = point1.z - point2.z;
-    auto distance_m = std::sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+    auto distance_m = std::sqrt(pow(delta_x, 2.0) + pow(delta_y, 2.0) + pow(delta_z, 2.0));
 
     return distance_m;
 }
 
-float Utils::Degree2Rad(float degree)
+double Utils::Degree2Rad(double degree)
 {
-	float rad = degree * M_PI/180;
+	double rad = degree * M_PI/180;
 	return rad; 
+}
+
+double Utils::Rad2Degree(double rad)
+{
+	double degree = rad * 180/M_PI;
+	return degree;
 }
 
 double Utils::MeridionalRadius(double a, double b, double lat){
@@ -41,5 +48,13 @@ double Utils::MeridionalRadius(double a, double b, double lat){
 
 double Utils::NormalRadius(double a, double b, double lat){
     return (a*a) / sqrt(pow( a*cos(lat), 2 ) + pow( b*sin(lat), 2));
+}
+
+bool Utils::IsNan(geometry_msgs::Point point)
+{
+    if (__isnan(point.x) || __isnan(point.y) || __isnan(point.z)){
+        return true;
+    }
+    return false;
 }
 }

@@ -1,0 +1,19 @@
+<launch>
+	<arg name="output" default="screen"/>
+
+	<arg name="is_debug_mode" default="false"/>
+	<arg name="setpoint_pub_interval" default="0.1" />
+	<arg name="init_gps_lat" default="0.0"/>
+	<arg name="init_gps_lon" default="0.0" />
+	<arg name="init_gps_alt" default="0.0" />
+	
+
+	<node pkg="control" type="checker_node" name="checker_node" output="$(arg output)">
+		<param name="is_debug_mode" value="$(arg is_debug_mode)" />
+		<param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+		<param name="init_gps_lat" value="$(arg init_gps_lat)" />
+		<param name="init_gps_lon" value="$(arg init_gps_lon)" />
+		<param name="init_gps_alt" value="$(arg init_gps_alt)" />
+		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
+	</node>
+</launch>

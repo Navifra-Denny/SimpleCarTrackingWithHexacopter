@@ -2,13 +2,13 @@
 	<arg name="output" default="screen"/>
 	<arg name="x_offset_m" default="2" />
 	<arg name="z_offset_m" default="10" />
-	<arg name="ugv_name" default="drone_1" />
-	<arg name="uav_name" default="drone_1" />
+	<arg name="uav_name" default="PX4" />
+	<arg name="ugv_name" default="GV" />
 	<arg name="distance_threshold" default="0.1"/>
+	<arg name="target_wp_pub_interval" default="0.05" />
+	<arg name="detected_dead_band" default="0.5" />
+	<arg name="global_to_local" default="false" />
 	<arg name="use_sim_time" default="false"/>
-	<arg name="init_gps_lat" default="37.5448512603" />
-	<arg name="init_gps_lon" default="127.078822504" />
-	<arg name="init_gps_alt" default="5.0" />
 	<param name="use_sim_time" value="$(arg use_sim_time)"/>
 	
 
@@ -17,14 +17,17 @@
 		<param name="z_offset_m" value="$(arg z_offset_m)" />
 		<param name="ugv_name" value="$(arg ugv_name)" />
 		<param name="distance_threshold" value="$(arg distance_threshold)" />
-		<param name="init_gps_lat" value="$(arg init_gps_lat)" />
-		<param name="init_gps_lon" value="$(arg init_gps_lon)" />
-		<param name="init_gps_alt" value="$(arg init_gps_alt)" />
+		<param name="target_wp_pub_interval" value="$(arg target_wp_pub_interval)" />
+		<param name="detected_dead_band" value="$(arg detected_dead_band)" />
+		<param name="global_to_local" value="$(arg global_to_local)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 
-	<node pkg="visualization" type="visualize_control_node" name="visualize_control_node" output="$(arg output)" >
+	<node pkg="control" type="visualize_control_node" name="visualize_control_node" output="$(arg output)" >
 		<param name="ugv_name" value="$(arg ugv_name)" />
 		<param name="uav_name" value="$(arg uav_name)" />
 	</node>
+
+	<!-- <node pkg="tf" type="static_transform_publisher" name="world_ned_to_PX4" args="0 0 0 0 0 0 world_ned GV 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="ned_to_enu_pub" args="0 0 0 1.57 0 3.14 world_ned world_enu 100"/> -->
 </launch>

@@ -54,6 +54,3 @@ include_directories(
 
 add_executable(visualize_perception_node src/visualize_perception.cpp src/visualize_perception_node.cpp)
 target_link_libraries(visualize_perception_node ${catkin_LIBRARIES})
-
-add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
-target_link_libraries(visualize_control_node ${catkin_LIBRARIES})

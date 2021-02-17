@@ -9,6 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  geographic_msgs
   message_generation
   sensor_msgs
   std_msgs
@@ -35,7 +36,11 @@ add_message_files(
   PolyfitLaneData.msg
   PolyfitLane.msg
   Roi.msg
-  uav_status.msg
+  UavStatus.msg
+  TargetWP.msg
+  TargetWPState.msg
+  Trajectory.msg
+  Param.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -50,6 +55,7 @@ generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
   geometry_msgs
+  geographic_msgs
   jsk_recognition_msgs
 )
 
@@ -67,6 +73,7 @@ catkin_package(
   message_runtime
   std_msgs
   geometry_msgs
+  geographic_msgs
   sensor_msgs
 )
 

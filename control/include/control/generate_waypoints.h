@@ -10,15 +10,29 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <novatel_oem7_msgs/INSPVA.h>
 
-#include <geographic_msgs/GeoPointStamped.h>
 #include <geographic_msgs/GeoPoseStamped.h>
+#include <geographic_msgs/GeoPath.h>
 
 #include "uav_msgs/CarState.h"
 #include "control/utils.h"
 
-#define SEMI_MAJOR_AXIS 6378137.0       // semi-major axis [m]
-#define SEMI_MINOR_AXIS 6356752.314245  // semi-minor axis [m]
 using Vector3f = Eigen::Vector3f;
+
+struct VehicleState{
+    geometry_msgs::PoseStamped local;
+    geographic_msgs::GeoPoseStamped global; // [deg/1e-7]
+
+    geometry_msgs::PoseArray local_trajectory;
+    geographic_msgs::GeoPath global_trajectory;
+
+    int g_speed_raw;                                // [mm/s]
+    double g_speed;                                 // [m/s]
+    int heading_raw;                                // [deg/1e-5]
+    double heading_deg;
+    double heading_rad;
+    double east;
+    double north;
+};
 
 class GenerateWaypoints
 {
@@ -26,7 +40,8 @@ private:
     // Node Handler
 	ros::NodeHandle m_nh;
     control::Utils m_utils;
-    control::VehicleState m_target_vehicle;
+    VehicleState m_target_vehicle;
+    VehicleState m_ego_vehicle;
 	
 public:
     GenerateWaypoints();
@@ -39,46 +54,64 @@ private:
     // subscriber
 	ros::Subscriber m_target_vehicle_local_state_sub;
 	ros::Subscriber m_target_vehicle_global_position_sub;
+    ros::Subscriber m_current_local_pose_sub;
+    ros::Subscriber m_z_target_sub;
 
 	// publisher
-	ros::Publisher m_input_local_waypoints_pub;
-    ros::Publisher m_desired_local_waypoints_pub;
-    ros::Publisher m_desired_global_waypoints_pub;
-    ros::Publisher m_global_to_enu_target_vehicle_pose_pub;
-    ros::Publisher m_world_enu_desired_waypoints_pub;
+	ros::Publisher m_target_trajectory_pub;
+	ros::Publisher m_ego_trajectory_pub;
+	ros::Publisher m_target_waypoints_pub;
 
-    // service client
-    ros::ServiceClient m_desired_waypoints_srv_client;
+    // Timer
+    ros::Timer m_generate_waypoints_timer;
 
     // param
-    std::string m_vehicle_name_param;
     float m_x_offset_m_param;
     float m_z_offset_m_param;
+    std::string m_vehicle_name_param;
     float m_distance_thresh_param;
-    float m_init_gps_lat_param;
-    float m_init_gps_lon_param;
-    float m_init_gps_alt_param;
+    float m_target_wp_pub_interval_param;
+    float m_detected_dead_band_param;
+    bool m_global_to_local_param;
 
-    // const value
-    double m_K_LON;
-    double m_K_LAT;
+    // flag
+    bool m_is_detected;
+    bool m_is_global;
+    bool m_is_hover;
+    bool m_is_golbal_to_local;
+    bool m_is_z_changed;
+
+
+	tf2_ros::Buffer m_tfBuffer;
+	tf2_ros::TransformListener m_tfListener;
+
+    ros::Time m_last_detected_time;
+    geometry_msgs::PoseArray m_target_wp_local;
+    geographic_msgs::GeoPath m_target_wp_global;
+    float m_z_offset_m;
 
 private: // function
-    void GetParam();
-    void RosInit();
-    void InitTargetVehicle();
+    bool GetParam();
+    bool InitROS();
+    bool InitFlag();
+    bool InitTargetVehicle();
+    
+    void GenerateWaypointsTimerCallback(const ros::TimerEvent& event);
 
+    void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
     void TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
-    bool ConvertStateToLocalWaypoints(geometry_msgs::PoseStamped pose_stamped);
+    // void TargetVehicleLocalStateCallback(); // Tracking lidar callback
     void TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
-    bool ConvertStateToGlobalWaypoints(geometry_msgs::PoseStamped pose_stamped);
+    void ZOffsetCallback(const geometry_msgs::Point::ConstPtr &point_ptr);
 
-    geometry_msgs::PoseStamped CreateDesiredLocalWaypoint(geometry_msgs::PoseStamped pose_stamped);
-    geometry_msgs::PoseArray ConvertWorldEnu(geometry_msgs::PoseArray source_pose_array);
+    bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
+    bool AddTargetWaypoint(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
+    geometry_msgs::Pose GenTargetWaypoint(geometry_msgs::Pose &curr_pose);
 
-private: // attribute
-    std::vector<geometry_msgs::PoseStamped> m_input_local_waypoints;
-    std::vector<geometry_msgs::PoseStamped> m_desired_local_waypoints;
+    void Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geometry_msgs::PoseArray &target_poses);
+    
+    bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position);
+    bool IsValid(std::vector<geometry_msgs::Pose> &poses);
 };
 
 #endif // __GENERATE_WAYPOINTS_H__

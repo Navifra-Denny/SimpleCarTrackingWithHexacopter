@@ -82,7 +82,7 @@ void Offboard::InitRos()
 
     // Initialize subscriber
     m_desired_local_waypoints_pub = m_nh.subscribe<geometry_msgs::PoseArray>
-            ("/control/generate_waypoints_node/desired_local_waypoints", 10, boost::bind(&Offboard::DesiredLocalWaypointsCallback, this, _1));
+            ("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Offboard::DesiredLocalWaypointsCallback, this, _1));
     m_target_vehicle_local_state_sub = m_nh.subscribe<uav_msgs::CarState>
             (car_state_sub_topic_name, 10, boost::bind(&Offboard::TargetVehicleLocalStateCallback, this, _1));
     m_odom_sub = m_nh.subscribe<nav_msgs::Odometry>

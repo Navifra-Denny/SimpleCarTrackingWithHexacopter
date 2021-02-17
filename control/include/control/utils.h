@@ -15,21 +15,6 @@ struct Euler {
     double y;
 };
 
-struct VehicleState{
-    geometry_msgs::PoseStamped local_pose;
-    geographic_msgs::GeoPoseStamped global_pose_raw;   // [deg/1e-7]
-    geographic_msgs::GeoPoseStamped global_pose_deg;
-    geographic_msgs::GeoPoseStamped global_pose_rad;
-    geographic_msgs::GeoPoseStamped prev_global_pose_rad;
-    int g_speed_raw;                                // [mm/s]
-    double g_speed;                                 // [m/s]
-    int heading_raw;                                // [deg/1e-5]
-    double heading_deg;
-    double heading_rad;
-    double east;
-    double north;
-};
-
 class Utils
 {
 public:
@@ -38,9 +23,11 @@ public:
 
     Euler Quat2Euler(const geometry_msgs::Quaternion& quat_msg);
     float Distance(geometry_msgs::Point point1, geometry_msgs::Point point2);
-    float Degree2Rad(float degree);
+    double Degree2Rad(double degree);
+    double Rad2Degree(double rad);
     double MeridionalRadius(double a, double b, double lat);
     double NormalRadius(double a, double b, double lat);
+    bool IsNan(geometry_msgs::Point point);
 };
 
 }

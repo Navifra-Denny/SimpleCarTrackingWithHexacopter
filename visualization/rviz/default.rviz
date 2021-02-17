@@ -11,7 +11,6 @@ Panels:
         - /airsim1/TF1/Tree1
         - /control1
         - /control1/control_markers1
-        - /control1/control_markers1/Status1
         - /control1/control_markers1/Namespaces1
       Splitter Ratio: 0.7280453443527222
     Tree Height: 728
@@ -66,40 +65,13 @@ Visualization Manager:
           Frame Timeout: 15
           Frames:
             All Enabled: false
-            GV:
-              Value: true
-            base_link:
-              Value: true
-            base_link_frd:
-              Value: true
-            map:
-              Value: true
-            map_ned:
-              Value: true
-            odom:
-              Value: true
-            odom_ned:
-              Value: true
-            world_enu:
-              Value: false
-            world_ned:
-              Value: true
           Marker Scale: 1
           Name: TF
           Show Arrows: true
           Show Axes: true
           Show Names: true
           Tree:
-            map:
-              map_ned:
-                world_ned:
-                  GV:
-                    {}
-                  odom:
-                    odom_ned:
-                      {}
-              world_enu:
-                {}
+            {}
           Update Interval: 0
           Value: true
         - Alpha: 1
@@ -495,8 +467,7 @@ Visualization Manager:
           Marker Topic: /control/visualzie_control_node/control_marekrs
           Name: control_markers
           Namespaces:
-            input_line/center_point: true
-            roi_line/center_point: false
+            {}
           Queue Size: 100
           Value: true
       Enabled: true
@@ -529,25 +500,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.7763442993164062
+      Distance: 9.641976356506348
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.2685178518295288
-        Y: 0.07715016603469849
-        Z: 0
+        X: -0.8257650136947632
+        Y: 0.5607271790504456
+        Z: 4.76837158203125e-7
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9353980422019958
+      Pitch: 0.685398280620575
       Target Frame: world_enu
       Value: ThirdPersonFollower (rviz)
-      Yaw: 2.8603885173797607
+      Yaw: 2.7153851985931396
     Saved: ~
 Window Geometry:
   Displays:
