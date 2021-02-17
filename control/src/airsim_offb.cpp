@@ -138,8 +138,8 @@ void Offboard::TimerCallback(const ros::TimerEvent& event)
     YawMode yaw_mode(false, euler.y);
     auto ned_vx = (m_local_setpoint.position.x - m_ego_vehicle_local_pose.position.x)/dt;
     auto ned_vy = (m_local_setpoint.position.y - m_ego_vehicle_local_pose.position.y)/dt;
-    auto body_vx = cos(m_utils.Degree2Rad(euler.y))*ned_vx - sin(m_utils.Degree2Rad(euler.y))*ned_vy;
-    auto body_vy = sin(m_utils.Degree2Rad(euler.y))*ned_vx + cos(m_utils.Degree2Rad(euler.y))*ned_vy;
+    auto body_vx = cos(m_utils.Deg2Rad(euler.y))*ned_vx - sin(m_utils.Deg2Rad(euler.y))*ned_vy;
+    auto body_vy = sin(m_utils.Deg2Rad(euler.y))*ned_vx + cos(m_utils.Deg2Rad(euler.y))*ned_vy;
     m_client.moveByVelocityZAsync((float)body_vx, (float)body_vy, (float)m_local_setpoint.position.z, dt,
     DrivetrainType::ForwardOnly, yaw_mode);
 

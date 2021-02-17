@@ -41,6 +41,7 @@ add_message_files(
   TargetWPState.msg
   Trajectory.msg
   Param.msg
+  Offset.msg
 )
 
 ## Generate services in the 'srv' folder

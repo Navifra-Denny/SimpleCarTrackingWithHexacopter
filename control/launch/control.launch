@@ -9,10 +9,6 @@
 
     <!-- mavros_offb_node  -->
 	<arg name="setpoint_pub_interval" default="0.1" />
-	<arg name="use_global_setpoint" default="true" />
-    <arg name="init_local_x" default="0.0" />
-    <arg name="init_local_y" default="0.0" />
-    <arg name="init_local_z" default="3.5" />
     <arg name="init_gps_lat" default="37.5445466424" />
     <arg name="init_gps_lon" default="127.079172409" />
     <arg name="init_gps_alt" default="47.0" />
@@ -21,16 +17,19 @@
     <!-- etc -->
 	<arg name="uav_name" default="PX4" />
 	<arg name="ugv_name" default="GV" />
-	<arg name="x_offset_m" default="0.0" />
-	<arg name="z_offset_m" default="3.5" />
 	<arg name="uav_speed" default="6.0" />
 	<arg name="dt" default="0.25" />
     
     <!-- generate_waypoints_node -->
+	<arg name="global_to_local" default="true" />
+    <arg name="sync_PX4" default="true" />
 	<arg name="distance_threshold" default="0.1"/>
     <arg name="target_wp_pub_interval" default="0.05" />
 	<arg name="detected_dead_band" default="0.5" />
-	<arg name="global_to_local" default="false" />
+	<arg name="x_offset_m" default="0.0" />
+	<arg name="z_offset_m" default="3.5" />
+	<arg name="alt_offset_m" default="45.0" />
+
     
     <group unless="$(arg simulation)">
         <include file="$(find mavros)/launch/px4.launch">
@@ -38,12 +37,7 @@
         </include>
         <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
             <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
-            <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
-            <param name="init_gps_lat" value="$(arg init_gps_lat)" />
-            <param name="init_gps_lon" value="$(arg init_gps_lon)" />
-            <param name="init_gps_alt" value="$(arg init_gps_alt)" />
             <param name="is_debug_mode" value="$(arg is_debug_mode)" />
-            <param name="z_offset_m" value="$(arg z_offset_m)" />
         </node>
     </group>
     
@@ -54,7 +48,6 @@
             <param name="dt" value="$(arg dt)" />
             <param name="uav_name" value="$(arg uav_name)" />
             <param name="ugv_name" value="$(arg ugv_name)" />
-            <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
             <param name="UE_target_name" value="BP_BoxTruck_3" />
         </node>
     </group>
@@ -63,12 +56,7 @@
         <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
         <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
             <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
-            <param name="use_global_setpoint" value="$(arg use_global_setpoint)" />
-            <param name="init_gps_lat" value="$(arg init_gps_lat)" />
-            <param name="init_gps_lon" value="$(arg init_gps_lon)" />
-            <param name="init_gps_alt" value="$(arg init_gps_alt)" />
             <param name="is_debug_mode" value="$(arg is_debug_mode)" />
-            <param name="z_offset_m" value="$(arg z_offset_m)" />
         </node>
     </group>
 
@@ -80,6 +68,11 @@
 		<arg name="target_wp_pub_interval" value="$(arg target_wp_pub_interval)" />
 		<arg name="detected_dead_band" value="$(arg detected_dead_band)" />
 		<arg name="global_to_local" value="$(arg global_to_local)" />
+        <arg name="init_gps_lat" value="$(arg init_gps_lat)" />
+        <arg name="init_gps_lon" value="$(arg init_gps_lon)" />
+        <arg name="init_gps_alt" value="$(arg init_gps_alt)" />
+        <arg name="sync_PX4" value="$(arg sync_PX4)" />
+        <arg name="alt_offset_m" value="$(arg alt_offset_m)" />
 	</include>
 
     <!-- <include file="$(find control)/launch/extract_lane_node.launch">
@@ -89,9 +82,6 @@
     <include file="$(find control)/launch/checker_node.launch">
         <arg name="is_debug_mode" value="$(arg is_debug_mode)" />
         <arg name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
-        <arg name="init_gps_lat" value="$(arg init_gps_lat)" />
-        <arg name="init_gps_lon" value="$(arg init_gps_lon)" />
-        <arg name="init_gps_alt" value="$(arg init_gps_alt)" />
     </include>
 
     <include file="$(find control)/launch/static_transforms.launch"/>

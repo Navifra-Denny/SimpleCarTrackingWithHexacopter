@@ -2,6 +2,7 @@
 #include <ros/spinner.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/HomePosition.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
@@ -25,6 +26,7 @@ private:
     ros::Subscriber m_waypoints_sub;
     ros::Subscriber m_current_local_pose_sub;
     ros::Subscriber m_current_global_pose_sub;
+    ros::Subscriber m_home_position_sub;
 
     // Initialize publisher
     ros::Publisher m_uav_status_pub;
@@ -37,26 +39,21 @@ private:
     // Param
     bool m_is_debug_mode_param;
     float m_setpoint_pub_interval_param;
-    double m_init_gps_lat_param;
-    double m_init_gps_lon_param;
-    double m_init_gps_alt_param;
-
 
     bool GetParam();
     void InitROS();
 
+    void CheckerTimerCallback(const ros::TimerEvent& event);
+    
     void StateCallback(const mavros_msgs::State::ConstPtr &state_ptr);
     void WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_ptr);
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &local_position_ptr);
     void EgoVehicleGlobalPositionCallback(const sensor_msgs::NavSatFix::ConstPtr &global_position_ptr);
-    void CheckerTimerCallback(const ros::TimerEvent& event);
+    void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_position_ptr);
 };
 
 Checker::Checker() :
-    m_setpoint_pub_interval_param(NAN),
-    m_init_gps_lat_param(NAN),
-    m_init_gps_lon_param(NAN),
-    m_init_gps_alt_param(NAN)
+    m_setpoint_pub_interval_param(NAN)
 {
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
     InitROS();
@@ -69,20 +66,11 @@ bool Checker::GetParam()
 {
     m_nh.getParam("checker_node/is_debug_mode", m_is_debug_mode_param);
     m_nh.getParam("checker_node/setpoint_pub_interval", m_setpoint_pub_interval_param);
-    m_nh.getParam("checker_node/init_gps_lat", m_init_gps_lat_param);
-    m_nh.getParam("checker_node/init_gps_lon", m_init_gps_lon_param);
-    m_nh.getParam("checker_node/init_gps_alt", m_init_gps_alt_param);
 
     if (m_setpoint_pub_interval_param == NAN) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param is NAN"); return false; }
-    else if (m_init_gps_lat_param == NAN) { ROS_ERROR_STREAM("m_init_gps_lat_param is NAN"); return false; }
-    else if (m_init_gps_lon_param == NAN) { ROS_ERROR_STREAM("m_init_gps_lon_param is NAN"); return false; }
-    else if (m_init_gps_alt_param == NAN) { ROS_ERROR_STREAM("m_init_gps_alt_param is NAN"); return false; }
 
     m_uav_status.param.is_debug_mode = m_is_debug_mode_param;
     m_uav_status.param.setpoint_pub_interval = m_setpoint_pub_interval_param;
-    m_uav_status.param.init_gps_alt = m_init_gps_lat_param;
-    m_uav_status.param.init_gps_lon = m_init_gps_lon_param;
-    m_uav_status.param.init_gps_alt = m_init_gps_alt_param;
 
     return true;
 }
@@ -94,6 +82,8 @@ void Checker::InitROS()
     m_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWP>("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Checker::WaypointsCallback, this, _1));
     m_current_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&Checker::EgoVehicleLocalPositionCallback, this, _1));
     m_current_global_pose_sub = m_nh.subscribe<sensor_msgs::NavSatFix>("/mavros/global_position/global", 10, boost::bind(&Checker::EgoVehicleGlobalPositionCallback, this, _1));
+    // m_home_position_sub = m_nh.subscribe<geographic_msgs::GeoPoint>("/control/tf_broadcaster_node/home", 10, boost::bind(&Checker::HomePositionCallback, this, _1));
+    m_home_position_sub = m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&Checker::HomePositionCallback, this, _1));
 
     // Initialize publisher
     m_uav_status_pub = m_nh.advertise<uav_msgs::UavStatus>("/control/checker_node/uav_status", 10);
@@ -110,9 +100,14 @@ void Checker::StateCallback(const mavros_msgs::State::ConstPtr &state_ptr)
 
 void Checker::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_ptr)
 {
-    m_uav_status.is_global = waypoints_ptr->state.is_global;
-    m_uav_status.is_detected = waypoints_ptr->state.is_detected;
-    m_uav_status.is_hover = waypoints_ptr->state.is_hover;
+    // m_uav_status.is_global = waypoints_ptr->state.is_global;
+    // m_uav_status.is_detected = waypoints_ptr->state.is_detected;
+    // m_uav_status.is_hover = waypoints_ptr->state.is_hover;
+    // m_uav_status.global = waypoints_ptr->state.is_hover;
+    m_uav_status.state.is_global = waypoints_ptr->state.is_global;
+    m_uav_status.state.is_detected = waypoints_ptr->state.is_detected;
+    m_uav_status.state.is_hover = waypoints_ptr->state.is_hover;
+    m_uav_status.state.global_to_local = waypoints_ptr->state.global_to_local;
 
     if (waypoints_ptr->local.poses.size() != 0){
         m_uav_status.local_wp.position.x = waypoints_ptr->local.poses.back().position.x;
@@ -139,6 +134,14 @@ void Checker::EgoVehicleGlobalPositionCallback(const sensor_msgs::NavSatFix::Con
     m_uav_status.curr_global.position.longitude = global_position_ptr->longitude;
     m_uav_status.curr_global.position.altitude = global_position_ptr->altitude;
 }
+
+void Checker::HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_position_ptr)
+{
+    m_uav_status.param.init_gps_lat = home_position_ptr->geo.latitude;
+    m_uav_status.param.init_gps_lon = home_position_ptr->geo.longitude;
+    m_uav_status.param.init_gps_alt = home_position_ptr->geo.altitude;
+}
+
 
 void Checker::CheckerTimerCallback(const ros::TimerEvent& event)
 {

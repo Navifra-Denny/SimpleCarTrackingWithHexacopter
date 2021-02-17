@@ -2,9 +2,7 @@
 Param param
 
 # state
-bool is_global
-bool is_detected
-bool is_hover
+TargetWPState state
 geometry_msgs/Pose local_wp
 geographic_msgs/GeoPose global_wp
 

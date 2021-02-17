@@ -4,7 +4,12 @@
 namespace control
 {
 
-Utils::Utils() {}
+Utils::Utils() :
+    GEOD_A(6378137.0),
+    GEOD_e2(0.00669437999014),
+    EARTH_RADIUS_M(6371.0)
+{}
+
 Utils::~Utils() {}
 
 Euler Utils::Quat2Euler(const geometry_msgs::Quaternion& quat_msg)
@@ -19,7 +24,6 @@ Euler Utils::Quat2Euler(const geometry_msgs::Quaternion& quat_msg)
 	return euler;
 }
 
-
 float Utils::Distance(geometry_msgs::Point point1, geometry_msgs::Point point2)
 {
     auto delta_x = point1.x - point2.x;
@@ -30,15 +34,37 @@ float Utils::Distance(geometry_msgs::Point point1, geometry_msgs::Point point2)
     return distance_m;
 }
 
-double Utils::Degree2Rad(double degree)
+// ref http://www.movable-type.co.uk/scripts/latlong.html
+double Utils::DistanceFromLatLonInKm(geographic_msgs::GeoPoint point1, geographic_msgs::GeoPoint point2)
 {
-	double rad = degree * M_PI/180;
+    double lat1 = point1.latitude;
+    double lon1 = point1.longitude;
+
+    double lat2 = point2.latitude;
+    double lon2 = point2.longitude;
+    
+    double dLat = Deg2Rad(lat2 - lat1);
+    double dLon = Deg2Rad(lon2 - lon1);
+
+    double a = 
+        sin(dLat/2) * sin(dLat/2) + 
+        cos(Deg2Rad(lat1)) * cos(Deg2Rad(lat2)) * 
+        sin(dLon/2) * sin(dLon/2);
+
+    double c = 2*atan2(sqrt(a), sqrt(1 - a)); 
+    double distance_m = EARTH_RADIUS_M * c; // Distance in km
+    return distance_m;
+}
+
+double Utils::Deg2Rad(double degree)
+{
+    double rad = degree * (M_PI / 180.0);
 	return rad; 
 }
 
-double Utils::Rad2Degree(double rad)
+double Utils::Rad2Deg(double rad)
 {
-	double degree = rad * 180/M_PI;
+	double degree = rad * (180.0 / M_PI);
 	return degree;
 }
 
@@ -56,5 +82,66 @@ bool Utils::IsNan(geometry_msgs::Point point)
         return true;
     }
     return false;
+}
+
+bool Utils::IsNan(geographic_msgs::GeoPoint point)
+{
+    if (__isnan(point.latitude) || __isnan(point.longitude) || __isnan(point.altitude)){
+        return true;
+    }
+    return false;
+}
+
+geometry_msgs::PoseStamped Utils::ConvertToMapFrame(double lat, double lon, double hgt, geographic_msgs::GeoPoint home_position)
+{
+    double dKappaLat = 0;
+    double dKappaLon = 0;  
+
+    hgt = home_position.altitude;
+
+    dKappaLat = FnKappaLat( home_position.latitude , hgt );
+    dKappaLon = FnKappaLon( home_position.latitude , hgt );
+
+    geometry_msgs::PoseStamped pose;
+    pose.header.stamp = ros::Time::now();
+    pose.header.frame_id = "map";
+
+    pose.pose.position.x = (lon-home_position.longitude)/dKappaLon;
+    pose.pose.position.y = (lat-home_position.latitude)/dKappaLat;
+    pose.pose.position.z = hgt;
+
+    return(pose);
+}
+
+double Utils::FnKappaLat(double dRef_Latitude, double dHeight)
+{
+	double dKappaLat = 0;
+	double Denominator = 0;
+	double dM = 0;
+
+	// estimate the meridional radius
+	Denominator = sqrt(1 - GEOD_e2 * pow(sin(Deg2Rad(dRef_Latitude)), 2));
+	dM = GEOD_A * (1 - GEOD_e2) / pow(Denominator, 3);
+
+	// Curvature for the meridian
+	dKappaLat = Rad2Deg(1 / (dM + dHeight));
+
+	return dKappaLat;
+}
+
+double Utils::FnKappaLon(double dRef_Latitude, double dHeight)
+{
+	double dKappaLon = 0;
+	double Denominator = 0;
+	double dN = 0;
+
+	// estimate the normal radius
+	Denominator = sqrt(1 - GEOD_e2 * pow(sin(Deg2Rad(dRef_Latitude)), 2));
+	dN = GEOD_A / Denominator;
+
+	// Curvature for the meridian
+	dKappaLon = Rad2Deg(1 / ((dN + dHeight) * cos(Deg2Rad(dRef_Latitude))));
+
+	return dKappaLon;
 }
 }

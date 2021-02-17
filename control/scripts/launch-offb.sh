@@ -43,17 +43,17 @@ elif [ "$2" == "gazebo" ]; then
     gazebo="true"
 fi
 
-export PX4_HOME_LAT=37.5448339959
-export PX4_HOME_LON=127.078887657
-export PX4_HOME_ALT=44.0
+export PX4_HOME_LAT=37.5448196399
+export PX4_HOME_LON=127.078922483
+export PX4_HOME_ALT=43.4793964783
 
 if [ $simulation == "false" ] || [ $airsim == "true" ]; then
-    roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo"
+    roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo" sync_PX4:="true"
 elif [ $gazebo == "true" ]; then
     killall gzclient
     killall gzserver
 
     source ./launch-common.sh
 
-    roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo" init_gps_lat:="${PX4_HOME_LAT}" init_gps_lon:="${PX4_HOME_LON}" init_gps_alt:="${PX4_HOME_ALT}"
+    roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo" init_gps_lat:="${PX4_HOME_LAT}" init_gps_lon:="${PX4_HOME_LON}" init_gps_alt:="${PX4_HOME_ALT}" sync_PX4:="false"
 fi

@@ -1,121 +1,119 @@
 #include "control/tf_broadcaster.h"
 
-TfBroadcaster::TfBroadcaster()
+TfBroadcaster::TfBroadcaster() :
+    GEOD_A(6378137.0),
+    GEOD_e2(0.00669437999014),
+    m_init_gps_lat_param(NAN),
+    m_init_gps_lon_param(NAN),
+    m_init_gps_alt_param(NAN)
 {
-
+    InitFlag();
+    if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
+    InitRos();
 }
 
 TfBroadcaster::~TfBroadcaster()
 {}
 
-
-
-
-void TfBroadcaster::CallBackNovatelINSPVA(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr)
+void TfBroadcaster::InitFlag()
 {
-	static tf2_ros::TransformBroadcaster br;
-	geometry_msgs::TransformStamped transformStamped;
-
-	transformStamped.header.stamp =  ;
-	transformStamped.header.frame_id = "world";
-	transformStamped.child_frame_id = turtle_name;
-
-	transformStamped.transform.translation.x = msg->x;
-	transformStamped.transform.translation.y = msg->y;
-	transformStamped.transform.translation.z = 0.0;
-	
-	tf2::Quaternion q;
-	q.setRPY(0, 0, msg->theta);
-	transformStamped.transform.rotation.x = q.x();
-	transformStamped.transform.rotation.y = q.y();
-	transformStamped.transform.rotation.z = q.z();
-	transformStamped.transform.rotation.w = q.w();
-
-	br.sendTransform(transformStamped);
-
-
-    static tf::TransformBroadcaster tf_novatel;
-
-    ros::Time pres_time = msg->header.stamp;
-
-    // Get quternion
-    tf::Quaternion quternion;
-    quternion.setRPY(msg->roll * M_PI / 180., msg->pitch * M_PI / 180., (-1*msg->azimuth + 90.0) * M_PI / 180.);
-
-    // Get offset
-    geometry_msgs::PoseStamped novatel_enu_pose = ConvertToMapFrame(msg->latitude, msg->longitude, msg->height);
-    tf::Vector3 offset = tf::Vector3(novatel_enu_pose.pose.position.x, novatel_enu_pose.pose.position.y, novatel_enu_pose.pose.position.z);
-
-    // brodcast
-    tf_novatel.sendTransform( 
-        tf::StampedTransform(tf::Transform(quternion, offset), pres_time, "map", "novatel"));
-
-    tf::Vector3 offset_velodyne = tf::Vector3(0,0,0.3);
-    tf::Quaternion quternion_velodyne;
-    quternion_velodyne.setRPY(0,0,0);
-
-    // brodcast
-    tf_novatel.sendTransform( 
-        tf::StampedTransform(tf::Transform(quternion_velodyne, offset_velodyne), pres_time, "novatel", "velodyne"));
+    m_is_home_set = false;
 }
 
-geometry_msgs::PoseStamped TfBroadcaster::ConvertToMapFrame(float lat, float lon, float hgt)
+bool TfBroadcaster::GetParam()
 {
-    double dKappaLat = 0;
-    double dKappaLon = 0;  
+    m_nh.getParam("tf_broadcaster_node/init_gps_lat", m_init_gps_lat_param);
+    m_nh.getParam("tf_broadcaster_node/init_gps_lon", m_init_gps_lon_param);
+    m_nh.getParam("tf_broadcaster_node/init_gps_alt", m_init_gps_alt_param);
+    m_nh.getParam("tf_broadcaster_node/sync_PX4", m_sync_PX4_param);
+    m_nh.getParam("tf_broadcaster_node/is_finding_home", m_is_finding_home_param);
 
-    double m_dRefLatitude_deg = 37.3962732790;
-    double m_dRefLongitude_deg = 127.1066872418;
-    // double m_dRefLatitude_deg = init_gnss.latitude;
-    // double m_dRefLongitude_deg = init_gnss.longitude;
+    if (m_init_gps_lat_param == NAN) { ROS_ERROR_STREAM("init_gps_lat_param is NAN"); return false; }
+    else if (m_init_gps_lon_param == NAN) { ROS_ERROR_STREAM("init_gps_lon_param is NAN"); return false; }
+    else if (m_init_gps_alt_param == NAN) { ROS_ERROR_STREAM("init_gps_alt_param is NAN"); return false; }
 
-    hgt = m_dMapHeight;
+    if (!m_sync_PX4_param && !m_is_finding_home_param){
+        m_is_home_set = true;
 
-    dKappaLat = FnKappaLat( m_dRefLatitude_deg , hgt );
-    dKappaLon = FnKappaLon( m_dRefLatitude_deg , hgt );
+        m_home_position.latitude = m_init_gps_lat_param;
+        m_home_position.longitude = m_init_gps_lon_param;
+        m_home_position.altitude = m_init_gps_alt_param;
+        ROS_WARN_STREAM("[ home set ]");
+    }
 
-    geometry_msgs::PoseStamped pose;
-    geometry_msgs::Quaternion quat;
-
-    pose.header.stamp = ros::Time::now();
-    pose.header.frame_id = "map";
-
-    pose.pose.position.x = (lon-m_dRefLongitude_deg)/dKappaLon;
-    pose.pose.position.y = (lat-m_dRefLatitude_deg)/dKappaLat;
-    pose.pose.position.z = hgt;
-
-    return(pose);
-
+    return true;
 }
 
-double TfBroadcaster::FnKappaLat(double dRef_Latitude, double dHeight)
+void TfBroadcaster::InitRos()
 {
-	double dKappaLat = 0;
-	double Denominator = 0;
-	double dM = 0;
+    // Initialize subscriber
+    m_novatel_sub = m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&TfBroadcaster::NovatelINSPVACallback, this, _1));
+    if (m_sync_PX4_param && !m_is_finding_home_param){
+        m_home_position_sub = m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&TfBroadcaster::HomePositionCallback, this, _1));
+        
+        ros::Rate rate(10);
+        while (ros::ok() && !m_is_home_set){
+            ros::spinOnce();
+            rate.sleep();
+        }
+    }
+    // Initialize publisher
+    m_home_position_pub = m_nh.advertise<geographic_msgs::GeoPoint>("/control/tf_broadcaster_node/home", 1);
 
-	// estimate the meridional radius
-	Denominator = sqrt(1 - GEOD_e2 * pow(sin(m_utils.Degree2Rad(dRef_Latitude)), 2));
-	dM = GEOD_A * (1 - GEOD_e2) / pow(Denominator, 3);
-
-	// Curvature for the meridian
-	dKappaLat = 1 / m_utlis.Rad2Degree(dM + dHeight);
-
-	return dKappaLat;
+    // Time callback
+    m_home_position_timer = m_nh.createTimer(ros::Duration(2.0), &TfBroadcaster::HomePositionTimerCallback, this);
 }
 
-double TfBroadcaster::FnKappaLon(double dRef_Latitude, double dHeight)
+void TfBroadcaster::HomePositionTimerCallback(const ros::TimerEvent& event)
 {
-	double dKappaLon = 0;
-	double Denominator = 0;
-	double dN = 0;
+    if (m_is_home_set){
+        m_home_position_pub.publish(m_home_position);
+    }
+}
 
-	// estimate the normal radius
-	Denominator = sqrt(1 - GEOD_e2 * pow(sin(m_utils.Degree2Rad(dRef_Latitude)), 2));
-	dN = GEOD_A / Denominator;
+void TfBroadcaster::HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr)
+{
+    if (!m_is_home_set){
+        m_is_home_set = true;
 
-	// Curvature for the meridian
-	dKappaLon = 1 / m_utils.Rad2Degree((dN + dHeight) * cos(m_utils.Degree2Rad(dRef_Latitude)));
+        m_home_position.latitude = home_ptr->geo.latitude;
+        m_home_position.longitude = home_ptr->geo.longitude;
+        m_home_position.altitude = home_ptr->geo.altitude;
+        ROS_WARN_STREAM("[ home set ]");
+    }
+}
 
-	return dKappaLon;
+void TfBroadcaster::NovatelINSPVACallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr)
+{
+    if (m_is_home_set){
+        static tf2_ros::TransformBroadcaster novatel_tf_broadcaster;
+        geometry_msgs::TransformStamped novatel_tf_stamped;
+
+        novatel_tf_stamped.header.stamp = inspva_msg_ptr->header.stamp;
+        novatel_tf_stamped.header.frame_id = "map";
+        novatel_tf_stamped.child_frame_id = inspva_msg_ptr->header.frame_id;
+
+        // Get offset
+        geometry_msgs::PoseStamped novatel_enu_pose = 
+            m_utils.ConvertToMapFrame(inspva_msg_ptr->latitude, inspva_msg_ptr->longitude, inspva_msg_ptr->height, m_home_position);
+        novatel_tf_stamped.transform.translation.x = novatel_enu_pose.pose.position.x;
+        novatel_tf_stamped.transform.translation.y = novatel_enu_pose.pose.position.y;
+        novatel_tf_stamped.transform.translation.z = novatel_enu_pose.pose.position.z;
+        
+        tf2::Quaternion q;
+        q.setRPY(inspva_msg_ptr->roll * M_PI / 180., inspva_msg_ptr->pitch * M_PI / 180., (-1*inspva_msg_ptr->azimuth + 90.0) * M_PI / 180.);
+        novatel_tf_stamped.transform.rotation.x = q.x();
+        novatel_tf_stamped.transform.rotation.y = q.y();
+        novatel_tf_stamped.transform.rotation.z = q.z();
+        novatel_tf_stamped.transform.rotation.w = q.w();
+
+        novatel_tf_broadcaster.sendTransform(novatel_tf_stamped);
+    }
+    else if (!m_is_home_set && m_is_finding_home_param){
+        m_is_home_set = true;
+
+        m_home_position.latitude = inspva_msg_ptr->latitude;
+        m_home_position.longitude = inspva_msg_ptr->longitude;
+        m_home_position.altitude = inspva_msg_ptr->height;
+    }
 }

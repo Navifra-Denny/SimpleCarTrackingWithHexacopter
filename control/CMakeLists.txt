@@ -86,8 +86,8 @@ target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 add_executable(mavros_offb_node src/mavros_offb_node.cpp src/mavros_offb.cpp src/utils.cpp)
 target_link_libraries(mavros_offb_node ${catkin_LIBRARIES})
 
-# add_executable(tf_broadcaster_node src/tf_broadcaster_node.cpp src/tf_broadcaster.cpp src/utils.cpp)
-# target_link_libraries(tf_broadcaster_node ${catkin_LIBRARIES})
+add_executable(tf_broadcaster_node src/tf_broadcaster_node.cpp src/tf_broadcaster.cpp src/utils.cpp)
+target_link_libraries(tf_broadcaster_node ${catkin_LIBRARIES})
 
 add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp)
 target_link_libraries(visualize_control_node ${catkin_LIBRARIES})

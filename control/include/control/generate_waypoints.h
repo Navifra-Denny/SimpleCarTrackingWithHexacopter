@@ -5,15 +5,18 @@
 #include <ros/spinner.h>
 #include "Eigen/Dense"
 #include <deque>
+#include <novatel_oem7_msgs/INSPVA.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <novatel_oem7_msgs/INSPVA.h>
 
 #include <geographic_msgs/GeoPoseStamped.h>
 #include <geographic_msgs/GeoPath.h>
 
+#include <std_msgs/String.h>
+#include <mavros_msgs/HomePosition.h>
 #include "uav_msgs/CarState.h"
+#include "uav_msgs/Offset.h"
 #include "control/utils.h"
 
 using Vector3f = Eigen::Vector3f;
@@ -47,15 +50,15 @@ public:
     GenerateWaypoints();
     virtual ~GenerateWaypoints();
 
-    void GetInputWaypoints();
-    void GetDesiredWaypoints();
-
 private:
+
     // subscriber
 	ros::Subscriber m_target_vehicle_local_state_sub;
 	ros::Subscriber m_target_vehicle_global_position_sub;
     ros::Subscriber m_current_local_pose_sub;
-    ros::Subscriber m_z_target_sub;
+    ros::Subscriber m_offset_sub;
+    ros::Subscriber m_chatter_sub;
+    ros::Subscriber m_home_position_sub;
 
 	// publisher
 	ros::Publisher m_target_trajectory_pub;
@@ -73,22 +76,25 @@ private:
     float m_target_wp_pub_interval_param;
     float m_detected_dead_band_param;
     bool m_global_to_local_param;
+    float m_alt_offset_m_param;
 
     // flag
     bool m_is_detected;
     bool m_is_global;
     bool m_is_hover;
     bool m_is_golbal_to_local;
-    bool m_is_z_changed;
-
+    bool m_is_offset_changed;
+    bool m_is_home_set;
 
 	tf2_ros::Buffer m_tfBuffer;
 	tf2_ros::TransformListener m_tfListener;
 
+    geographic_msgs::GeoPoint m_home_position;
     ros::Time m_last_detected_time;
     geometry_msgs::PoseArray m_target_wp_local;
     geographic_msgs::GeoPath m_target_wp_global;
     float m_z_offset_m;
+    float m_alt_offset_m;
 
 private: // function
     bool GetParam();
@@ -102,16 +108,22 @@ private: // function
     void TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
     // void TargetVehicleLocalStateCallback(); // Tracking lidar callback
     void TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
-    void ZOffsetCallback(const geometry_msgs::Point::ConstPtr &point_ptr);
+    void OffsetCallback(const uav_msgs::Offset::ConstPtr &point_ptr);
+    void ChatterCallback(const std_msgs::String::ConstPtr &string_ptr);
+    void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
 
     bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
+    bool AddTargetWaypoint(geographic_msgs::GeoPath &geo_path, geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped);
     geometry_msgs::Pose GenTargetWaypoint(geometry_msgs::Pose &curr_pose);
+    geographic_msgs::GeoPoseStamped GenTargetWaypoint(geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped);
 
     void Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geometry_msgs::PoseArray &target_poses);
-    
+    void Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geographic_msgs::GeoPath &target_wp_poses);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position);
+    bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses);
+    bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses);
 };
 
 #endif // __GENERATE_WAYPOINTS_H__
