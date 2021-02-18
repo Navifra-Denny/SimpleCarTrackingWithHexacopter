@@ -30,10 +30,6 @@ public:
     ~TfBroadcaster();
 
 private:
-    // const variable
-    const double GEOD_A;//SemiMajorAxis
-    const double GEOD_e2; // FirstEccentricitySquard, e ^ 2
-
     // subscriber
     ros::Subscriber m_novatel_sub;
     ros::Subscriber m_home_position_sub;
@@ -45,10 +41,6 @@ private:
     ros::Timer m_home_position_timer;
 
     // param
-    double m_init_gps_lat_param;
-    double m_init_gps_lon_param;
-    double m_init_gps_alt_param;
-    bool m_sync_PX4_param;
     bool m_is_finding_home_param;
     
     geographic_msgs::GeoPoint m_home_position;

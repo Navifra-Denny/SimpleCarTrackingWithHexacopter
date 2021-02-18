@@ -18,10 +18,6 @@
 	<arg name="uav_name" default="PX4" />
 
 	<!-- tf_broadcaster_node -->
-    <arg name="init_gps_lat" default="37.5445466424" />
-    <arg name="init_gps_lon" default="127.079172409" />
-    <arg name="init_gps_alt" default="47.0" />
-    <arg name="sync_PX4" default="false" />
 	<arg name="is_finding_home" default="false"/>
 
 
@@ -37,13 +33,9 @@
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 
-    <!-- <include file="$(find control)/launch/tf_broadcaster_node.launch">
-		<arg name="init_gps_lat" value="$(arg init_gps_lat)" />
-		<arg name="init_gps_lon" value="$(arg init_gps_lon)" />
-		<arg name="init_gps_alt" value="$(arg init_gps_alt)" />
-		<arg name="sync_PX4" value="$(arg sync_PX4)" />
+    <include file="$(find control)/launch/tf_broadcaster_node.launch">
 		<arg name="is_finding_home" value="$(arg is_finding_home)" />
-	</include> -->
+	</include>
 
 	<node pkg="control" type="visualize_control_node" name="visualize_control_node" output="$(arg output)" >
 		<param name="ugv_name" value="$(arg ugv_name)" />

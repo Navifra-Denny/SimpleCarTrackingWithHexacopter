@@ -22,7 +22,6 @@
     
     <!-- generate_waypoints_node -->
 	<arg name="global_to_local" default="true" />
-    <arg name="sync_PX4" default="true" />
 	<arg name="distance_threshold" default="0.1"/>
     <arg name="target_wp_pub_interval" default="0.05" />
 	<arg name="detected_dead_band" default="0.5" />
@@ -68,10 +67,6 @@
 		<arg name="target_wp_pub_interval" value="$(arg target_wp_pub_interval)" />
 		<arg name="detected_dead_band" value="$(arg detected_dead_band)" />
 		<arg name="global_to_local" value="$(arg global_to_local)" />
-        <arg name="init_gps_lat" value="$(arg init_gps_lat)" />
-        <arg name="init_gps_lon" value="$(arg init_gps_lon)" />
-        <arg name="init_gps_alt" value="$(arg init_gps_alt)" />
-        <arg name="sync_PX4" value="$(arg sync_PX4)" />
         <arg name="alt_offset_m" value="$(arg alt_offset_m)" />
 	</include>
 

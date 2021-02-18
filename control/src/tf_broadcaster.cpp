@@ -1,11 +1,6 @@
 #include "control/tf_broadcaster.h"
 
-TfBroadcaster::TfBroadcaster() :
-    GEOD_A(6378137.0),
-    GEOD_e2(0.00669437999014),
-    m_init_gps_lat_param(NAN),
-    m_init_gps_lon_param(NAN),
-    m_init_gps_alt_param(NAN)
+TfBroadcaster::TfBroadcaster()
 {
     InitFlag();
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
@@ -22,24 +17,7 @@ void TfBroadcaster::InitFlag()
 
 bool TfBroadcaster::GetParam()
 {
-    m_nh.getParam("tf_broadcaster_node/init_gps_lat", m_init_gps_lat_param);
-    m_nh.getParam("tf_broadcaster_node/init_gps_lon", m_init_gps_lon_param);
-    m_nh.getParam("tf_broadcaster_node/init_gps_alt", m_init_gps_alt_param);
-    m_nh.getParam("tf_broadcaster_node/sync_PX4", m_sync_PX4_param);
     m_nh.getParam("tf_broadcaster_node/is_finding_home", m_is_finding_home_param);
-
-    if (m_init_gps_lat_param == NAN) { ROS_ERROR_STREAM("init_gps_lat_param is NAN"); return false; }
-    else if (m_init_gps_lon_param == NAN) { ROS_ERROR_STREAM("init_gps_lon_param is NAN"); return false; }
-    else if (m_init_gps_alt_param == NAN) { ROS_ERROR_STREAM("init_gps_alt_param is NAN"); return false; }
-
-    if (!m_sync_PX4_param && !m_is_finding_home_param){
-        m_is_home_set = true;
-
-        m_home_position.latitude = m_init_gps_lat_param;
-        m_home_position.longitude = m_init_gps_lon_param;
-        m_home_position.altitude = m_init_gps_alt_param;
-        ROS_WARN_STREAM("[ home set ]");
-    }
 
     return true;
 }
@@ -48,7 +26,7 @@ void TfBroadcaster::InitRos()
 {
     // Initialize subscriber
     m_novatel_sub = m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&TfBroadcaster::NovatelINSPVACallback, this, _1));
-    if (m_sync_PX4_param && !m_is_finding_home_param){
+    if (!m_is_finding_home_param){
         m_home_position_sub = m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&TfBroadcaster::HomePositionCallback, this, _1));
         
         ros::Rate rate(10);

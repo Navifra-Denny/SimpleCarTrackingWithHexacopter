@@ -104,10 +104,10 @@ void Checker::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_pt
     // m_uav_status.is_detected = waypoints_ptr->state.is_detected;
     // m_uav_status.is_hover = waypoints_ptr->state.is_hover;
     // m_uav_status.global = waypoints_ptr->state.is_hover;
+    m_uav_status.state.global_to_local = waypoints_ptr->state.global_to_local;
     m_uav_status.state.is_global = waypoints_ptr->state.is_global;
     m_uav_status.state.is_detected = waypoints_ptr->state.is_detected;
     m_uav_status.state.is_hover = waypoints_ptr->state.is_hover;
-    m_uav_status.state.global_to_local = waypoints_ptr->state.global_to_local;
 
     if (waypoints_ptr->local.poses.size() != 0){
         m_uav_status.local_wp.position.x = waypoints_ptr->local.poses.back().position.x;

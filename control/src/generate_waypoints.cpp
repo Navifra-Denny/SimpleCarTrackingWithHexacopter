@@ -138,7 +138,7 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
         m_is_hover = false;
         
         if(m_is_global){
-            if (m_global_to_local_param){
+            if (m_is_golbal_to_local){
                 m_is_global = false;
                 if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
                     if (AddTargetWaypoint(m_target_wp_local, m_target_vehicle.local)){

@@ -1,16 +1,8 @@
 <launch>
 	<arg name="output" default="screen"/>
-	<arg name="init_gps_lat" default="0.0"/>
-	<arg name="init_gps_lon" default="0.0"/>
-	<arg name="init_gps_alt" default="0.0"/>
-	<arg name="sync_PX4" default="false"/>
 	<arg name="is_finding_home" default="true"/>
 
 	<node pkg="control" type="tf_broadcaster_node" name="tf_broadcaster_node" output="$(arg output)">
-		<param name="init_gps_lat" value="$(arg init_gps_lat)" />
-		<param name="init_gps_lon" value="$(arg init_gps_lon)" />
-		<param name="init_gps_alt" value="$(arg init_gps_alt)" />
-		<param name="sync_PX4" value="$(arg sync_PX4)" />
 		<param name="is_finding_home" value="$(arg is_finding_home)" />
 	</node>
 </launch>
