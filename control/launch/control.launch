@@ -79,5 +79,7 @@
         <arg name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
     </include>
 
-    <include file="$(find control)/launch/static_transforms.launch"/>
+    <include file="$(find control)/launch/static_transforms.launch" />
+
+    <include file="$(find visualization)/launch/visualize_rviz.launch" />
 </launch>

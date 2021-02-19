@@ -32,7 +32,7 @@ bool Offboard::GetParam()
     m_nh.getParam("mavros_offb_node/setpoint_pub_interval", m_setpoint_pub_interval_param);
     m_nh.getParam("mavros_offb_node/is_debug_mode", m_is_debug_mode_param);
 
-    if (m_setpoint_pub_interval_param == NAN) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param"); return false; }
+    if (m_setpoint_pub_interval_param == NAN) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param is NAN"); return false; }
 
     return true;
 }
@@ -83,7 +83,6 @@ void Offboard::OffboardTimeCallback(const ros::TimerEvent& event)
         // Just hovering in all cases, not just MANUAL mode
         else {
         }
-        PublishSetpoint();
     }
     else {
         if (m_current_status.mode == "OFFBOARD"){
@@ -92,8 +91,8 @@ void Offboard::OffboardTimeCallback(const ros::TimerEvent& event)
         // Just hovering in all cases, not just MANUAL mode
         else {
         }
-        PublishSetpoint();
     }
+    PublishSetpoint();
 }
 
 void Offboard::StatusCallback(const mavros_msgs::State::ConstPtr &state_ptr)

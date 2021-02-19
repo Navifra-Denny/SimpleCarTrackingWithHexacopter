@@ -247,7 +247,7 @@ void GenerateWaypoints::HomePositionCallback(const mavros_msgs::HomePosition::Co
         m_home_position.latitude = home_ptr->geo.latitude;
         m_home_position.longitude = home_ptr->geo.longitude;
         m_home_position.altitude = home_ptr->geo.altitude;
-        ROS_WARN_STREAM("[ home set ]");
+        ROS_WARN_STREAM("[generate_waypoints] Home set");
     }
 }
 

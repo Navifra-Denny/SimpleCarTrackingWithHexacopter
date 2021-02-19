@@ -42,25 +42,6 @@ void TfBroadcaster::InitRos()
     m_home_position_timer = m_nh.createTimer(ros::Duration(2.0), &TfBroadcaster::HomePositionTimerCallback, this);
 }
 
-void TfBroadcaster::HomePositionTimerCallback(const ros::TimerEvent& event)
-{
-    if (m_is_home_set){
-        m_home_position_pub.publish(m_home_position);
-    }
-}
-
-void TfBroadcaster::HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr)
-{
-    if (!m_is_home_set){
-        m_is_home_set = true;
-
-        m_home_position.latitude = home_ptr->geo.latitude;
-        m_home_position.longitude = home_ptr->geo.longitude;
-        m_home_position.altitude = home_ptr->geo.altitude;
-        ROS_WARN_STREAM("[ home set ]");
-    }
-}
-
 void TfBroadcaster::NovatelINSPVACallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr)
 {
     if (m_is_home_set){
@@ -93,5 +74,24 @@ void TfBroadcaster::NovatelINSPVACallback(const novatel_oem7_msgs::INSPVA::Const
         m_home_position.latitude = inspva_msg_ptr->latitude;
         m_home_position.longitude = inspva_msg_ptr->longitude;
         m_home_position.altitude = inspva_msg_ptr->height;
+    }
+}
+
+void TfBroadcaster::HomePositionTimerCallback(const ros::TimerEvent& event)
+{
+    if (m_is_home_set){
+        m_home_position_pub.publish(m_home_position);
+    }
+}
+
+void TfBroadcaster::HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr)
+{
+    if (!m_is_home_set){
+        m_is_home_set = true;
+
+        m_home_position.latitude = home_ptr->geo.latitude;
+        m_home_position.longitude = home_ptr->geo.longitude;
+        m_home_position.altitude = home_ptr->geo.altitude;
+        ROS_WARN_STREAM("[tf_broadcaster] Home set");
     }
 }

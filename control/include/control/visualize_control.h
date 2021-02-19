@@ -20,6 +20,11 @@ struct Line{
     visualization_msgs::Marker orientation;
     visualization_msgs::Marker center_point;
     visualization_msgs::Marker roi;
+
+    bool is_line_strip_add;
+    bool is_orientation_add;
+    bool is_center_point_add;
+    bool is_roi_add;
 };
 
 class VisualizeControl
