@@ -46,7 +46,7 @@ private:
     ros::Subscriber m_target_waypoints_sub;
 
     ros::Subscriber m_current_global_pose_sub;
-    ros::Subscriber m_debugging_sub;
+    ros::Subscriber m_chatter_sub;
 
     // Publisher
     ros::Publisher m_local_pose_pub;
@@ -64,7 +64,8 @@ private:
 
     // flag
     bool m_is_global;
-
+    bool m_is_debugging;
+    
     ros::Time m_last_request_time;
 
     mavros_msgs::State m_current_status;
@@ -85,7 +86,7 @@ private: // function
     
     void StatusCallback(const mavros_msgs::State::ConstPtr &state_ptr);
     void TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &target_wp_ptr);
-    void DebuggingStringCallback(const std_msgs::String::ConstPtr &debugging_msgs);
+    void ChatterCallback(const std_msgs::String::ConstPtr &string_ptr);
 
     void OffboardReConnection();
     void PublishSetpoint();

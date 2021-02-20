@@ -170,7 +170,7 @@ double Utils::ms_to_kmh(double ms)
 double Utils::VelNomalize(double value)
 {
     const double MAX = 20.0;
-    const double MIN = 5.0;
+    const double MIN = 0.1;
 
     if (value < MIN) value = MIN;
     else if (value > MAX) value = MAX;

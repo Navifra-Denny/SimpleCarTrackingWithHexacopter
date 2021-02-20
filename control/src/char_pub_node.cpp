@@ -41,10 +41,11 @@ int main(int argc, char ** argv)
     {
         if (is_first){
             is_first = false;
-            ROS_INFO_STREAM("/*********************************************************/");
-            ROS_INFO_STREAM("/** command: offboard|manual|set_origin|global|local|   **/");
-            ROS_INFO_STREAM("/**          global_to_local_true|global_to_local_false **/");
-            ROS_INFO_STREAM("/*********************************************************/");
+            ROS_INFO_STREAM("/********************************************/");
+            ROS_INFO_STREAM("/** command: offboard|manual|set_origin|   **/");
+            ROS_INFO_STREAM("/**          global|local|global_z|local_z **/");
+            ROS_INFO_STREAM("/**          debugging|rc                  **/");
+            ROS_INFO_STREAM("/********************************************/");
         }
 
         std::string inputString;
@@ -55,16 +56,18 @@ int main(int argc, char ** argv)
 
         if((inputString.compare("offboard") == 0) || 
             (inputString.compare("manual") == 0) ||
-            (inputString.compare("global_to_local_true") == 0) ||
-            (inputString.compare("global_to_local_false") == 0) ||
-            (inputString.compare("set_origin") == 0))
+            (inputString.compare("set_origin") == 0) ||
+            (inputString.compare("global") == 0) ||
+            (inputString.compare("local") == 0) ||
+            (inputString.compare("debugging") == 0) ||
+            (inputString.compare("rc") == 0))
         {
             std::cout << ("[input] " + inputString) << std::endl;
             msg.data = inputString;
             char_pub.publish(msg);
         }
-        else if((inputString.compare("global") == 0) || 
-                (inputString.compare("local") == 0))
+        else if((inputString.compare("global_z") == 0) || 
+                (inputString.compare("local_z") == 0))
         {
             bool is_error = true;
             while (is_error){                    
@@ -79,7 +82,7 @@ int main(int argc, char ** argv)
                     geographic_msgs::GeoPoint geopoint;
                     geometry_msgs::Point point;
                     bool is_global;
-                    if ((inputString.compare("global") == 0)){
+                    if ((inputString.compare("global_z") == 0)){
                         std::cout << ("[input] global altitude offset: " + inputNumString) << std::endl;
                         is_global = true;
                         geopoint.altitude = height;

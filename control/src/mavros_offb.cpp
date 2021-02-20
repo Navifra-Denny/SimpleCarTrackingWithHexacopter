@@ -23,6 +23,7 @@ Offboard::~Offboard()
 bool Offboard::InitFlag()
 {
     m_is_global = false;
+    m_is_debugging = false;
 
     return true;
 }
@@ -34,6 +35,8 @@ bool Offboard::GetParam()
 
     if (__isnan(m_setpoint_pub_interval_param)) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param is NAN"); return false; }
 
+    m_is_debugging = m_is_debug_mode_param;
+
     return true;
 }
 
@@ -43,8 +46,8 @@ bool Offboard::InitRos()
     m_state_sub = m_nh.subscribe<mavros_msgs::State>("mavros/state", 10, boost::bind(&Offboard::StatusCallback, this, _1));
     m_target_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWP>
             ("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Offboard::TargetWaypointsCallback, this, _1));
-            
-    m_debugging_sub = m_nh.subscribe<std_msgs::String>("/control/char_pub_node/chatter", 10, boost::bind(&Offboard::DebuggingStringCallback, this, _1));
+    m_chatter_sub = 
+        m_nh.subscribe<std_msgs::String>("/control/char_pub_node/chatter", 10, boost::bind(&Offboard::ChatterCallback, this, _1));
 
     // Initialize publisher
     m_local_pose_pub = m_nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
@@ -76,7 +79,7 @@ bool Offboard::InitClient()
 
 void Offboard::OffboardTimeCallback(const ros::TimerEvent& event)
 {
-    if (m_is_debug_mode_param){
+    if (m_is_debugging){
         if (m_debugging_msg == "OFFBOARD"){
             OffboardReConnection();
         }
@@ -158,10 +161,12 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &targe
     }
 }
 
-void Offboard::DebuggingStringCallback(const std_msgs::String::ConstPtr &debugging_msgs)
+void Offboard::ChatterCallback(const std_msgs::String::ConstPtr &string_ptr)
 {
-    if (debugging_msgs->data == "offboard") m_debugging_msg = "OFFBOARD";
-    else if (debugging_msgs->data == "manual") m_debugging_msg = "MANUAL";
+    if (string_ptr->data == "offboard") m_debugging_msg = "OFFBOARD";
+    else if (string_ptr->data == "manual") m_debugging_msg = "MANUAL";
+    else if (string_ptr->data == "debugging") m_is_debugging = true;
+    else if (string_ptr->data == "rc") m_is_debugging = false;
 }
 
 void Offboard::OffboardReConnection()

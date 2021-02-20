@@ -100,32 +100,26 @@ void Checker::StateCallback(const mavros_msgs::State::ConstPtr &state_ptr)
 
 void Checker::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_ptr)
 {
-    // m_uav_status.is_global = waypoints_ptr->state.is_global;
-    // m_uav_status.is_detected = waypoints_ptr->state.is_detected;
-    // m_uav_status.is_hover = waypoints_ptr->state.is_hover;
-    // m_uav_status.global = waypoints_ptr->state.is_hover;
     m_uav_status.state.global_to_local = waypoints_ptr->state.global_to_local;
     m_uav_status.state.is_global = waypoints_ptr->state.is_global;
     m_uav_status.state.is_detected = waypoints_ptr->state.is_detected;
     m_uav_status.state.is_hover = waypoints_ptr->state.is_hover;
 
-    if (waypoints_ptr->local.poses.size() != 0){
-        m_uav_status.local_wp.position.x = waypoints_ptr->local.poses.back().position.x;
-        m_uav_status.local_wp.position.y = waypoints_ptr->local.poses.back().position.y;
-        m_uav_status.local_wp.position.z = waypoints_ptr->local.poses.back().position.z;
+    if (m_uav_status.state.is_global){
+        if (waypoints_ptr->global.poses.size() != 0){
+            m_uav_status.global_wp = waypoints_ptr->global.poses.back().pose;
+        }
     }
-    else if (waypoints_ptr->global.poses.size() != 0){
-        m_uav_status.global_wp.position.latitude = waypoints_ptr->global.poses.back().pose.position.latitude;
-        m_uav_status.global_wp.position.longitude = waypoints_ptr->global.poses.back().pose.position.longitude;
-        m_uav_status.global_wp.position.altitude = waypoints_ptr->global.poses.back().pose.position.altitude;
+    else{
+        if (waypoints_ptr->local.poses.size() != 0){
+            m_uav_status.local_wp = waypoints_ptr->local.poses.back();
+        }
     }
 }
 
 void Checker::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &local_position_ptr)
 {
-    m_uav_status.curr_local.position.x = local_position_ptr->pose.position.x;
-    m_uav_status.curr_local.position.y = local_position_ptr->pose.position.y;
-    m_uav_status.curr_local.position.z = local_position_ptr->pose.position.z;
+    m_uav_status.curr_local = local_position_ptr->pose;
 }
 
 void Checker::EgoVehicleGlobalPositionCallback(const sensor_msgs::NavSatFix::ConstPtr &global_position_ptr)

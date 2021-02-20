@@ -226,8 +226,8 @@ void GenerateWaypoints::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs
 
 void GenerateWaypoints::ChatterCallback(const std_msgs::String::ConstPtr &string_ptr)
 {
-    if (string_ptr->data == "global_to_local_true") m_is_golbal_to_local = true;
-    else if (string_ptr->data == "global_to_local_false") m_is_golbal_to_local = false;;
+    if (string_ptr->data == "local") m_is_golbal_to_local = true;
+    else if (string_ptr->data == "global") m_is_golbal_to_local = false;;
 }
 
 
