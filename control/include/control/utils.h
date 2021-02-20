@@ -45,6 +45,11 @@ public:
     geometry_msgs::PoseStamped ConvertToMapFrame(double lat, double lon, double hgt, geographic_msgs::GeoPoint home_position);
     double FnKappaLat(double dRef_Latitude, double dHeight);
     double FnKappaLon(double dRef_Latitude, double dHeight);
+    double Size(double x, double y);
+    double Size(double x, double y, double z);
+    double ms_to_kmh(double ms);
+    double VelNomalize(double value);
+    std::string ToString(double value);
 };
 }
 

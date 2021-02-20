@@ -1,5 +1,8 @@
 #include "control/utils.h"
 #include "math.h"
+#include <cmath>
+#include <iomanip>
+#include <sstream>
 
 namespace control
 {
@@ -97,8 +100,6 @@ geometry_msgs::PoseStamped Utils::ConvertToMapFrame(double lat, double lon, doub
     double dKappaLat = 0;
     double dKappaLon = 0;  
 
-    hgt = home_position.altitude;
-
     dKappaLat = FnKappaLat( home_position.latitude , hgt );
     dKappaLon = FnKappaLon( home_position.latitude , hgt );
 
@@ -143,5 +144,50 @@ double Utils::FnKappaLon(double dRef_Latitude, double dHeight)
 	dKappaLon = Rad2Deg(1 / ((dN + dHeight) * cos(Deg2Rad(dRef_Latitude))));
 
 	return dKappaLon;
+}
+
+double Utils::Size(double x, double y)
+{
+    double size = sqrt(pow(x, 2.0) + pow(y, 2.0));
+    return size;
+}
+
+double Utils::Size(double x, double y, double z)
+{
+    double size = sqrt(pow(x, 2.0) + pow(y, 2.0) + pow(z, 2.0));
+    return size;
+}
+
+double Utils::ms_to_kmh(double ms)
+{
+    // 1s -> 1m
+    // 3600s -> 3600m
+    // 1h -> 3.6km
+    double kmh = ms * 3.6;
+    return kmh;
+}
+
+double Utils::VelNomalize(double value)
+{
+    const double MAX = 20.0;
+    const double MIN = 5.0;
+
+    if (value < MIN) value = MIN;
+    else if (value > MAX) value = MAX;
+
+    double ratio = value/(MAX - MIN);
+
+    const double ARROR_MAX_SIZE = 2.0;
+    
+    return ARROR_MAX_SIZE * ratio;
+}
+
+std::string Utils::ToString(double value)
+{
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(2) << value;
+    std::string s = stream.str();
+
+    return s;
 }
 }

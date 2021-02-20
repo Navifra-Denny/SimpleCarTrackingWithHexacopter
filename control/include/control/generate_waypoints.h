@@ -28,8 +28,8 @@ struct VehicleState{
     geometry_msgs::PoseArray local_trajectory;
     geographic_msgs::GeoPath global_trajectory;
 
+    double speed;                                   // [m/s]
     int g_speed_raw;                                // [mm/s]
-    double g_speed;                                 // [m/s]
     int heading_raw;                                // [deg/1e-5]
     double heading_deg;
     double heading_rad;
@@ -77,6 +77,7 @@ private:
     float m_detected_dead_band_param;
     bool m_global_to_local_param;
     float m_alt_offset_m_param;
+    float m_target_height_m_param;
 
     // flag
     bool m_is_detected;

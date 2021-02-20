@@ -8,7 +8,7 @@
     <arg name="fcu_url" default="/dev/ttyPixhawk"/>
 
     <!-- mavros_offb_node  -->
-	<arg name="setpoint_pub_interval" default="0.1" />
+	<arg name="setpoint_pub_interval" default="0.05" />
     <arg name="init_gps_lat" default="37.5445466424" />
     <arg name="init_gps_lon" default="127.079172409" />
     <arg name="init_gps_alt" default="47.0" />
@@ -23,11 +23,12 @@
     <!-- generate_waypoints_node -->
 	<arg name="global_to_local" default="true" />
 	<arg name="distance_threshold" default="0.1"/>
-    <arg name="target_wp_pub_interval" default="0.05" />
+    <arg name="target_wp_pub_interval" default="0.02" />
 	<arg name="detected_dead_band" default="0.5" />
 	<arg name="x_offset_m" default="0.0" />
 	<arg name="z_offset_m" default="3.5" />
 	<arg name="alt_offset_m" default="45.0" />
+	<arg name="target_height_m" default="1.0" />
 
     
     <group unless="$(arg simulation)">
@@ -62,12 +63,14 @@
     <include file="$(find control)/launch/generate_waypoints_node.launch">
 		<arg name="x_offset_m" value="$(arg x_offset_m)" />
 		<arg name="z_offset_m" value="$(arg z_offset_m)" />
+        <arg name="uav_name" value="$(arg uav_name)" />
         <arg name="ugv_name" value="$(arg ugv_name)" />
 		<arg name="distance_threshold" value="$(arg distance_threshold)" />
 		<arg name="target_wp_pub_interval" value="$(arg target_wp_pub_interval)" />
 		<arg name="detected_dead_band" value="$(arg detected_dead_band)" />
 		<arg name="global_to_local" value="$(arg global_to_local)" />
         <arg name="alt_offset_m" value="$(arg alt_offset_m)" />
+        <arg name="target_height_m" value="$(arg target_height_m)" />
 	</include>
 
     <!-- <include file="$(find control)/launch/extract_lane_node.launch">

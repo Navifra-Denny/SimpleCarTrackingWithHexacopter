@@ -32,7 +32,7 @@ bool Offboard::GetParam()
     m_nh.getParam("mavros_offb_node/setpoint_pub_interval", m_setpoint_pub_interval_param);
     m_nh.getParam("mavros_offb_node/is_debug_mode", m_is_debug_mode_param);
 
-    if (m_setpoint_pub_interval_param == NAN) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param is NAN"); return false; }
+    if (__isnan(m_setpoint_pub_interval_param)) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param is NAN"); return false; }
 
     return true;
 }

@@ -22,6 +22,7 @@ GenerateWaypoints::GenerateWaypoints() :
     m_target_wp_pub_interval_param(NAN),
     m_detected_dead_band_param(NAN),
     m_alt_offset_m_param(NAN),
+    m_target_height_m_param(NAN),
     m_tfListener(m_tfBuffer)
 {
     InitFlag();
@@ -58,15 +59,17 @@ bool GenerateWaypoints::GetParam()
     m_nh.getParam("generate_waypoints_node/target_wp_pub_interval", m_target_wp_pub_interval_param);
     m_nh.getParam("generate_waypoints_node/detected_dead_band", m_detected_dead_band_param);
     m_nh.getParam("generate_waypoints_node/global_to_local", m_global_to_local_param);    
-    m_nh.getParam("generate_waypoints_node/alt_offset_m", m_alt_offset_m_param);    
+    m_nh.getParam("generate_waypoints_node/alt_offset_m", m_alt_offset_m_param);
+    m_nh.getParam("generate_waypoints_node/target_height_m", m_target_height_m_param);
 
-    if (m_x_offset_m_param == NAN) { ROS_ERROR_STREAM("m_x_offset_m_param is NAN"); return false; }
-    else if (m_z_offset_m_param == NAN) { ROS_ERROR_STREAM("m_z_offset_m_param is NAN"); return false; }
+    if (__isnan(m_x_offset_m_param)) { ROS_ERROR_STREAM("m_x_offset_m_param is NAN"); return false; }
+    else if (__isnan(m_z_offset_m_param)) { ROS_ERROR_STREAM("m_z_offset_m_param is NAN"); return false; }
     else if (m_vehicle_name_param == "missing") { ROS_ERROR_STREAM("m_vehicle_name_param is missing"); return false; }
-    else if (m_distance_thresh_param == NAN) { ROS_ERROR_STREAM("m_distance_thresh_param is NAN"); return false; }
-    else if (m_target_wp_pub_interval_param == NAN) { ROS_ERROR_STREAM("m_target_wp_pub_interval_param is NAN"); return false; }
-    else if (m_detected_dead_band_param == NAN) { ROS_ERROR_STREAM("m_detected_dead_band_param is NAN"); return false; }
-    else if (m_alt_offset_m_param == NAN) { ROS_ERROR_STREAM("m_alt_offset_m_param is NAN"); return false; }
+    else if (__isnan(m_distance_thresh_param)) { ROS_ERROR_STREAM("m_distance_thresh_param is NAN"); return false; }
+    else if (__isnan(m_target_wp_pub_interval_param)) { ROS_ERROR_STREAM("m_target_wp_pub_interval_param is NAN"); return false; }
+    else if (__isnan(m_detected_dead_band_param)) { ROS_ERROR_STREAM("m_detected_dead_band_param is NAN"); return false; }
+    else if (__isnan(m_alt_offset_m_param)) { ROS_ERROR_STREAM("m_alt_offset_m_param is NAN"); return false; }
+    else if (__isnan(m_target_height_m_param)) { ROS_ERROR_STREAM("m_target_height_m_param is NAN"); return false; }
 
     m_z_offset_m = m_z_offset_m_param;
     m_alt_offset_m = m_alt_offset_m_param;
@@ -203,12 +206,13 @@ void GenerateWaypoints::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs
     m_target_vehicle.global.pose.position.latitude = inspva_msg_ptr->latitude;
     m_target_vehicle.global.pose.position.longitude = inspva_msg_ptr->longitude;
     m_target_vehicle.global.pose.position.altitude = inspva_msg_ptr->height;
+    m_target_vehicle.speed = m_utils.Size(inspva_msg_ptr->east_velocity, inspva_msg_ptr->north_velocity);
     
     if (!m_utils.IsNan(m_target_vehicle.global.pose.position)){
     
         m_target_vehicle.local = m_utils.ConvertToMapFrame(m_target_vehicle.global.pose.position.latitude, 
                                                 m_target_vehicle.global.pose.position.longitude, 
-                                                m_target_vehicle.global.pose.position.altitude, 
+                                                m_target_height_m_param, 
                                                 m_home_position);
         
         tf2::Quaternion q;
