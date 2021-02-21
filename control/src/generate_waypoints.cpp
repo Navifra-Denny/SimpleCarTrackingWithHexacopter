@@ -43,9 +43,9 @@ bool GenerateWaypoints::InitFlag()
     m_target_wp.state.is_detected = false;
     m_target_wp.state.is_global = false;
     m_target_wp.state.is_hover = true;
+    m_target_wp.state.global_to_local = false;
     m_is_offset_changed = false;
     m_is_home_set = false;
-    m_is_golbal_to_local = false;
 
     return true;
 }
@@ -74,7 +74,7 @@ bool GenerateWaypoints::GetParam()
     m_z_offset_m = m_z_offset_m_param;
     m_x_offset_m = m_x_offset_m_param;
     m_alt_offset_m = m_alt_offset_m_param;
-    m_is_golbal_to_local = m_global_to_local_param;
+    m_target_wp.state.global_to_local = m_global_to_local_param;
 
     return true;
 }
@@ -142,7 +142,7 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
         m_target_wp.state.is_hover = false;
         
         if(m_target_wp.state.is_global){
-            if (m_is_golbal_to_local){
+            if (m_target_wp.state.global_to_local){
                 m_target_wp.state.is_global = false;
                 if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
                     if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
@@ -229,8 +229,8 @@ void GenerateWaypoints::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs
 
 void GenerateWaypoints::ChatterCallback(const std_msgs::String::ConstPtr &string_ptr)
 {
-    if (string_ptr->data == "local") m_is_golbal_to_local = true;
-    else if (string_ptr->data == "global") m_is_golbal_to_local = false;;
+    if (string_ptr->data == "local") m_target_wp.state.global_to_local = true;
+    else if (string_ptr->data == "global") m_target_wp.state.global_to_local = false;;
 }
 
 

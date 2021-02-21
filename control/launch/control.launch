@@ -86,5 +86,7 @@
 
     <include file="$(find control)/launch/static_transforms.launch" />
 
-    <include file="$(find visualization)/launch/visualize_rviz.launch" />
+    <group if="$(arg simulation)">
+        <include file="$(find visualization)/launch/visualize_rviz.launch" />
+    </group>
 </launch>

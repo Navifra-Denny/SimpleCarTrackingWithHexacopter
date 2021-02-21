@@ -83,7 +83,6 @@ private:
     bool m_is_detected;
     bool m_is_global;
     bool m_is_hover;
-    bool m_is_golbal_to_local;
     bool m_is_offset_changed;
     bool m_is_home_set;
 
