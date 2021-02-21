@@ -73,15 +73,15 @@ void VisualizeDetectedObjects::DetectedObjectsCallback(const uav_msgs::DetectedO
     visualization_msgs::MarkerArray visualization_markers;
 
     label_markers = ObjectsToLabels(in_objects);
-    arrow_markers = ObjectsToArrows(in_objects);
+    // arrow_markers = ObjectsToArrows(in_objects);
     polygon_hulls = ObjectsToHulls(in_objects);
     bounding_boxes = ObjectsToBoxes(in_objects);
     centroid_markers = ObjectsToCentroids(in_objects);
 
     visualization_markers.markers.insert(visualization_markers.markers.end(), 
                                         label_markers.markers.begin(), label_markers.markers.end());
-    visualization_markers.markers.insert(visualization_markers.markers.end(),
-                                        arrow_markers.markers.begin(), arrow_markers.markers.end());
+    // visualization_markers.markers.insert(visualization_markers.markers.end(),
+    //                                     arrow_markers.markers.begin(), arrow_markers.markers.end());
     visualization_markers.markers.insert(visualization_markers.markers.end(),
                                         polygon_hulls.markers.begin(), polygon_hulls.markers.end());
     visualization_markers.markers.insert(visualization_markers.markers.end(),
@@ -107,9 +107,9 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToLabels(const 
             label_marker.ns = ros_namespace_ + "/label_markers";
             label_marker.action = visualization_msgs::Marker::ADD;
             label_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-            label_marker.scale.x = 0.2;
-            label_marker.scale.y = 0.2;
-            label_marker.scale.z = 0.2;
+            label_marker.scale.x = 0.1;
+            label_marker.scale.y = 0.1;
+            label_marker.scale.z = 0.1;
 
             label_marker.color.r = object.color.r/255.0f;
             label_marker.color.g = object.color.g/255.0f;
@@ -125,12 +125,13 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToLabels(const 
                             << sqrt((object.pose.position.x * object.pose.position.x) +
                                     (object.pose.position.y * object.pose.position.y));
 
-            std::string distance_str = distance_stream.str() + " m";
-            label_marker.text += distance_str;
 
             if (object.velocity_reliable)
             {
-                double velocity = object.velocity.linear.x;
+                double v_x = object.velocity.linear.x;
+                double v_y = object.velocity.linear.y;
+                double velocity = hypot(v_x, v_y);
+
                 if (velocity < -0.1) velocity *= -1;
                 if (abs(velocity) < _object_speed_threshold) velocity = 0.0; 
 
@@ -143,11 +144,20 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToLabels(const 
                 // convert m/s to km/h
                 std::stringstream kmh_velocity_stream;
                 kmh_velocity_stream << std::fixed << std::setprecision(1) << (velocity * 3.6);
-                std::string text = "\n<" + std::to_string(object.id) + "> " + kmh_velocity_stream.str() + " km/h";
-                label_marker.text += text;
 
+                std::string id_info = "ID = " + std::to_string(object.id);
+                label_marker.text += id_info;
 
+                std::string vel_info = "\nVel = " + kmh_velocity_stream.str() + " km/h";
+                label_marker.text += vel_info;
+
+                std::string pose_info = "\n<" + std::to_string(object.pose.position.x) + ", " + std::to_string(object.pose.position.y) + "> ";
+                label_marker.text += pose_info;
+
+                std::string distance_str = distance_stream.str() + " m";
+                label_marker.text += "\ndistance: " + distance_str;
             }
+
             label_marker.pose.position.x = object.pose.position.x;
             label_marker.pose.position.y = object.pose.position.y;
             label_marker.pose.position.z = _label_height;
@@ -159,78 +169,80 @@ visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToLabels(const 
     return label_markers;
 }
 
-visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToArrows(const uav_msgs::DetectedObjectArray &in_objects)
-{
-    visualization_msgs::MarkerArray arrow_markers;
+// visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToArrows(const uav_msgs::DetectedObjectArray &in_objects)
+// {
+//     visualization_msgs::MarkerArray arrow_markers;
     
-    for(auto const &object: in_objects.objects)
-    {
-        if(IsObjectValid(object) && object.pose_reliable)
-        {
-            double velocity = object.velocity.linear.x;
+//     for(auto const &object: in_objects.objects)
+//     {
+//         if(IsObjectValid(object) && object.pose_reliable)
+//         {
+//             double v_x = object.velocity.linear.x;
+//             double v_y = object.velocity.linear.y;
+//             double velocity = hypot(v_x, v_y);
 
-            if(abs(velocity) >= _arrow_speed_threshold)
-            {
-                visualization_msgs::Marker arrow_marker;
-                arrow_marker.lifetime = ros::Duration(_marker_display_duration);
+//             if(abs(velocity) >= _arrow_speed_threshold)
+//             {
+//                 visualization_msgs::Marker arrow_marker;
+//                 arrow_marker.lifetime = ros::Duration(_marker_display_duration);
 
-                tf::Quaternion q(object.pose.orientation.x,
-                                 object.pose.orientation.y,
-                                 object.pose.orientation.z,
-                                 object.pose.orientation.w);
+//                 tf::Quaternion q(object.pose.orientation.x,
+//                                  object.pose.orientation.y,
+//                                  object.pose.orientation.z,
+//                                  object.pose.orientation.w);
 
-                double roll, pitch, yaw;
+//                 double roll, pitch, yaw;
 
-                tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-                 if (velocity < -0.1)
-                 {
-                    yaw += M_PI;
-                    // normalize angle
-                    while (yaw > M_PI)
-                        yaw -= 2. * M_PI;
-                    while (yaw < -M_PI)
-                        yaw += 2. * M_PI;
-                 }
+//                 tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+//                  if (velocity < -0.1)
+//                  {
+//                     yaw += M_PI;
+//                     // normalize angle
+//                     while (yaw > M_PI)
+//                         yaw -= 2. * M_PI;
+//                     while (yaw < -M_PI)
+//                         yaw += 2. * M_PI;
+//                  }
 
-                tf::Matrix3x3 obs_mat; 
-                tf::Quaternion q_tf;
+//                 tf::Matrix3x3 obs_mat; 
+//                 tf::Quaternion q_tf;
 
-                obs_mat.setEulerYPR(yaw, 0, 0);  // yaw, pitch, roll
-                obs_mat.getRotation(q_tf);
+//                 obs_mat.setEulerYPR(yaw, 0, 0);  // yaw, pitch, roll
+//                 obs_mat.getRotation(q_tf);
 
-                arrow_marker.header = in_objects.header;
-                arrow_marker.ns = ros_namespace_ + "/arrow_markers";
-                arrow_marker.action = visualization_msgs::Marker::ADD;
-                arrow_marker.type = visualization_msgs::Marker::ARROW;
+//                 arrow_marker.header = in_objects.header;
+//                 arrow_marker.ns = ros_namespace_ + "/arrow_markers";
+//                 arrow_marker.action = visualization_msgs::Marker::ADD;
+//                 arrow_marker.type = visualization_msgs::Marker::ARROW;
 
-                arrow_marker.color.r = object.color.r/255.0f;
-                arrow_marker.color.g = object.color.g/255.0f;
-                arrow_marker.color.b = object.color.b/255.0f;
-                arrow_marker.color.a = 1.0;
+//                 arrow_marker.color.r = object.color.r/255.0f;
+//                 arrow_marker.color.g = object.color.g/255.0f;
+//                 arrow_marker.color.b = object.color.b/255.0f;
+//                 arrow_marker.color.a = 1.0;
 
-                arrow_marker.id = object.id;
+//                 arrow_marker.id = object.id;
 
-                // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
-                arrow_marker.pose.position.x = object.pose.position.x;
-                arrow_marker.pose.position.y = object.pose.position.y;
-                arrow_marker.pose.position.z = _arrow_height;
+//                 // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
+//                 arrow_marker.pose.position.x = object.pose.position.x;
+//                 arrow_marker.pose.position.y = object.pose.position.y;
+//                 arrow_marker.pose.position.z = _arrow_height;
 
-                arrow_marker.pose.orientation.x = q_tf.getX();
-                arrow_marker.pose.orientation.y = q_tf.getY();
-                arrow_marker.pose.orientation.z = q_tf.getZ();
-                arrow_marker.pose.orientation.w = q_tf.getW();
+//                 arrow_marker.pose.orientation.x = q_tf.getX();
+//                 arrow_marker.pose.orientation.y = q_tf.getY();
+//                 arrow_marker.pose.orientation.z = q_tf.getZ();
+//                 arrow_marker.pose.orientation.w = q_tf.getW();
 
-                // Set the scale of the arrow -- 1x1x1 here means 1m on a side
-                arrow_marker.scale.x = 3;
-                arrow_marker.scale.y = 0.1;
-                arrow_marker.scale.z = 0.1;
+//                 // Set the scale of the arrow -- 1x1x1 here means 1m on a side
+//                 arrow_marker.scale.x = 3;
+//                 arrow_marker.scale.y = 0.1;
+//                 arrow_marker.scale.z = 0.1;
 
-                arrow_markers.markers.push_back(arrow_marker);
-            }
-        }
-    }
-    return arrow_markers;
-}
+//                 arrow_markers.markers.push_back(arrow_marker);
+//             }
+//         }
+//     }
+//     return arrow_markers;
+// }
 
 visualization_msgs::MarkerArray VisualizeDetectedObjects::ObjectsToHulls(const uav_msgs::DetectedObjectArray &in_objects)
 {
