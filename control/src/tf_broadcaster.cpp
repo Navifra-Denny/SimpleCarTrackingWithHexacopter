@@ -1,6 +1,7 @@
 #include "control/tf_broadcaster.h"
 
-TfBroadcaster::TfBroadcaster()
+TfBroadcaster::TfBroadcaster() :
+    m_target_height_m_param(NAN)
 {
     InitFlag();
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
@@ -18,6 +19,9 @@ void TfBroadcaster::InitFlag()
 bool TfBroadcaster::GetParam()
 {
     m_nh.getParam("tf_broadcaster_node/is_finding_home", m_is_finding_home_param);
+    m_nh.getParam("generate_waypoints_node/target_height_m", m_target_height_m_param);
+
+    if (__isnan(m_target_height_m_param)) { ROS_ERROR_STREAM("m_target_height_m_param is NAN"); return false; }
 
     return true;
 }
@@ -53,8 +57,10 @@ void TfBroadcaster::NovatelINSPVACallback(const novatel_oem7_msgs::INSPVA::Const
         novatel_tf_stamped.child_frame_id = inspva_msg_ptr->header.frame_id;
 
         // Get offset
-        geometry_msgs::PoseStamped novatel_enu_pose = 
-            m_utils.ConvertToMapFrame(inspva_msg_ptr->latitude, inspva_msg_ptr->longitude, inspva_msg_ptr->height, m_home_position);
+        geometry_msgs::PoseStamped novatel_enu_pose = m_utils.ConvertToMapFrame(inspva_msg_ptr->latitude, 
+                                                                                inspva_msg_ptr->longitude, 
+                                                                                m_target_height_m_param, 
+                                                                                m_home_position);
         novatel_tf_stamped.transform.translation.x = novatel_enu_pose.pose.position.x;
         novatel_tf_stamped.transform.translation.y = novatel_enu_pose.pose.position.y;
         novatel_tf_stamped.transform.translation.z = novatel_enu_pose.pose.position.z;

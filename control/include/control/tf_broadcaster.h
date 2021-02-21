@@ -42,6 +42,7 @@ private:
 
     // param
     bool m_is_finding_home_param;
+    bool m_target_height_m_param;
     
     geographic_msgs::GeoPoint m_home_position;
     bool m_is_home_set;
