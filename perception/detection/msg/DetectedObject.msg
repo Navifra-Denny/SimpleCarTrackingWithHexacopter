@@ -17,7 +17,7 @@ geometry_msgs/Twist             acceleration
 sensor_msgs/PointCloud2         pointcloud
 
 geometry_msgs/PolygonStamped    convex_hull
-LaneArray        	        candidate_trajectories
+LaneArray        	            candidate_trajectories
 
 bool                            pose_reliable
 bool                            velocity_reliable

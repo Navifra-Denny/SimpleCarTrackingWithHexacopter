@@ -43,6 +43,7 @@ private:
     double _min_point_distance;           // minimum distance from the origin to consider a point as valid
     double _reclass_distance_threshold;   // distance between points at which re classification will occur
     double _sensor_height;
+    std::string _lidar_frame_id;
 
     // Param
     size_t _radial_dividers_num;
@@ -75,7 +76,9 @@ public:
         double min_height_threshold,
         double clipping_height,
         double min_point_distance,
-        double reclass_distance_threshold
+        double reclass_distance_threshold,
+        std::string lidar_frame_id,
+        double sensor_height
     );
 
 

@@ -1,0 +1,43 @@
+[global_config]
+[keybindings]
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = pane0
+      profile = default
+      type = Terminal
+    [[[window0]]]
+      parent = ""
+      size = 800, 500
+      type = Window
+  [[perception]]
+    [[[pannel]]]
+      order = 0
+      parent = root
+      position = 0
+      type = HPaned
+    [[[root]]]
+      order = 0
+      parent = ""
+      position = 0:25
+      size = 1800, 1000
+      type = Window
+    [[[terminal1]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source /home/ymj/project_ws/devel/setup.bash; roslaunch tracking tracking.launch; $SHELL'"
+      directory = ""
+      order = 0
+      parent = pannel
+      profile = default
+      type = Terminal
+    [[[terminal2]]]
+      command = "bash -c 'sleep 3; source /opt/ros/melodic/setup.bash; rosbag play OS1-16_city1.bag -l; $SHELL'"
+      directory = /home/ymj/project_ws/src/uav_object_tracking/perception/detection/bag
+      order = 1
+      parent = pannel
+      profile = default
+      type = Terminal
+[plugins]
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
+    scrollback_infinite = True
