@@ -2,21 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-set(CONTROL_ROOT "$ENV{HOME}/catkin_ws/src/uav_object_tracking/control")
-
-add_subdirectory("${CONTROL_ROOT}/cmake/rpclib_wrapper" rpclib_wrapper)
-add_subdirectory("${CONTROL_ROOT}/cmake/AirLib" AirLib)
-add_subdirectory("${CONTROL_ROOT}/cmake/MavLinkCom" MavLinkCom)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CXX_EXP_LIB "-nostdinc++ -I/usr/include/c++/8 -I/usr/include/x86_64-linux-gnu/c++/8 -nodefaultlibs 
--l/usr/lib/x86_64-linux-gnu/libc++.so -l/usr/lib/x86_64-linux-gnu/libc++abi.so
--lm -lc -lgcc_s -lgcc  
--lstdc++fs -fmax-errors=10 -Wnoexcept -Wstrict-null-sentinel") 
-
-set(RPC_LIB_INCLUDES " ${CONTROL_ROOT}/external/rpclib/rpclib-2.2.1/include")
-set(RPC_LIB rpc) # name of .a file with lib prefix
-message(STATUS "found RPC_LIB_INCLUDES=${RPC_LIB_INCLUDES}")
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -61,27 +47,14 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${CONTROL_ROOT}/AirLib/deps/eigen3
-  ${CONTROL_ROOT}/AirLib/include
-  ${RPC_LIB_INCLUDES}
-  ${CONTROL_ROOT}/MavLinkCom/include
-  ${CONTROL_ROOT}/MavLinkCom/common_utils
   ${Boost_INCLUDE_DIRS}
-  # ${EIGEN3_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
   ${uav_msgs_INCLUDE_DIRS}
 )
-
-## control_node
-# add_executable(airsim_offb_node src/airsim_offb_node.cpp src/airsim_offb.cpp src/utils.cpp)
-# target_link_libraries(airsim_offb_node ${catkin_LIBRARIES} AirLib)
 
 ## generate_waypoints_node
 add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
 target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
-
-## extract_lane_node add_executable(display_node src/display_node.cpp)
-# add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
-# target_link_libraries(extract_lane_node ${catkin_LIBRARIES})
 
 add_executable(mavros_offb_node src/mavros_offb_node.cpp src/mavros_offb.cpp src/utils.cpp)
 target_link_libraries(mavros_offb_node ${catkin_LIBRARIES})
