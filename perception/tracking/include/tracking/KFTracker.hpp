@@ -2,9 +2,8 @@
 #define __KFTRACKER_HPP__
 
 #include <vector>
-
 #include <ros/ros.h>
-
+#include <std_msgs/String.h>
 #include <tf/transform_listener.h>
 
 #include "uav_msgs/DetectedObject.h"
@@ -33,6 +32,7 @@ private:
 
     ros::NodeHandle node_handle_;
     ros::Subscriber sub_detected_array_;
+    ros::Subscriber sub_target_id_;
     ros::Publisher pub_object_array_;
 
     std_msgs::Header input_header_;
@@ -41,6 +41,7 @@ private:
     const double CENTROID_DISTANCE = 0.05;
 
     void GetParam();
+    void targetIdCallbck(const std_msgs::String& target_id);
     void callback(const uav_msgs::DetectedObjectArray& input);
     void tracker(const uav_msgs::DetectedObjectArray& input, 
                 uav_msgs::DetectedObjectArray& detected_objects_output);

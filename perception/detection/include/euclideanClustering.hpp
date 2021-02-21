@@ -67,12 +67,13 @@ private:
     bool _use_gpu;
     bool _use_multiple_thres;
     std::string _output_frame;
-    float _in_max_height;
-    float _in_floor_max_angle;
     std::string _lidar_frame_id;
     float _remove_points_outside;
    
-
+    // Ransac Param
+    float _in_max_height;
+    float _in_floor_max_angle;
+    int _max_iterations;    
 
     // Ray Ground Param
     double _general_max_slope;
@@ -139,7 +140,7 @@ private:
     bool RemoveFloorRansac(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_nofloor_cloud_ptr,
                      pcl::PointCloud<pcl::PointXYZ>::Ptr out_onlyfloor_cloud_ptr, float in_max_height = 0.2, float in_floor_max_angle = 0.1);
     bool DifferenceNormalsSegmentation(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
-
+    bool PassThrough(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
 
 
     /************************************/

@@ -60,6 +60,8 @@
             <param name="centroid_color" value="$(arg centroid_color)"/>
 
 
+
+
         </node>
     </group>
 

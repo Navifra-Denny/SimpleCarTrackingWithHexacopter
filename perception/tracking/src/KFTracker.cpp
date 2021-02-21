@@ -27,15 +27,20 @@ void KFTracker::GetParam()
     node_handle_.getParam("kfTracker/merge_distance_threshold", merge_distance_threshold_);
     ROS_INFO("[%s] merge_distance_threshold: %f", __APP_NAME__, merge_distance_threshold_);
 
-
-
 }
 
 void KFTracker::run()
 {
     pub_object_array_ = node_handle_.advertise<uav_msgs::DetectedObjectArray>("objects_out", 1);
     sub_detected_array_ = node_handle_.subscribe("objects_in", 1, &KFTracker::callback, this);
+    sub_target_id_ = node_handle_.subscribe("target_id_msg", 1, &KFTracker::targetIdCallbck, this);
 }
+
+void KFTracker::targetIdCallbck(const std_msgs::String& target_id)
+{
+    ROS_INFO_STREAM(target_id.data);
+}
+
 
 void KFTracker::callback(const uav_msgs::DetectedObjectArray& input)
 {
@@ -382,10 +387,8 @@ void KFTracker::makeOutput(const uav_msgs::DetectedObjectArray& input,
         //     {
         //         dd.dimensions.x = targets_[i].object_.dimensions.y;
         //         dd.dimensions.y = targets_[i].object_.dimensions.x;
-        //     }
-        //     // posteriori state 
-        //     dd.pose.position.x = tx;
-        //     dd.pose.position.y = ty;
+        //     }inputString.compare("set_origin") == 0))
+        // {
 
         //     // if (!std::isnan(q[0])) dd.pose.orientation.x = q[0];
         //     // if (!std::isnan(q[1])) dd.pose.orientation.y = q[1];

@@ -6,12 +6,11 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /airsim1
         - /perception1
-        - /perception1/raw_cloud1
+        - /perception1/raw_cloud1/Velodyne_raw1
         - /perception1/processed_cloud1
-        - /control1
-      Splitter Ratio: 0.5794117450714111
+        - /Tracking1
+      Splitter Ratio: 0.574999988079071
     Tree Height: 755
   - Class: rviz/Selection
     Name: Selection
@@ -31,7 +30,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Velodyne_raw
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -64,23 +63,13 @@ Visualization Manager:
           Frame Timeout: 15
           Frames:
             All Enabled: false
-            os1_imu:
-              Value: true
-            os1_lidar:
-              Value: true
-            os1_sensor:
-              Value: true
           Marker Scale: 1
           Name: TF
           Show Arrows: true
           Show Axes: true
           Show Names: true
           Tree:
-            os1_sensor:
-              os1_imu:
-                {}
-              os1_lidar:
-                {}
+            {}
           Update Interval: 0
           Value: true
         - Alpha: 1
@@ -198,7 +187,7 @@ Visualization Manager:
               Enabled: true
               Invert Rainbow: false
               Max Color: 255; 255; 255
-              Max Intensity: 2332
+              Max Intensity: 2229
               Min Color: 0; 0; 0
               Min Intensity: 0
               Name: OS1Cloud
@@ -209,6 +198,36 @@ Visualization Manager:
               Size (m): 0.029999999329447746
               Style: Flat Squares
               Topic: /os1_cloud_node/points
+              Unreliable: false
+              Use Fixed Frame: true
+              Use rainbow: true
+              Value: true
+            - Alpha: 1
+              Autocompute Intensity Bounds: true
+              Autocompute Value Bounds:
+                Max Value: 10
+                Min Value: -10
+                Value: true
+              Axis: Z
+              Channel Name: intensity
+              Class: rviz/PointCloud2
+              Color: 255; 255; 255
+              Color Transformer: Intensity
+              Decay Time: 0
+              Enabled: true
+              Invert Rainbow: false
+              Max Color: 255; 255; 255
+              Max Intensity: 255
+              Min Color: 0; 0; 0
+              Min Intensity: 0
+              Name: Velodyne_raw
+              Position Transformer: XYZ
+              Queue Size: 10
+              Selectable: true
+              Size (Pixels): 3
+              Size (m): 0.029999999329447746
+              Style: Flat Squares
+              Topic: /velodyne_points
               Unreliable: false
               Use Fixed Frame: true
               Use rainbow: true
@@ -243,7 +262,7 @@ Visualization Manager:
               Use Fixed Frame: true
               Use rainbow: true
               Value: false
-          Enabled: false
+          Enabled: true
           Name: raw_cloud
         - Class: rviz/Group
           Displays:
@@ -447,7 +466,7 @@ Visualization Manager:
               Color: 255; 255; 255
               Color Transformer: Intensity
               Decay Time: 0
-              Enabled: false
+              Enabled: true
               Invert Rainbow: false
               Max Color: 255; 255; 255
               Max Intensity: 985
@@ -464,7 +483,7 @@ Visualization Manager:
               Unreliable: false
               Use Fixed Frame: true
               Use rainbow: true
-              Value: false
+              Value: true
             - Alpha: 1
               Autocompute Intensity Bounds: true
               Autocompute Value Bounds:
@@ -499,18 +518,6 @@ Visualization Manager:
           Name: processed_cloud
       Enabled: true
       Name: perception
-    - Class: rviz/Group
-      Displays:
-        - Class: rviz/MarkerArray
-          Enabled: false
-          Marker Topic: /control/visualzie_control_node/control_marekrs
-          Name: control_markers
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: false
-      Enabled: false
-      Name: control
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -541,19 +548,49 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
-    - Class: rviz/MarkerArray
+    - Class: rviz/Axes
+      Enabled: false
+      Length: 1
+      Name: Axes
+      Radius: 0.10000000149011612
+      Reference Frame: <Fixed Frame>
+      Value: false
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/MarkerArray
+          Enabled: false
+          Marker Topic: /control/visualzie_control_node/control_marekrs
+          Name: control_markers
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: false
       Enabled: true
-      Marker Topic: /tracking/objects_markers
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
+      Name: control
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /tracking/objects_markers
+          Name: TrackingMarker
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Axes
+          Enabled: false
+          Length: 1
+          Name: os_lidar_axis
+          Radius: 0.10000000149011612
+          Reference Frame: <Fixed Frame>
+          Value: false
+      Enabled: true
+      Name: Tracking
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: os1_lidar
+    Fixed Frame: velodyne
     Frame Rate: 30
   Name: root
   Tools:
@@ -577,25 +614,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 26.79235076904297
+      Distance: 77.25656127929688
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 6.670814514160156
-        Y: 1.4483447074890137
-        Z: -1.239776611328125e-5
+        X: 3.8657264709472656
+        Y: 0.5692682862281799
+        Z: -6.67572021484375e-6
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.640398383140564
+      Pitch: 0.559797465801239
       Target Frame: drone_1/odom_local_ned
       Value: ThirdPersonFollower (rviz)
-      Yaw: 6.240436553955078
+      Yaw: 3.1272857189178467
     Saved: ~
 Window Geometry:
   Displays:

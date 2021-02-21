@@ -1,11 +1,11 @@
 <launch>
     <!-- Eulcidean clustering Parameter -->
     <arg name="namespace" default="detection" />
-    <arg name="lidar_frame_id" default="os1_lidar" />   
-    <!-- <arg name="lidar_frame_id" default="world_enu" />    --> 
-    <arg name="remove_ground_ransac" default="false" />
-    <arg name="remove_ground_rayGroundFilter" default="true" />
-    <arg name="downsample_cloud" default="true" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
+    <arg name="lidar_frame_id" default="velodyne" />   
+    <!-- <arg name="lidar_frame_id" default="os1_lidar" />     -->
+    <arg name="remove_ground_ransac" default="true" />
+    <arg name="remove_ground_rayGroundFilter" default="false" />
+    <arg name="downsample_cloud" default="false" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
     <arg name="leaf_size" default="0.2" /><!-- Voxel Grid Filter leaf size-->
     <arg name="cluster_size_min" default="28" /><!-- Minimum number of points to consider a cluster as valid-->
     <arg name="cluster_size_max" default="100000" /><!-- Maximum number of points to allow inside a cluster-->
@@ -15,16 +15,14 @@
     <arg name="ClipCloud" default="true" />
     <arg name="clip_min_height" default="-1.2" />
     <arg name="clip_max_height" default="0.5" />
-    <arg name="in_max_height" default="2.0" />
-    <arg name="in_floor_max_angle" default="10.0" />
     <arg name="keep_lanes" default="true" />
     <arg name="keep_lane_left_distance" default="5" />
     <arg name="keep_lane_right_distance" default="4" />
     <arg name="cluster_merge_threshold" default="0.1" />
     <arg name="clustering_distance" default="0.50" />
     <arg name="wayarea_gridmap_layer" default="wayarea" />
-    <arg name="output_frame" default="/os1_lidar" />
-    <!-- <arg name="output_frame" default="velodyne" /> -->
+    <!-- <arg name="output_frame" default="/world_enu" /> -->
+    <arg name="output_frame" default="velodyne" />
     <arg name="remove_points_upto" default="2.8" /> 
     <arg name="use_gpu" default="false" />
     <arg name="use_multiple_thres" default="false"/>
@@ -32,7 +30,11 @@
     <arg name="clustering_distances" default="[0.5,1.1,1.6,2.1,2.6]"/><!-- Euclidean Clustering threshold distance for each segment -->
     <arg name="remove_points_outside" default="15.0"/><!-- Euclidean Clustering threshold distance for each segment -->
 
-
+    <!-- Ransac Parameter -->
+    <arg name="in_max_height" default="0.2" />
+    <arg name="in_floor_max_angle" default="0.05" />
+    <arg name="max_iterations" default="250" />
+    
 
     <!-- Ray ground Parameter --> 
     <arg name="sensor_height" default="1.6"/> 
@@ -84,33 +86,38 @@
 
   <group ns="$(arg namespace)">  
     <node pkg="detection" type="detection" name="euclideanClustering" output="screen">
-      <!-- Eulcidean clustering Parameter -->
-      <param name="lidar_frame_id" value="$(arg lidar_frame_id)"/>
-      <param name="remove_ground_ransac" value="$(arg remove_ground_ransac)"/>
-      <param name="remove_ground_rayGroundFilter" value="$(arg remove_ground_rayGroundFilter)"/>
-      <param name="downsample_cloud" value="$(arg downsample_cloud)"/>
-      <param name="leaf_size" value="$(arg leaf_size)"/>
-      <param name="cluster_size_min" value="$(arg cluster_size_min)"/>
-      <param name="cluster_size_max" value="$(arg cluster_size_max)"/>
-      <param name="use_diffnormals" value="$(arg use_diffnormals)"/>
-      <param name="pose_estimation" value="$(arg pose_estimation)"/>
-      <param name="keep_lanes" value="$(arg keep_lanes)"/>
-      <param name="keep_lane_left_distance" value="$(arg keep_lane_left_distance)"/>
-      <param name="keep_lane_right_distance" value="$(arg keep_lane_right_distance)"/>
-      <param name="ClipCloud" value = "$(arg ClipCloud)" />
-      <param name="clip_min_height" value="$(arg clip_min_height)"/>
-      <param name="clip_max_height" value="$(arg clip_max_height)"/>
-      <param name="output_frame" value="$(arg output_frame)"/>
-      <param name="remove_points_upto" value="$(arg remove_points_upto)"/>
-      <param name="clustering_distance" value="$(arg clustering_distance)"/>S_NAME
-      <param name="in_floor_max_angle" value="$(arg in_floor_max_angle)"/>
-      <param name="cluster_merge_threshold" value="$(arg cluster_merge_threshold)"/>
-      <param name="use_gpu" value="$(arg use_gpu)"/>
-      <param name="use_multiple_thres" value="$(arg use_multiple_thres)"/>
-      <param name="clustering_ranges" value="$(arg clustering_ranges)"/><!-- Distances to segment pointcloud -->
-      <param name="clustering_distances" value="$(arg clustering_distances)"/><!-- Euclidean Clustering threshold distance for each segment -->
-      <param name="sensor_height" value="$(arg sensor_height)"/><!-- Euclidean Clustering threshold distance for each segment -->
-      <param name="remove_points_outside" value="$(arg remove_points_outside)"/>
+        <!-- Eulcidean clustering Parameter -->
+        <param name="lidar_frame_id" value="$(arg lidar_frame_id)"/>
+        <param name="remove_ground_ransac" value="$(arg remove_ground_ransac)"/>
+        <param name="remove_ground_rayGroundFilter" value="$(arg remove_ground_rayGroundFilter)"/>
+        <param name="downsample_cloud" value="$(arg downsample_cloud)"/>
+        <param name="leaf_size" value="$(arg leaf_size)"/>
+        <param name="cluster_size_min" value="$(arg cluster_size_min)"/>
+        <param name="cluster_size_max" value="$(arg cluster_size_max)"/>
+        <param name="use_diffnormals" value="$(arg use_diffnormals)"/>
+        <param name="pose_estimation" value="$(arg pose_estimation)"/>
+        <param name="keep_lanes" value="$(arg keep_lanes)"/>
+        <param name="keep_lane_left_distance" value="$(arg keep_lane_left_distance)"/>
+        <param name="keep_lane_right_distance" value="$(arg keep_lane_right_distance)"/>
+        <param name="ClipCloud" value = "$(arg ClipCloud)" />
+        <param name="clip_min_height" value="$(arg clip_min_height)"/>
+        <param name="clip_max_height" value="$(arg clip_max_height)"/>
+        <param name="output_frame" value="$(arg output_frame)"/>
+        <param name="remove_points_upto" value="$(arg remove_points_upto)"/>
+        <param name="clustering_distance" value="$(arg clustering_distance)"/>
+        <param name="cluster_merge_threshold" value="$(arg cluster_merge_threshold)"/>
+        <param name="use_gpu" value="$(arg use_gpu)"/>
+        <param name="use_multiple_thres" value="$(arg use_multiple_thres)"/>
+        <param name="clustering_ranges" value="$(arg clustering_ranges)"/><!-- Distances to segment pointcloud -->
+        <param name="clustering_distances" value="$(arg clustering_distances)"/><!-- Euclidean Clustering threshold distance for each segment -->
+        <param name="sensor_height" value="$(arg sensor_height)"/><!-- Euclidean Clustering threshold distance for each segment -->
+        <param name="remove_points_outside" value="$(arg remove_points_outside)"/>
+
+        <!-- Ransac parameter -->
+        <param name="in_floor_max_angle" value="$(arg in_floor_max_angle)"/>
+        <param name="in_max_height" value="$(arg in_max_height)"/>
+        <param name="max_iterations" value="$(arg max_iterations)"/>
+
 
 
       <!-- Ray ground Parameter -->

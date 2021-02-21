@@ -166,6 +166,13 @@ target_link_libraries(${PROJECT_NAME}
   ${OpenCV_LIBRARIES}
 )
 
+
+add_executable(targetIdPublisher src/TargetIdPublisher.cpp)
+add_dependencies(targetIdPublisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(targetIdPublisher
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
