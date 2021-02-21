@@ -9,18 +9,22 @@
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Twist.h>
 
 #include <geographic_msgs/GeoPoseStamped.h>
 #include <geographic_msgs/GeoPath.h>
 
 #include <std_msgs/String.h>
 #include <mavros_msgs/HomePosition.h>
+#include "uav_msgs/TargetWP.h"
 #include "uav_msgs/CarState.h"
 #include "uav_msgs/Offset.h"
 #include "control/utils.h"
 
 using Vector3f = Eigen::Vector3f;
 
+namespace control
+{
 struct VehicleState{
     geometry_msgs::PoseStamped local;
     geographic_msgs::GeoPoseStamped global; // [deg/1e-7]
@@ -28,7 +32,7 @@ struct VehicleState{
     geometry_msgs::PoseArray local_trajectory;
     geographic_msgs::GeoPath global_trajectory;
 
-    double speed;                                   // [m/s]
+    geometry_msgs::Twist velocity;           // [m/s]
     int g_speed_raw;                                // [mm/s]
     int heading_raw;                                // [deg/1e-5]
     double heading_deg;
@@ -36,21 +40,17 @@ struct VehicleState{
     double east;
     double north;
 };
+}
 
 class GenerateWaypoints
-{
-private:
-    // Node Handler
-	ros::NodeHandle m_nh;
-    control::Utils m_utils;
-    VehicleState m_target_vehicle;
-    VehicleState m_ego_vehicle;
-	
+{	
 public:
     GenerateWaypoints();
     virtual ~GenerateWaypoints();
 
 private:
+    // Node Handler
+	ros::NodeHandle m_nh;
 
     // subscriber
 	ros::Subscriber m_target_vehicle_local_state_sub;
@@ -87,14 +87,20 @@ private:
     bool m_is_offset_changed;
     bool m_is_home_set;
 
+    control::Utils m_utils;
+    control::VehicleState m_target_vehicle;
+    control::VehicleState m_ego_vehicle;
 	tf2_ros::Buffer m_tfBuffer;
 	tf2_ros::TransformListener m_tfListener;
 
     geographic_msgs::GeoPoint m_home_position;
     ros::Time m_last_detected_time;
-    geometry_msgs::PoseArray m_target_wp_local;
-    geographic_msgs::GeoPath m_target_wp_global;
+    // geometry_msgs::PoseArray m_target_wp_local;
+    // geographic_msgs::GeoPath m_target_wp_global;
+    uav_msgs::TargetWP m_target_wp;
+    // uav_msgs::TargetWP m_target_wp_global;
     float m_z_offset_m;
+    float m_x_offset_m;
     float m_alt_offset_m;
 
 private: // function
@@ -114,13 +120,13 @@ private: // function
     void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
 
     bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
-    bool AddTargetWaypoint(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
-    bool AddTargetWaypoint(geographic_msgs::GeoPath &geo_path, geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped);
+    bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped);
+    bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped, geometry_msgs::Twist &target_vel);
+    bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped, geometry_msgs::Twist &target_vel);
     geometry_msgs::Pose GenTargetWaypoint(geometry_msgs::Pose &curr_pose);
     geographic_msgs::GeoPoseStamped GenTargetWaypoint(geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped);
 
-    void Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geometry_msgs::PoseArray &target_poses);
-    void Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geographic_msgs::GeoPath &target_wp_poses);
+    void Publish();
     bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses);

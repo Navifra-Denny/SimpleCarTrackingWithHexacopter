@@ -12,6 +12,7 @@
 #include <geographic_msgs/GeoPointStamped.h>
 #include <geographic_msgs/GeoPoseStamped.h>
 #include <geographic_msgs/GeoPath.h>
+#include <geometry_msgs/Twist.h>
 
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/NavSatFix.h>
@@ -34,7 +35,7 @@ private:
     // Node Handler
 	ros::NodeHandle m_nh;
     control::Utils m_utils;
-    VehicleState m_ego_vehicle;
+    control::VehicleState m_ego_vehicle;
 
 public:
     Offboard();
@@ -51,6 +52,7 @@ private:
     // Publisher
     ros::Publisher m_local_pose_pub;
     ros::Publisher m_global_pose_pub;
+    ros::Publisher m_velocity_pub;
     
     // ServiceClient
     ros::ServiceClient m_arming_serv_client;
@@ -71,6 +73,7 @@ private:
     mavros_msgs::State m_current_status;
     geometry_msgs::PoseStamped m_local_setpoint;
     geographic_msgs::GeoPoseStamped m_global_setpoint;
+    geometry_msgs::Twist m_vel_setpoint;
     std::string m_debugging_msg;
 
 	tf2_ros::Buffer m_tfBuffer;

@@ -301,7 +301,7 @@ void VisualizeControl::EgoVehicleLocalPositionCallback(const geometry_msgs::Pose
     m_ego_trajectory.is_center_point_add = true;
 
     // orientation
-    double arrow_size = m_utils.VelNomalize(m_ego_vehicle_speed_kmh);
+    double arrow_size = 2.0*m_utils.VelNomalize(m_ego_vehicle_speed_kmh);
     m_ego_trajectory.orientation.header.frame_id = current_pose_ptr->header.frame_id;
     m_ego_trajectory.orientation.header.stamp = ros::Time(0);
     
@@ -395,7 +395,7 @@ void VisualizeControl::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs:
     }
 
     double speed_kmh = m_utils.ms_to_kmh(m_utils.Size(inspva_msg_ptr->east_velocity, inspva_msg_ptr->north_velocity));
-    double arrow_size = m_utils.VelNomalize(speed_kmh);
+    double arrow_size = 2.0*m_utils.VelNomalize(speed_kmh);
 
     // orientation
     m_target_trajectory.orientation.header.frame_id = "map";

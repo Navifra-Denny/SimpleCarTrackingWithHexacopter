@@ -30,7 +30,7 @@ GenerateWaypoints::GenerateWaypoints() :
     InitROS();
     InitTargetVehicle();
 
-    m_target_wp_local.header.frame_id = "map";
+    m_target_wp.local.header.frame_id = "map";
     m_ego_vehicle.local_trajectory.header.frame_id = "map";
     m_target_vehicle.local_trajectory.header.frame_id = "map";
 }
@@ -40,9 +40,9 @@ GenerateWaypoints::~GenerateWaypoints()
 
 bool GenerateWaypoints::InitFlag()
 {
-    m_is_detected = false;
-    m_is_global = false;
-    m_is_hover = true;
+    m_target_wp.state.is_detected = false;
+    m_target_wp.state.is_global = false;
+    m_target_wp.state.is_hover = true;
     m_is_offset_changed = false;
     m_is_home_set = false;
     m_is_golbal_to_local = false;
@@ -72,6 +72,7 @@ bool GenerateWaypoints::GetParam()
     else if (__isnan(m_target_height_m_param)) { ROS_ERROR_STREAM("m_target_height_m_param is NAN"); return false; }
 
     m_z_offset_m = m_z_offset_m_param;
+    m_x_offset_m = m_x_offset_m_param;
     m_alt_offset_m = m_alt_offset_m_param;
     m_is_golbal_to_local = m_global_to_local_param;
 
@@ -125,26 +126,26 @@ bool GenerateWaypoints::InitTargetVehicle()
 void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& event)
 {
     if((ros::Time::now() - m_last_detected_time) > ros::Duration(m_detected_dead_band_param)){
-        m_is_detected = false;
-        m_is_hover = true;
-        m_is_global = false;
+        m_target_wp.state.is_detected = false;
+        m_target_wp.state.is_hover = true;
+        m_target_wp.state.is_global = false;
 
         if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
             // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-            if (AddTargetWaypoint(m_target_wp_local, m_ego_vehicle.local)){
+            if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
                 AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
             }
         }
     }
     else{
-        m_is_detected = true;
-        m_is_hover = false;
+        m_target_wp.state.is_detected = true;
+        m_target_wp.state.is_hover = false;
         
-        if(m_is_global){
+        if(m_target_wp.state.is_global){
             if (m_is_golbal_to_local){
-                m_is_global = false;
+                m_target_wp.state.is_global = false;
                 if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
-                    if (AddTargetWaypoint(m_target_wp_local, m_target_vehicle.local)){
+                    if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
                         AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
                         AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
                     }
@@ -152,7 +153,7 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
             }
             else{
                 if (IsValid(m_target_vehicle.global_trajectory.poses, m_target_vehicle.global.pose.position)){
-                    if (AddTargetWaypoint(m_target_wp_global, m_target_vehicle.global)){
+                    if (AddTargetWaypoint(m_target_wp, m_target_vehicle.global, m_target_vehicle.velocity)){
                         AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
                         AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
                     }
@@ -162,7 +163,7 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
         else{
             if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
                 // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-                if (AddTargetWaypoint(m_target_wp_local, m_target_vehicle.local)){
+                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
                     AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
                     AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
                 }
@@ -170,14 +171,14 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
         }
     }
 
-    if (m_is_global){
-        if (IsValid(m_target_wp_global.poses)){
-            Publish(m_target_vehicle.local_trajectory, m_ego_vehicle.local_trajectory, m_target_wp_global);
+    if (m_target_wp.state.is_global){
+        if (IsValid(m_target_wp.global.poses)){
+            Publish();
         }
     }
     else{
-        if (IsValid(m_target_wp_local.poses)){
-            Publish(m_target_vehicle.local_trajectory, m_ego_vehicle.local_trajectory, m_target_wp_local);
+        if (IsValid(m_target_wp.local.poses)){
+            Publish();
         }
     }
 }
@@ -191,7 +192,7 @@ void GenerateWaypoints::EgoVehicleLocalPositionCallback(const geometry_msgs::Pos
 void GenerateWaypoints::TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr)
 {
     m_last_detected_time = ros::Time::now();
-    m_is_global = false;
+    m_target_wp.state.is_global = false;
 
     m_target_vehicle.local.header = car_state_ptr->header;
     m_target_vehicle.local.pose = car_state_ptr->pose.pose;
@@ -200,13 +201,12 @@ void GenerateWaypoints::TargetVehicleLocalStateCallback(const uav_msgs::CarState
 void GenerateWaypoints::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr)
 {
     m_last_detected_time = ros::Time::now();
-    m_is_global = true;
+    m_target_wp.state.is_global = true;
 
     m_target_vehicle.global.header = inspva_msg_ptr->header;
     m_target_vehicle.global.pose.position.latitude = inspva_msg_ptr->latitude;
     m_target_vehicle.global.pose.position.longitude = inspva_msg_ptr->longitude;
     m_target_vehicle.global.pose.position.altitude = inspva_msg_ptr->height;
-    m_target_vehicle.speed = m_utils.Size(inspva_msg_ptr->east_velocity, inspva_msg_ptr->north_velocity);
     
     if (!m_utils.IsNan(m_target_vehicle.global.pose.position)){
     
@@ -222,6 +222,9 @@ void GenerateWaypoints::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs
         m_target_vehicle.local.pose.orientation.z = q.z();
         m_target_vehicle.local.pose.orientation.w = q.w();
     }
+    
+    m_target_vehicle.velocity.linear.x = inspva_msg_ptr->east_velocity;
+    m_target_vehicle.velocity.linear.y = inspva_msg_ptr->north_velocity;
 }
 
 void GenerateWaypoints::ChatterCallback(const std_msgs::String::ConstPtr &string_ptr)
@@ -281,15 +284,25 @@ bool GenerateWaypoints::AddPointToTrajectory(geometry_msgs::PoseArray &pose_arra
     pose_array.poses.push_back(curr_pose);
 }
 
-bool GenerateWaypoints::AddTargetWaypoint(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped)
+bool GenerateWaypoints::AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped)
+{
+    geometry_msgs::Twist zero_feedforward_velocity;
+    zero_feedforward_velocity.linear.x = 0;
+    zero_feedforward_velocity.linear.y = 0;
+    zero_feedforward_velocity.linear.z = 0;
+    
+    return AddTargetWaypoint(target_wp, curr_pose_stamped, zero_feedforward_velocity);
+}
+
+bool GenerateWaypoints::AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped, geometry_msgs::Twist &target_vel)
 {
     geometry_msgs::Pose curr_pose;
 
-    if (pose_array.header.frame_id != curr_pose_stamped.header.frame_id){
+    if (target_wp.local.header.frame_id != curr_pose_stamped.header.frame_id){
         geometry_msgs::TransformStamped transformStamped;
         geometry_msgs::Pose transformed_pose;
         try{
-            transformStamped = m_tfBuffer.lookupTransform(pose_array.header.frame_id, curr_pose_stamped.header.frame_id, ros::Time(0));
+            transformStamped = m_tfBuffer.lookupTransform(target_wp.local.header.frame_id, curr_pose_stamped.header.frame_id, ros::Time(0));
             tf2::doTransform(curr_pose_stamped.pose, transformed_pose, transformStamped);
         }
         catch (tf2::TransformException &ex) {
@@ -304,21 +317,27 @@ bool GenerateWaypoints::AddTargetWaypoint(geometry_msgs::PoseArray &pose_array, 
 
     geometry_msgs::Pose target_pose = GenTargetWaypoint(curr_pose);
     if (!m_utils.IsNan(target_pose.position)){
-        pose_array.header.stamp = ros::Time::now();
-        pose_array.poses.push_back(target_pose);
+        target_wp.local.header.stamp = ros::Time::now();
+        target_wp.local.poses.push_back(target_pose);
         
+        double coef_vel = 1.5;
+        target_vel.linear.x *= coef_vel;
+        target_vel.linear.y *= coef_vel;
+        target_vel.linear.z *= coef_vel;
+        target_wp.velocity = target_vel;
         return true;
     }
     return false;
 }
   
-bool GenerateWaypoints::AddTargetWaypoint(geographic_msgs::GeoPath &geo_path, geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped)
+bool GenerateWaypoints::AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped, geometry_msgs::Twist &target_vel)
 {
     geographic_msgs::GeoPoseStamped target_geo_pose = GenTargetWaypoint(curr_geo_pose_stamped);
     if (!m_utils.IsNan(target_geo_pose.pose.position)){
-        geo_path.header.stamp = ros::Time::now();
-        geo_path.poses.push_back(target_geo_pose);
+        target_wp.global.header.stamp = ros::Time::now();
+        target_wp.global.poses.push_back(target_geo_pose);
         
+        target_wp.velocity = target_vel;
         return true;
     }
     return false;
@@ -330,9 +349,18 @@ geometry_msgs::Pose GenerateWaypoints::GenTargetWaypoint(geometry_msgs::Pose &po
     auto euler = m_utils.Quat2Euler(pose.orientation);
 
     // target_pose.position frame_id is "map"
-    target_pose.position.x += m_x_offset_m_param * cos(euler.y);
-    target_pose.position.y += m_x_offset_m_param * sin(euler.y);
-    target_pose.position.z = m_z_offset_m;
+    if (m_target_wp.state.is_hover){
+        target_pose.position.z = m_z_offset_m;
+    }
+    else {
+        double speed_kmh = m_utils.ms_to_kmh(m_utils.Size(m_target_vehicle.velocity.linear.x, m_target_vehicle.velocity.linear.y));
+        double nomalized_speed_ms = m_utils.VelNomalize(speed_kmh);
+        m_x_offset_m = m_x_offset_m_param * nomalized_speed_ms;
+
+        target_pose.position.x += m_x_offset_m * cos(euler.y);
+        target_pose.position.y += m_x_offset_m * sin(euler.y);
+        target_pose.position.z = m_z_offset_m;
+    }
     m_is_offset_changed = false;
 
     return target_pose;
@@ -349,54 +377,24 @@ geographic_msgs::GeoPoseStamped GenerateWaypoints::GenTargetWaypoint(geographic_
 }
 
 
-void GenerateWaypoints::Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geometry_msgs::PoseArray &target_wp_poses)
+void GenerateWaypoints::Publish()
 {
     uav_msgs::Trajectory target_traj_msg;
-    if (target_trajectory.poses.size() != 0){
+    if (m_target_vehicle.local_trajectory.poses.size() != 0){
         target_traj_msg.is_global = false;
-        target_traj_msg.local = target_trajectory;
+        target_traj_msg.local = m_target_vehicle.local_trajectory;
         m_target_trajectory_pub.publish(target_traj_msg);
     }
     
     uav_msgs::Trajectory ego_traj_msg;
-    if (ego_trajectory.poses.size() != 0){
+    if (m_ego_vehicle.local_trajectory.poses.size() != 0){
         ego_traj_msg.is_global = false;
-        ego_traj_msg.local = ego_trajectory;
+        ego_traj_msg.local = m_ego_vehicle.local_trajectory;
         m_ego_trajectory_pub.publish(ego_traj_msg);
     }
-    uav_msgs::TargetWP target_waypoints_msg;
-    target_waypoints_msg.state.global_to_local = m_is_golbal_to_local;
-    target_waypoints_msg.state.is_global = m_is_global;
-    target_waypoints_msg.state.is_detected = m_is_detected;
-    target_waypoints_msg.state.is_hover = m_is_hover;
-    target_waypoints_msg.local = target_wp_poses;
-    m_target_waypoints_pub.publish(target_waypoints_msg);
-}
 
-void GenerateWaypoints::Publish(geometry_msgs::PoseArray &target_trajectory, geometry_msgs::PoseArray &ego_trajectory, geographic_msgs::GeoPath &target_wp_poses)
-{
-    uav_msgs::Trajectory target_traj_msg;
-    if (target_trajectory.poses.size() != 0){
-        target_traj_msg.is_global = false;
-        target_traj_msg.local = target_trajectory;
-        m_target_trajectory_pub.publish(target_traj_msg);
-    }
-    
-    uav_msgs::Trajectory ego_traj_msg;
-    if (ego_trajectory.poses.size() != 0){
-        ego_traj_msg.is_global = false;
-        ego_traj_msg.local = ego_trajectory;
-        m_ego_trajectory_pub.publish(ego_traj_msg);
-    }
-    uav_msgs::TargetWP target_waypoints_msg;
-    target_waypoints_msg.state.global_to_local = m_is_golbal_to_local;
-    target_waypoints_msg.state.is_global = m_is_global;
-    target_waypoints_msg.state.is_detected = m_is_detected;
-    target_waypoints_msg.state.is_hover = m_is_hover;
-    target_waypoints_msg.global = target_wp_poses;
-    m_target_waypoints_pub.publish(target_waypoints_msg);
+    m_target_waypoints_pub.publish(m_target_wp);
 }
-
 
 bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position)
 {
@@ -410,6 +408,7 @@ bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses, geometr
         return true;
     }
     else{
+        // ditance reflects only x and y values
         auto distance_m = m_utils.Distance(poses.back().position, curr_position);
         if (distance_m > m_distance_thresh_param){
             return true;

@@ -31,8 +31,9 @@ float Utils::Distance(geometry_msgs::Point point1, geometry_msgs::Point point2)
 {
     auto delta_x = point1.x - point2.x;
     auto delta_y = point1.y - point2.y;
-    auto delta_z = point1.z - point2.z;
-    auto distance_m = std::sqrt(pow(delta_x, 2.0) + pow(delta_y, 2.0) + pow(delta_z, 2.0));
+    // auto delta_z = point1.z - point2.z;
+    auto distance_m = Size(delta_x, delta_y);
+    // auto distance_m = Size(delta_x, delta_y, delta_z);
 
     return distance_m;
 }
@@ -176,10 +177,7 @@ double Utils::VelNomalize(double value)
     else if (value > MAX) value = MAX;
 
     double ratio = value/(MAX - MIN);
-
-    const double ARROR_MAX_SIZE = 2.0;
-    
-    return ARROR_MAX_SIZE * ratio;
+    return ratio;
 }
 
 std::string Utils::ToString(double value)

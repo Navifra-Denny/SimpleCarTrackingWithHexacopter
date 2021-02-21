@@ -52,6 +52,7 @@ bool Offboard::InitRos()
     // Initialize publisher
     m_local_pose_pub = m_nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     m_global_pose_pub = m_nh.advertise<geographic_msgs::GeoPoseStamped>("mavros/setpoint_position/global", 10);
+    m_velocity_pub = m_nh.advertise<geometry_msgs::Twist>("mavros/setpoint_velocity/cmd_vel_unstamped", 10);
 
     // Initialize service client
     m_arming_serv_client = m_nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
@@ -121,6 +122,7 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &targe
             }
             else{
                 m_global_setpoint.pose = waypoint.pose;
+                m_vel_setpoint = target_wp_ptr->velocity;
             }
         }
 
@@ -156,6 +158,7 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &targe
                 else{
                     m_local_setpoint.pose = waypoint.pose;
                 }
+                m_vel_setpoint = target_wp_ptr->velocity;
             }
         }
     }
@@ -200,5 +203,6 @@ void Offboard::PublishSetpoint()
 {
     if (m_is_global) m_global_pose_pub.publish(m_global_setpoint);
     else if (!m_is_global) m_local_pose_pub.publish(m_local_setpoint);
+    m_velocity_pub.publish(m_vel_setpoint);
 }
 }
