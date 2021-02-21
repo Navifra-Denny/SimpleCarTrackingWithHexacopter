@@ -59,10 +59,11 @@
             <param name="box_color" value="$(arg box_color)"/>
             <param name="centroid_color" value="$(arg centroid_color)"/>
 
-
-
-
         </node>
+        
+
+
+
     </group>
 
 </launch>

@@ -162,12 +162,11 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     else if (_remove_ground_ransac){
         // pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
-        if(!PassThrough(current_sensor_cloud_ptr, passThrough_cloud_ptr)) ROS_ERROR_STREAM("Fail to passthrough poincloud");
+        // if(!PassThrough(current_sensor_cloud_ptr, passThrough_cloud_ptr)) ROS_ERROR_STREAM("Fail to passthrough poincloud");
         // if(!RemoveFloorRansac(current_sensor_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
-        if(!RemoveFloorRansac(passThrough_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
+        if(!RemoveFloorRansac(current_sensor_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
         PublishCloud(&_pub_ground_cloud, onlyfloor_cloud_ptr);
         PublishCloud(&_pub_noground_cloud, nofloor_cloud_ptr);
-        
     }   
     else{
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
@@ -200,19 +199,19 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     return true;
 }
 
-bool EuclideanClustering::PassThrough(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
-                                      pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
-{
-    pcl::PassThrough<pcl::PointXYZ> pass_filter;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr ptr_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+// bool EuclideanClustering::PassThrough(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
+//                                       pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
+// {
+//     pcl::PassThrough<pcl::PointXYZ> pass_filter;
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr ptr_filtered(new pcl::PointCloud<pcl::PointXYZ>);
 
-    ptr_filtered = in_cloud_ptr;
-    PublishCloud(&_pub_check, ptr_filtered);
-    // pass_filter.setInputCloud(in_cloud_ptr);
+//     ptr_filtered = in_cloud_ptr;
+//     PublishCloud(&_pub_check, ptr_filtered);
+//     // pass_filter.setInputCloud(in_cloud_ptr);
 
-    return true;
+//     return true;
 
-}
+// }
 
 bool EuclideanClustering::ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
                                                pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
