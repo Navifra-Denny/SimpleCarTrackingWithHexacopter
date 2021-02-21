@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
+
+    <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
+        <param name="uav_speed" value="6.0" />
+        <param name="uav_name" value="PX4" />
+        <param name="ugv_name" value="GV" />
+        <param name="setpoint_pub_interval" value="0.1" />
+        <param name="dt" value="0.25" />
+        <param name="init_x" value="0.0" />
+        <param name="init_y" value="0.0" />
+        <param name="init_z" value="2.0" />
+    </node>
+</launch>

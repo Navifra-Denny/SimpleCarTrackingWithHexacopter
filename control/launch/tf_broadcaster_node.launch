@@ -1,0 +1,8 @@
+<launch>
+	<arg name="output" default="screen"/>
+	<arg name="is_finding_home" default="true"/>
+
+	<node pkg="control" type="tf_broadcaster_node" name="tf_broadcaster_node" output="$(arg output)">
+		<param name="is_finding_home" value="$(arg is_finding_home)" />
+	</node>
+</launch>

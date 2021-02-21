@@ -1,0 +1,92 @@
+<launch>
+    <!-- shell script -->
+    <arg name="simulation" default="false" />
+    <arg name="airsim" default="false" />
+    <arg name="gazebo" default="false" />
+
+    <!-- mavros px4 -->
+    <arg name="fcu_url" default="/dev/ttyPixhawk"/>
+
+    <!-- mavros_offb_node  -->
+	<arg name="setpoint_pub_interval" default="0.05" />
+    <arg name="init_gps_lat" default="37.5445466424" />
+    <arg name="init_gps_lon" default="127.079172409" />
+    <arg name="init_gps_alt" default="47.0" />
+    <arg name="is_debug_mode" default="false" />
+
+    <!-- etc -->
+	<arg name="uav_name" default="PX4" />
+	<arg name="ugv_name" default="GV" />
+	<arg name="uav_speed" default="6.0" />
+	<arg name="dt" default="0.25" />
+    
+    <!-- generate_waypoints_node -->
+	<arg name="global_to_local" default="true" />
+	<arg name="distance_threshold" default="0.1"/>
+    <arg name="target_wp_pub_interval" default="0.02" />
+	<arg name="detected_dead_band" default="0.5" />
+	<arg name="x_offset_m" default="3.0" />
+	<arg name="z_offset_m" default="3.5" />
+	<arg name="alt_offset_m" default="45.0" />
+	<arg name="target_height_m" default="1.0" />
+
+    
+    <group unless="$(arg simulation)">
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+        </include>
+        <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
+            <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+            <param name="is_debug_mode" value="$(arg is_debug_mode)" />
+        </node>
+    </group>
+    
+    <group if="$(arg airsim)">
+        <node name="airsim_offb_node" pkg="control" type="airsim_offb_node" output="screen">
+            <param name="uav_speed" value="$(arg uav_speed)" />
+            <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+            <param name="dt" value="$(arg dt)" />
+            <param name="uav_name" value="$(arg uav_name)" />
+            <param name="ugv_name" value="$(arg ugv_name)" />
+            <param name="UE_target_name" value="BP_BoxTruck_3" />
+        </node>
+    </group>
+    
+    <group if="$(arg gazebo)">
+        <include file="$(find px4)/launch/mavros_posix_sitl.launch"/>
+        <node name="mavros_offb_node" pkg="control" type="mavros_offb_node" output="screen">
+            <param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+            <param name="is_debug_mode" value="$(arg is_debug_mode)" />
+        </node>
+    </group>
+
+    <include file="$(find control)/launch/generate_waypoints_node.launch">
+		<arg name="x_offset_m" value="$(arg x_offset_m)" />
+		<arg name="z_offset_m" value="$(arg z_offset_m)" />
+        <arg name="uav_name" value="$(arg uav_name)" />
+        <arg name="ugv_name" value="$(arg ugv_name)" />
+		<arg name="distance_threshold" value="$(arg distance_threshold)" />
+		<arg name="target_wp_pub_interval" value="$(arg target_wp_pub_interval)" />
+		<arg name="detected_dead_band" value="$(arg detected_dead_band)" />
+		<arg name="global_to_local" value="$(arg global_to_local)" />
+        <arg name="alt_offset_m" value="$(arg alt_offset_m)" />
+        <arg name="target_height_m" value="$(arg target_height_m)" />
+	</include>
+
+    <!-- <include file="$(find control)/launch/extract_lane_node.launch">
+        <arg name="uav_name" value="$(arg uav_name)" />
+	</include> -->
+
+    <include file="$(find control)/launch/checker_node.launch">
+        <arg name="is_debug_mode" value="$(arg is_debug_mode)" />
+        <arg name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
+    </include>
+
+    <node pkg="control" type="evaluation_node" name="evaluation_node" output="screen"/>
+
+    <include file="$(find control)/launch/static_transforms.launch" />
+
+    <group if="$(arg simulation)">
+        <include file="$(find visualization)/launch/visualize_rviz.launch" />
+    </group>
+</launch>

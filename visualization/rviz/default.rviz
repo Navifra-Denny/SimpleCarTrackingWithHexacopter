@@ -160,8 +160,8 @@ Visualization Manager:
           Selectable: true
           Size (Pixels): 3
           Size (m): 0.10000000149011612
-          Style: Points
-          Topic: /airsim_node/drone_1/lidar/LidarCustom
+          Style: Flat Squares
+          Topic: /airsim_node/PX4/lidar/LidarCustom
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
@@ -516,7 +516,7 @@ Visualization Manager:
               Value: false
           Enabled: true
           Name: processed_cloud
-      Enabled: true
+      Enabled: false
       Name: perception
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -558,13 +558,13 @@ Visualization Manager:
     - Class: rviz/Group
       Displays:
         - Class: rviz/MarkerArray
-          Enabled: false
+          Enabled: true
           Marker Topic: /control/visualzie_control_node/control_marekrs
           Name: control_markers
           Namespaces:
             {}
           Queue Size: 100
-          Value: false
+          Value: true
       Enabled: true
       Name: control
     - Class: rviz/Group
