@@ -35,6 +35,7 @@ private:
     ros::Subscriber sub_detected_array_;
     ros::Subscriber sub_target_id_;
     ros::Publisher pub_object_array_;
+    ros::Publisher pub_target_state_;
 
     std_msgs::Header input_header_;
 

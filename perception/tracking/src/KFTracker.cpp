@@ -33,6 +33,7 @@ void KFTracker::GetParam()
 void KFTracker::run()
 {
     pub_object_array_ = node_handle_.advertise<uav_msgs::DetectedObjectArray>("objects_out", 1);
+    pub_target_state_ = node_handle_.advertise<uav_msgs::TargetState>("target_state_msg", 1);
     sub_detected_array_ = node_handle_.subscribe("objects_in", 1, &KFTracker::callback, this);
     sub_target_id_ = node_handle_.subscribe("target_id_msg", 1, &KFTracker::targetIdCallbck, this);
 }
@@ -107,62 +108,6 @@ void KFTracker::tracker(const uav_msgs::DetectedObjectArray& input,
 
 }
 
-void KFTracker::makeTargetStateOutput()
-{
-    if (target_id_ < 0)
-    {
-        ROS_ERROR_STREAM("Target id is not entered");
-        return; 
-    } 
-
-    bool init_ = true;
-    int prev_target_id_;
-
-    if (init_)
-    {
-        prev_target_id_ = target_id_;
-        init_ = false;
-    } 
-
-    if (target_id_ == prev_target_id_)
-    {
-        for (size_t i = 0; i < targets_.size(); i++)
-        {
-            if (target_id_ != targets_[i].kf_id_) 
-            {
-                ROS_ERROR_STREAM("I can't found target id");
-                continue;
-            }
-            
-            ROS_INFO("I found target id [%d]", target_id_);
-
-            KF target_;
-            uav_msgs::TargetState target_state_msg;
-
-            target_ = targets_[i];
-            target_state_msg.pose.header = target_.header_;
-            target_state_msg.pose.pose.position.x = target_.state_post_(0);
-            target_state_msg.pose.pose.position.y = target_.state_post_(1);
-
-            target_state_msg.velocity.linear.x = target_.state_post_(2);
-            target_state_msg.velocity.linear.y = target_.state_post_(3);
-
-            // ROS_INFO_STREAM(target_state_msg.pose.pose.position.x);
-            // ROS_INFO_STREAM(target_state_msg.pose.pose.position.y);
-            // ROS_INFO_STREAM(target_state_msg.velocity.linear.x);
-            // ROS_INFO_STREAM(target_state_msg.velocity.linear.y);
-
-
-            return;
-
-        }
-
-
-    }
-
-
-
-}
 
 void KFTracker::initTracker(const uav_msgs::DetectedObjectArray& input, double timestamp)
 {
@@ -392,6 +337,57 @@ void KFTracker::staticClassification()
 
         }
 
+    }
+}
+
+void KFTracker::makeTargetStateOutput()
+{
+    if (target_id_ < 0){
+        ROS_ERROR_STREAM("Target id is not entered");
+        return; 
+    } 
+
+    for (size_t i = 0; i < targets_.size(); i++)
+    {
+        if (target_id_ != targets_[i].kf_id_) 
+        {
+            ROS_ERROR_STREAM("I can't found target id");
+            continue;
+        }
+        
+        if (targets_[i].tracking_num_ > TrackingState::Init && targets_[i].tracking_num_ < TrackingState::Lost)
+        {   
+            ROS_INFO("I found target id [%d]", target_id_);
+            if(targets_[i].tracking_num_ > TrackingState::Init && targets_[i].tracking_num_ <= TrackingState::Stable) 
+                ROS_INFO_STREAM("Target is detected [TrackingNum: Init or Stable]");
+            else 
+                ROS_INFO_STREAM("Target is not detected, only prediction is in progress [TrackingNum: Occlusion] ");
+            
+            KF target_;
+            uav_msgs::TargetState target_state_msg;
+            
+            target_ = targets_[i];
+            target_state_msg.pose.header = target_.header_;
+            target_state_msg.pose.pose.position.x = target_.state_post_(0);
+            target_state_msg.pose.pose.position.y = target_.state_post_(1);
+            target_state_msg.velocity.linear.x = target_.state_post_(2);
+            target_state_msg.velocity.linear.y = target_.state_post_(3);
+            
+            ROS_INFO_STREAM(target_state_msg.pose.pose.position.x);
+            ROS_INFO_STREAM(target_state_msg.pose.pose.position.y);
+            ROS_INFO_STREAM(target_state_msg.velocity.linear.x);
+            ROS_INFO_STREAM(target_state_msg.velocity.linear.y);
+
+            pub_target_state_.publish(target_state_msg);
+
+            return;
+        }
+
+        else if (targets_[i].tracking_num_ == TrackingState::Lost) 
+        {
+            ROS_INFO_STREAM("Lost target [TrackingNum: Lost] ");
+            return;
+        } 
     }
 }
 
