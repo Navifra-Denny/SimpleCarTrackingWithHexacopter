@@ -12,7 +12,7 @@
 #include <uav_msgs/PolyfitLaneData.h>
 #include <nav_msgs/Odometry.h>
 #include "uav_msgs/Roi.h"
-#include "off_board_control/utils.h"
+#include "control/utils.h"
 
 struct Euler {
     double r;
@@ -23,7 +23,7 @@ struct Euler {
 class ExtractLane{
 private:
     ros::NodeHandle m_nh;
-    offboard::Utils m_utils;
+    control::Utils m_utils;
     
 public:
     ExtractLane();
@@ -31,7 +31,7 @@ public:
 
 private:
     // Subscriber
-	ros::Subscriber m_desired_waypoints_sub;
+	ros::Subscriber m_desired_local_waypoints_pub;
     ros::Subscriber m_uav_state_sub;
 	// publisher
     ros::Publisher m_roi_box_pub;
@@ -52,9 +52,9 @@ private:
     geometry_msgs::PointStamped m_curr_uav_position;
     uav_msgs::Roi m_roi_msg;
 
-    void SetParam();
+    void GetParam();
     void UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr);
-    void DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
+    void DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr);
     bool Evaluation(const geometry_msgs::PoseArray::ConstPtr lane_ptr);
     
     bool ExtractRegionOfInterest(const geometry_msgs::PoseArray::ConstPtr lane_ptr);

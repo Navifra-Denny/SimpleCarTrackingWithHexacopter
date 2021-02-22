@@ -7,7 +7,7 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(Eigen3 REQUIRED)
+# find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
@@ -52,15 +52,24 @@ include_directories(
   ${uav_msgs_INCLUDE_DIRS}
 )
 
-## control_node
-add_executable(${PROJECT_NAME}_node src/offb_node.cpp)
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
-
 ## generate_waypoints_node
 add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
 target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 
-## extract_lane_node add_executable(display_node src/display_node.cpp)
-add_executable(extract_lane_node src/extract_lane_node.cpp src/extract_lane.cpp src/utils.cpp)
-target_link_libraries(extract_lane_node ${catkin_LIBRARIES})
+add_executable(mavros_offb_node src/mavros_offb_node.cpp src/mavros_offb.cpp src/utils.cpp)
+target_link_libraries(mavros_offb_node ${catkin_LIBRARIES})
+
+add_executable(tf_broadcaster_node src/tf_broadcaster_node.cpp src/tf_broadcaster.cpp src/utils.cpp)
+target_link_libraries(tf_broadcaster_node ${catkin_LIBRARIES})
+
+add_executable(visualize_control_node src/visualize_control_node.cpp src/visualize_control.cpp src/utils.cpp)
+target_link_libraries(visualize_control_node ${catkin_LIBRARIES})
+
+add_executable(checker_node src/checker_node.cpp)
+target_link_libraries(checker_node ${catkin_LIBRARIES})
+
+add_executable(evaluation_node src/evaluation_node.cpp src/utils.cpp)
+target_link_libraries(evaluation_node ${catkin_LIBRARIES})
+
+add_executable(char_pub_node src/char_pub_node.cpp)
+target_link_libraries(char_pub_node ${catkin_LIBRARIES})

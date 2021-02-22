@@ -1,12 +1,12 @@
 #include "ros/ros.h"
-#include "control/generate_waypoints.h"
+#include "control/tf_broadcaster.h"
 #include <ros/spinner.h>
 
 int main(int argc, char ** argv)
 {
     // Initialize ROS
-	ros::init (argc, argv, "generate_waypoints_node");
-    GenerateWaypoints gen_waypoints;
+	ros::init (argc, argv, "tf_broadcaster_node");
+    TfBroadcaster tf_broadcaster;
 
     ros::spin();
 

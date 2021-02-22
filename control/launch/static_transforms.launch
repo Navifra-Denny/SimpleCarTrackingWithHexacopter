@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="world_ned_to_PX4" args="0 0 0 0 0 0 world_ned GV 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="map_to_world_enu" args="0 0 0 0 0 0 map world_enu 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="world_ned_to_odom" args="0 0 0 0 0 0 world_ned odom 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="map_ned_to_world_ned" args="0 0 0 0 0 0 map_ned world_ned 100"/>
+</launch>

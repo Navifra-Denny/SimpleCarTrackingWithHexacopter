@@ -1,12 +1,12 @@
 #include "ros/ros.h"
-#include "control/generate_waypoints.h"
+#include "control/airsim_offb.h"
 #include <ros/spinner.h>
 
 int main(int argc, char ** argv)
 {
     // Initialize ROS
-	ros::init (argc, argv, "generate_waypoints_node");
-    GenerateWaypoints gen_waypoints;
+	ros::init (argc, argv, "airsim_offb_node");
+    airsim::Offboard offboard;
 
     ros::spin();
 

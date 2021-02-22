@@ -1,4 +1,4 @@
-#include "off_board_control/extract_lane_node.h"
+#include "control/extract_lane.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
@@ -6,7 +6,7 @@
 ExtractLane::ExtractLane()
 {
 	// Set Param
-	SetParam();
+	GetParam();
 
     // package, node, topic name
     std::string self_pkg_name = "/control";
@@ -14,7 +14,7 @@ ExtractLane::ExtractLane()
 	std::string uav_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/odom_local_ned";
 
 	// Initialize subscriber 
-	m_desired_waypoints_sub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/desired_waypoints", 10, boost::bind(&ExtractLane::DesiredWaypointsCallback, this, _1));
+	m_desired_local_waypoints_pub = m_nh.subscribe<geometry_msgs::PoseArray>(self_pkg_name + "/generate_waypoints_node/target_waypoints", 10, boost::bind(&ExtractLane::DesiredLocalWaypointsCallback, this, _1));
 	m_uav_state_sub = m_nh.subscribe<nav_msgs::Odometry>(uav_state_sub_topic_name, 10, boost::bind(&ExtractLane::UavStateCallback, this, _1));
 
 	// Initialize publisher 
@@ -28,7 +28,7 @@ ExtractLane::ExtractLane()
 ExtractLane::~ExtractLane()
 { }
 
-void ExtractLane::SetParam()
+void ExtractLane::GetParam()
 {
 	m_nh.getParam("extract_lane_node/ROI_front_m", m_roi_front_param);
 	m_nh.getParam("extract_lane_node/ROI_rear_m", m_roi_rear_param);
@@ -70,7 +70,7 @@ void ExtractLane::UavStateCallback(const nav_msgs::Odometry::ConstPtr odm_ptr)
 	m_roi_box_pub.publish(m_roi_msg);
 }
 
-void ExtractLane::DesiredWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr)
+void ExtractLane::DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array_ptr)
 {
 	if (!ExtractRegionOfInterest(pose_array_ptr)) ROS_ERROR_STREAM("Faile Extract ROI Lane");
 	if (!Evaluation(pose_array_ptr)) ROS_ERROR_STREAM("Fail Evaluate");
