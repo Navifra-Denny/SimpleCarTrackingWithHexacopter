@@ -1,8 +1,6 @@
 <launch>
 	<!-- common -->
 	<arg name="output" default="screen"/>
-	<arg name="use_sim_time" default="false"/>
-	<param name="use_sim_time" value="$(arg use_sim_time)"/>
 
 	<!-- generate_waypoints_node -->
 	<arg name="x_offset_m" default="2.0" />
