@@ -1,7 +1,4 @@
 <launch>
-	<arg name="use_sim_time" default="true"/>
-	<param name="use_sim_time" value="$(arg use_sim_time)"/>
-    
     <!-- shell script -->
     <arg name="simulation" default="false" />
     <arg name="airsim" default="false" />
@@ -93,10 +90,14 @@
 		<arg name="is_finding_home" value="$(arg is_finding_home)" />
         <arg name="target_height_m" value="$(arg target_height_m)" />
 	</include>
-    
-    <group if="$(arg simulation)">
-        <include file="$(find visualization)/launch/visualize_rviz.launch" />
-    </group>
 
     <node pkg="control" type="evaluation_node" name="evaluation_node" output="screen"/>
+    
+    <group if="$(arg simulation)">
+        <arg name="use_sim_time" default="true"/>
+        <param name="use_sim_time" value="$(arg use_sim_time)"/>
+        
+        <include file="$(find visualization)/launch/visualize_rviz.launch" />
+
+    </group>
 </launch>

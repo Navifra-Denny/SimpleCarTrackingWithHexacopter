@@ -2,8 +2,7 @@
 #include <math.h>
 
 TfBroadcaster::TfBroadcaster() :
-    m_target_height_m_param(NAN),
-    G(9.80665)
+    m_target_height_m_param(NAN)
 {
     InitFlag();
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
@@ -16,7 +15,6 @@ TfBroadcaster::~TfBroadcaster()
 void TfBroadcaster::InitFlag()
 {
     m_is_home_set = false;
-    m_is_first_imu = true;
 }
 
 bool TfBroadcaster::GetParam()
@@ -34,7 +32,6 @@ void TfBroadcaster::InitRos()
     // Initialize subscriber
     m_novatel_sub = m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&TfBroadcaster::NovatelINSPVACallback, this, _1));
     m_ego_vehicle_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&TfBroadcaster::EgoVehicleLocalPositionCallback, this, _1));
-    // m_imu_sub = m_nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data", 10, boost::bind(&TfBroadcaster::EgoVehicleImuCallback, this, _1));
     if (!m_is_finding_home_param){
         m_home_position_sub = m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&TfBroadcaster::HomePositionCallback, this, _1));
         
@@ -142,33 +139,8 @@ void TfBroadcaster::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseSta
     auto euler = m_utils.Quat2Euler(pose_stamped_ptr->pose.orientation);
     
     double roll_rad = -euler.r;
-    double pitch_rad = M_PI/2.0 - euler.p; // m_utils.Deg2Rad(-pitch_deg);
+    double pitch_rad = M_PI/2.0 - euler.p; 
     double yaw_rad = -(M_PI/2.0) + euler.y;
-
-    
-    
-    // double roll_deg = m_utils.Rad2Deg(euler.r);
-    // double pitch_deg = m_utils.Rad2Deg(90 - euler.p);
-    // double yaw_deg = m_utils.Rad2Deg(euler.y);
-    
-    
-    // ROS_ERROR("r: 0.0, p: %f, y: %f", euler.p, euler.y);
-
-    // double roll_rad = 0.0;
-    // double pitch_rad = M_PI/2.0;// - euler.p; // m_utils.Deg2Rad(-pitch_deg);
-    // double yaw_rad = -M_PI/2.0;
-
-    // double roll_deg = m_utils.Rad2Deg(euler.r);
-    // double pitch_deg = m_utils.Rad2Deg(euler.p);
-    // double yaw_deg = m_utils.Rad2Deg(euler.y);
-
-    // double roll_rad = m_utils.Deg2Rad(0.0 -  - roll_deg);
-    // double pitch_rad = m_utils.Deg2Rad(90.0 - m_init_pitch_rad - pitch_deg);
-    // double yaw_rad = m_utils.Deg2Rad(-90.0 + yaw_deg);
-
-    // double roll_rad = m_init_roll_rad - euler.r;
-    // double pitch_rad = (M_PI / 2.0) - euler.p - m_init_pitch_rad ;
-    // double yaw_rad = -(M_PI / 2.0) + euler.y;
 
     q.setRPY(roll_rad, pitch_rad, yaw_rad);
     lidar_tf_stamped.transform.rotation.x = q.x();
@@ -177,21 +149,4 @@ void TfBroadcaster::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseSta
     lidar_tf_stamped.transform.rotation.w = q.w();
 
     odom_tf_broadcaster.sendTransform(lidar_tf_stamped);
-
-    // ROS_ERROR("r: %f, p: %f, y: %f", m_utils.Rad2Deg(euler.r), m_utils.Rad2Deg(euler.p), m_utils.Rad2Deg(euler.y));
-    // ROS_ERROR("r: %f, p: %f, y: %f", euler.r, euler.p, euler.y);
-    // ROS_WARN("r: %f, p: %f, y: %f", m_utils.Rad2Deg(euler.r), m_utils.Rad2Deg(euler.p), m_utils.Rad2Deg(euler.y));
 }
-
-// void TfBroadcaster::EgoVehicleImuCallback(const sensor_msgs::Imu::ConstPtr &imu_ptr)
-// {
-//     if (m_is_first_imu){
-//         m_is_first_imu = false;
-
-//         auto a_y = imu_ptr->linear_acceleration.y;
-//         auto a_x = imu_ptr->linear_acceleration.x;
-
-//         m_init_pitch_rad = atan2(a_x, G);
-//         m_init_roll_rad = asin(a_y/G);
-//     }
-// }
