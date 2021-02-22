@@ -42,6 +42,7 @@ private:
 
     // timer
     ros::Timer m_home_position_timer;
+    ros::Timer m_tf_broadcaster_timer;
 
     // param
     bool m_is_finding_home_param;
@@ -50,16 +51,22 @@ private:
     geographic_msgs::GeoPoint m_home_position;
     bool m_is_home_set;
 
+
+    tf2_ros::TransformBroadcaster m_odom_tf_broadcaster;
+
 private:
+    void InitFlag();
     bool GetParam();
     void InitRos();
-    void InitFlag();
 
     void HomePositionTimerCallback(const ros::TimerEvent& event);
+    void TfBroadCasterTimerCallback(const ros::TimerEvent& event);
 
     void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
     void NovatelINSPVACallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr);
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &pose_stamped_ptr);
+
+    void SendStaticOdomTf();
 };
 
 

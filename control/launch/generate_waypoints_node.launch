@@ -34,6 +34,4 @@
 		<param name="uav_name" value="$(arg uav_name)" />
 		<param name="target_height_m" value="$(arg target_height_m)" />
 	</node>
-
-	<!-- <node pkg="tf" type="static_transform_publisher" name="world_ned_to_PX4" args="0 0 0 0 0 0 world_ned GV 100"/> -->
 </launch>

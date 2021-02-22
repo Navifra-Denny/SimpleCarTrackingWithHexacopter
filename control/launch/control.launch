@@ -86,8 +86,6 @@
         <arg name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
     </include>
 
-    <include file="$(find control)/launch/static_transforms.launch" />
-
     <include file="$(find control)/launch/tf_broadcaster_node.launch">
 		<arg name="is_finding_home" value="$(arg is_finding_home)" />
         <arg name="target_height_m" value="$(arg target_height_m)" />
