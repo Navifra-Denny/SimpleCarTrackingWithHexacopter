@@ -74,8 +74,8 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     // initialize Q, R covariance 
     process_noise_cov_ << 1., 0, 0, 0,
                           0, 1., 0, 0,
-                          0, 0, 3., 0,
-                          0, 0, 0, 3.;
+                          0, 0, 1.5, 0,
+                          0, 0, 0, 1.5;
 
     measure_noise_cov_ << std_lidar_px_  * std_lidar_px_, 0, 0, std_lidar_py_ * std_lidar_py_; 
 

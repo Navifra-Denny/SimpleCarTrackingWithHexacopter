@@ -5,6 +5,12 @@
 #include "dataType.hpp"
 #include "rayGroundFilter.hpp"
 #include "cluster.hpp"
+#include <tf2_ros/buffer.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <geometry_msgs/TransformStamped.h>
 
 using namespace cv;
 
@@ -38,6 +44,7 @@ private:
     ros::Publisher _pub_toRayGroundFilter; 
     ros::Publisher _pub_DoNSegmentation;
     ros::Publisher _pub_check;
+    ros::Publisher _pub_check_;
 
     // velodyne header 
     std_msgs::Header _velodyne_header;
@@ -89,6 +96,10 @@ private:
   
     std::string str_distances;
     std::string str_ranges;
+
+    // tf
+    tf2_ros::Buffer m_tfBuffer;
+	tf2_ros::TransformListener m_tfListener;
 
     // PointCloud 
     pcl::PointCloud<pcl::PointXYZ>::Ptr preprocessed_cloud_ptr;

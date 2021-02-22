@@ -2,8 +2,10 @@
 #include <pcl/filters/passthrough.h>
 
 
-EuclideanClustering::EuclideanClustering() 
-: preprocessed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), colored_clustered_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>)
+EuclideanClustering::EuclideanClustering() :
+  preprocessed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
+  colored_clustered_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>),
+  m_tfListener(m_tfBuffer)
 // : current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), removed_points_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
 //   downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), inlanes_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
 //   nofloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
@@ -25,6 +27,7 @@ EuclideanClustering::EuclideanClustering()
 
     // Check Publisher
     _pub_check = nh.advertise<sensor_msgs::PointCloud2>("a", 1);
+    _pub_check_ = nh.advertise<sensor_msgs::PointCloud2>("b", 1);
     _pub_RemovePointsUpTo = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/RemovePointsUpTo", 1);
     _pub_DownsampleCloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/DownsampleCloud", 1);
     _pub_ClipCloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/ClipCloud",1);
@@ -112,13 +115,26 @@ void EuclideanClustering::getParam()
 
 void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud)
 {
-    _velodyne_header = in_sensor_cloud->header;
+    geometry_msgs::TransformStamped transformStamped;
+	  sensor_msgs::PointCloud2::Ptr transformed_cloud(new sensor_msgs::PointCloud2);
+	  try{
+	  	transformStamped = m_tfBuffer.lookupTransform("map", "velodyne", ros::Time(0));
+	  	tf2::doTransform(*in_sensor_cloud, *transformed_cloud, transformStamped);
+	  }
+	  catch (tf2::TransformException &ex) {
+	  	ROS_WARN("%s", ex.what());
+	  	ros::Duration(1.0).sleep();
+	  }
+    
+    _pub_check.publish(*transformed_cloud);
+
+    _velodyne_header = transformed_cloud->header;
 
     /************************************/
     //          Preprocessing           //          
     /************************************/
   
-    if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    if(!PreprocessCloud(transformed_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
 
     /************************************/
     //          Segmentation            //
@@ -148,6 +164,7 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     pcl::PointCloud<pcl::PointXYZ>::Ptr onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr diffnormals_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
+    _pub_check_.publish(*in_sensor_cloud);
 
     // Ground Removal 
     // Choose 1. Rayground 2. Ransac 3. No filtering
@@ -177,7 +194,7 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
 
     // Remove pointcloud within Threshold
     pcl::PointCloud<pcl::PointXYZ>::Ptr threshold_removed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    ThresholdRemoveCloud(nofloor_cloud_ptr, threshold_removed_cloud_ptr); 
+    // ThresholdRemoveCloud(nofloor_cloud_ptr, threshold_removed_cloud_ptr); 
 
     // Downsampling
     pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -194,7 +211,8 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     }
     else diffnormals_cloud_ptr = downsampled_cloud_ptr;
 
-    *out_cloud_ptr = *diffnormals_cloud_ptr;
+    // *out_cloud_ptr = *diffnormals_cloud_ptr;
+    *out_cloud_ptr = *nofloor_cloud_ptr;
 
     return true;
 }
