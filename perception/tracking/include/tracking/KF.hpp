@@ -20,8 +20,6 @@ enum TrackingState : int
 
 class KF
 {
-private:
-
 public:
     // imm 참고한 부분
     int kf_id_;
@@ -41,7 +39,7 @@ public:
     std::string label_;
 
     std_msgs::ColorRGBA color_;
-
+    std_msgs::Header header_;
     // for env classification
     double vel_;
     double yaw_;
@@ -87,8 +85,6 @@ public:
     void update(const std::vector<uav_msgs::DetectedObject>& object_vec);
     void updateKalmanGain();
     void updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec);
-
-
 
 };
 

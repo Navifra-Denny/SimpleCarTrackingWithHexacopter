@@ -3,8 +3,9 @@
 #define __APP_NAME__ "kfTracker"
 
 KFTracker::KFTracker()
-    : target_id_(0), 
-      init_(false)
+    : track_id_(0), 
+      init_(false),
+      target_id_(-1)
 {
     GetParam();
 }
@@ -38,7 +39,8 @@ void KFTracker::run()
 
 void KFTracker::targetIdCallbck(const std_msgs::String& target_id)
 {
-    ROS_INFO_STREAM(target_id.data);
+    target_id_ = stoi(target_id.data);  // string to int 
+    // ROS_ERROR_STREAM(target_id_);
 }
 
 
@@ -94,6 +96,9 @@ void KFTracker::tracker(const uav_msgs::DetectedObjectArray& input,
     // static dynamic classification
     staticClassification();
 
+    // making output for control
+    makeTargetStateOutput();
+
     // making output for visualization
     makeOutput(input, matching_vec, detected_objects_output);
 
@@ -102,6 +107,62 @@ void KFTracker::tracker(const uav_msgs::DetectedObjectArray& input,
 
 }
 
+void KFTracker::makeTargetStateOutput()
+{
+    if (target_id_ < 0)
+    {
+        ROS_ERROR_STREAM("Target id is not entered");
+        return; 
+    } 
+
+    bool init_ = true;
+    int prev_target_id_;
+
+    if (init_)
+    {
+        prev_target_id_ = target_id_;
+        init_ = false;
+    } 
+
+    if (target_id_ == prev_target_id_)
+    {
+        for (size_t i = 0; i < targets_.size(); i++)
+        {
+            if (target_id_ != targets_[i].kf_id_) 
+            {
+                ROS_ERROR_STREAM("I can't found target id");
+                continue;
+            }
+            
+            ROS_INFO("I found target id [%d]", target_id_);
+
+            KF target_;
+            uav_msgs::TargetState target_state_msg;
+
+            target_ = targets_[i];
+            target_state_msg.pose.header = target_.header_;
+            target_state_msg.pose.pose.position.x = target_.state_post_(0);
+            target_state_msg.pose.pose.position.y = target_.state_post_(1);
+
+            target_state_msg.velocity.linear.x = target_.state_post_(2);
+            target_state_msg.velocity.linear.y = target_.state_post_(3);
+
+            // ROS_INFO_STREAM(target_state_msg.pose.pose.position.x);
+            // ROS_INFO_STREAM(target_state_msg.pose.pose.position.y);
+            // ROS_INFO_STREAM(target_state_msg.velocity.linear.x);
+            // ROS_INFO_STREAM(target_state_msg.velocity.linear.y);
+
+
+            return;
+
+        }
+
+
+    }
+
+
+
+}
 
 void KFTracker::initTracker(const uav_msgs::DetectedObjectArray& input, double timestamp)
 {
@@ -115,9 +176,9 @@ void KFTracker::initTracker(const uav_msgs::DetectedObjectArray& input, double t
         color = input.objects[i].color;
 
         KF kf;
-        kf.initialize(init_meas, timestamp, target_id_, color);
+        kf.initialize(init_meas, timestamp, track_id_, color);
         targets_.push_back(kf);
-        target_id_++;
+        track_id_++;
     }
 
     timestamp_ = timestamp;
@@ -189,6 +250,9 @@ void KFTracker::measurementValidation(const uav_msgs::DetectedObjectArray& input
             if (d < d_closest)
             {
                 d_closest = d;
+                target.header_ = input.header;
+                ROS_WARN_STREAM(input.header);
+                ROS_ERROR_STREAM(target.header_);
                 target.object_ = input.objects[i];
                 i_closest_obj = i;
                 exists_closest_obj = true;
@@ -287,12 +351,12 @@ void KFTracker::makeNewTargets(const double timestamp, const uav_msgs::DetectedO
             color = input.objects[i].color;
 
             KF kf;
-            kf.initialize(init_meas, timestamp, target_id_, color);
+            kf.initialize(init_meas, timestamp, track_id_, color);
             kf.object_ = input.objects[i];
             targets_.push_back(kf);
-            target_id_++;
+            track_id_++;
 
-            ROS_WARN("New track id: %d", target_id_);
+            ROS_WARN("New track id: %d", track_id_);
         }
     }
 }

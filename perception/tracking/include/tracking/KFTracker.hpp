@@ -8,12 +8,13 @@
 
 #include "uav_msgs/DetectedObject.h"
 #include "uav_msgs/DetectedObjectArray.h"
+#include "uav_msgs/TargetState.h"
 #include "tracking/KF.hpp"
 
 class KFTracker
 {
 private:
-    int target_id_;
+    int track_id_;
     bool init_;
     double timestamp_;
 
@@ -40,6 +41,10 @@ private:
     double merge_distance_threshold_;
     const double CENTROID_DISTANCE = 0.05;
 
+    // target id
+    int target_id_;
+
+
     void GetParam();
     void targetIdCallbck(const std_msgs::String& target_id);
     void callback(const uav_msgs::DetectedObjectArray& input);
@@ -64,6 +69,7 @@ private:
     void staticClassification();
     void makeOutput(const uav_msgs::DetectedObjectArray& input, const std::vector<bool>& matching_vec, 
                     uav_msgs::DetectedObjectArray& detected_objects_output);
+    void makeTargetStateOutput();
     void removeUnnecessaryTarget();
     uav_msgs::DetectedObjectArray removeRedundantObjects(const uav_msgs::DetectedObjectArray& in_detected_objects, 
                                                          const std::vector<size_t> in_tracker_indices);
