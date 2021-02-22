@@ -19,9 +19,8 @@
     <arg name="keep_lane_left_distance" default="5" />
     <arg name="keep_lane_right_distance" default="4" />
     <arg name="cluster_merge_threshold" default="0.1" />
-    <arg name="clustering_distance" default="0.25" />
+    <arg name="clustering_distance" default="0.3" />
     <arg name="wayarea_gridmap_layer" default="wayarea" />
-    <!-- <arg name="output_frame" default="/world_enu" /> -->
     <arg name="output_frame" default="velodyne" />
     <arg name="remove_points_upto" default="2.8" /> 
     <arg name="use_gpu" default="false" />

@@ -46,6 +46,12 @@ void TfBroadcaster::InitRos()
 
     // Time callback
     m_home_position_timer = m_nh.createTimer(ros::Duration(2.0), &TfBroadcaster::HomePositionTimerCallback, this);
+    m_tf_broadcaster_timer = m_nh.createTimer(ros::Duration(0.1), &TfBroadcaster::TfBroadCasterTimerCallback, this);
+}
+
+void TfBroadcaster::TfBroadCasterTimerCallback(const ros::TimerEvent& event)
+{
+    SendStaticOdomTf();
 }
 
 void TfBroadcaster::HomePositionTimerCallback(const ros::TimerEvent& event)
@@ -106,25 +112,25 @@ void TfBroadcaster::HomePositionCallback(const mavros_msgs::HomePosition::ConstP
 
 void TfBroadcaster::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &pose_stamped_ptr)
 {
-    static tf2_ros::TransformBroadcaster odom_tf_broadcaster;
-    geometry_msgs::TransformStamped odom_tf_stamped;
+    static tf2_ros::TransformBroadcaster base_link_tf_broadcaster;
+    geometry_msgs::TransformStamped base_link_tf_stamped;
 
-    odom_tf_stamped.header.stamp = pose_stamped_ptr->header.stamp;
-    odom_tf_stamped.header.frame_id = pose_stamped_ptr->header.frame_id;
-    odom_tf_stamped.child_frame_id = "base_link";
+    base_link_tf_stamped.header.stamp = pose_stamped_ptr->header.stamp;
+    base_link_tf_stamped.header.frame_id = pose_stamped_ptr->header.frame_id;
+    base_link_tf_stamped.child_frame_id = "base_link";
 
     // Get offset
-    odom_tf_stamped.transform.translation.x = pose_stamped_ptr->pose.position.x;
-    odom_tf_stamped.transform.translation.y = pose_stamped_ptr->pose.position.y;
-    odom_tf_stamped.transform.translation.z = pose_stamped_ptr->pose.position.z;
+    base_link_tf_stamped.transform.translation.x = pose_stamped_ptr->pose.position.x;
+    base_link_tf_stamped.transform.translation.y = pose_stamped_ptr->pose.position.y;
+    base_link_tf_stamped.transform.translation.z = pose_stamped_ptr->pose.position.z;
     
     tf2::Quaternion q;
-    odom_tf_stamped.transform.rotation.x = pose_stamped_ptr->pose.orientation.x;
-    odom_tf_stamped.transform.rotation.y = pose_stamped_ptr->pose.orientation.y;
-    odom_tf_stamped.transform.rotation.z = pose_stamped_ptr->pose.orientation.z;
-    odom_tf_stamped.transform.rotation.w = pose_stamped_ptr->pose.orientation.w;
+    base_link_tf_stamped.transform.rotation.x = pose_stamped_ptr->pose.orientation.x;
+    base_link_tf_stamped.transform.rotation.y = pose_stamped_ptr->pose.orientation.y;
+    base_link_tf_stamped.transform.rotation.z = pose_stamped_ptr->pose.orientation.z;
+    base_link_tf_stamped.transform.rotation.w = pose_stamped_ptr->pose.orientation.w;
 
-    odom_tf_broadcaster.sendTransform(odom_tf_stamped);
+    base_link_tf_broadcaster.sendTransform(base_link_tf_stamped);
 
     geometry_msgs::TransformStamped lidar_tf_stamped;
     lidar_tf_stamped.header.stamp = pose_stamped_ptr->header.stamp;
@@ -148,5 +154,26 @@ void TfBroadcaster::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseSta
     lidar_tf_stamped.transform.rotation.z = q.z();
     lidar_tf_stamped.transform.rotation.w = q.w();
 
-    odom_tf_broadcaster.sendTransform(lidar_tf_stamped);
+    base_link_tf_broadcaster.sendTransform(lidar_tf_stamped);
+}
+
+void TfBroadcaster::SendStaticOdomTf()
+{
+    geometry_msgs::TransformStamped odom_tf_stamped;
+
+    odom_tf_stamped.header.stamp = ros::Time::now();
+    odom_tf_stamped.header.frame_id = "map_ned";
+    odom_tf_stamped.child_frame_id = "odom";
+
+    odom_tf_stamped.transform.translation.x = 0.0;
+    odom_tf_stamped.transform.translation.y = 0.0;
+    odom_tf_stamped.transform.translation.z = 0.0;
+    
+    tf2::Quaternion q;
+    odom_tf_stamped.transform.rotation.x = 0.0;
+    odom_tf_stamped.transform.rotation.y = 0.0;
+    odom_tf_stamped.transform.rotation.z = 0.0;
+    odom_tf_stamped.transform.rotation.w = 1.0;
+
+    m_odom_tf_broadcaster.sendTransform(odom_tf_stamped);
 }
