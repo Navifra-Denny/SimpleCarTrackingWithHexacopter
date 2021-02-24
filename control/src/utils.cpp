@@ -1,6 +1,5 @@
 #include "control/utils.h"
 #include "math.h"
-#include <cmath>
 #include <iomanip>
 #include <sstream>
 
@@ -27,13 +26,21 @@ Euler Utils::Quat2Euler(const geometry_msgs::Quaternion& quat_msg)
 	return euler;
 }
 
-float Utils::Distance(geometry_msgs::Point point1, geometry_msgs::Point point2)
+float Utils::Distance2D(geometry_msgs::Point point1, geometry_msgs::Point point2)
 {
     auto delta_x = point1.x - point2.x;
     auto delta_y = point1.y - point2.y;
-    // auto delta_z = point1.z - point2.z;
     auto distance_m = Size(delta_x, delta_y);
-    // auto distance_m = Size(delta_x, delta_y, delta_z);
+
+    return distance_m;
+}
+
+float Utils::Distance3D(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+    auto delta_x = point1.x - point2.x;
+    auto delta_y = point1.y - point2.y;
+    auto delta_z = point1.z - point2.z;
+    auto distance_m = Size(delta_x, delta_y, delta_z);
 
     return distance_m;
 }
@@ -187,5 +194,31 @@ std::string Utils::ToString(double value)
     std::string s = stream.str();
 
     return s;
+}
+
+Eigen::Vector3d Utils::BodyRads2EnuRads(control::Euler euler, Eigen::Vector3d body_rads)
+{
+    auto roll = euler.r;
+    auto pitch = euler.p;
+    auto yaw = euler.y;
+    
+    double a00 = 1.0;   double a01 = sin(roll)*tan(pitch);      double a02 = cos(roll)*tan(pitch);
+    double a10 = 0.0;   double a11 = cos(roll);                 double a12 = -sin(roll);
+    double a20 = 0.0;   double a21 = sin(roll)*(1/cos(pitch));  double a22 = cos(roll)*(1/cos(pitch));
+    
+    Eigen::Matrix3d rotation;
+    rotation << a00, a01, a02, a10, a11, a12, a20, a21, a22;
+
+    Eigen::Vector3d enu_rads = rotation*body_rads;
+    return enu_rads;
+}
+
+tf2::Quaternion Utils::Rads2Rad(Eigen::Vector3d rads, double dt)
+{
+    Eigen::Vector3d rad = rads*dt;
+    
+    tf2::Quaternion q;
+    q.setRPY(rad(0), rad(1), rad(2));
+    return q;
 }
 }

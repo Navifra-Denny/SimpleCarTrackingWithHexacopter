@@ -82,7 +82,6 @@ void Checker::InitROS()
     m_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWP>("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Checker::WaypointsCallback, this, _1));
     m_current_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&Checker::EgoVehicleLocalPositionCallback, this, _1));
     m_current_global_pose_sub = m_nh.subscribe<sensor_msgs::NavSatFix>("/mavros/global_position/global", 10, boost::bind(&Checker::EgoVehicleGlobalPositionCallback, this, _1));
-    // m_home_position_sub = m_nh.subscribe<geographic_msgs::GeoPoint>("/control/tf_broadcaster_node/home", 10, boost::bind(&Checker::HomePositionCallback, this, _1));
     m_home_position_sub = m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&Checker::HomePositionCallback, this, _1));
 
     // Initialize publisher
@@ -104,6 +103,8 @@ void Checker::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_pt
     m_uav_status.state.is_global = waypoints_ptr->state.is_global;
     m_uav_status.state.is_detected = waypoints_ptr->state.is_detected;
     m_uav_status.state.is_hover = waypoints_ptr->state.is_hover;
+    m_uav_status.state.is_hover_point_set = waypoints_ptr->state.is_hover_point_set;
+    m_uav_status.state.is_reached = waypoints_ptr->state.is_reached;
 
     if (m_uav_status.state.is_global){
         if (waypoints_ptr->global.poses.size() != 0){
