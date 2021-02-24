@@ -7,6 +7,8 @@
 #include <geographic_msgs/GeoPoseStamped.h>
 #include <geographic_msgs/GeoPoint.h>
 
+#include <Eigen/Dense>
+
 #include "tf2_ros/transform_listener.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
@@ -33,7 +35,8 @@ private:
 
 public:
     Euler Quat2Euler(const geometry_msgs::Quaternion& quat_msg);
-    float Distance(geometry_msgs::Point point1, geometry_msgs::Point point2);
+    float Distance2D(geometry_msgs::Point point1, geometry_msgs::Point point2);
+    float Distance3D(geometry_msgs::Point point1, geometry_msgs::Point point2);
     // ref http://www.movable-type.co.uk/scripts/latlong.html
     double DistanceFromLatLonInKm(geographic_msgs::GeoPoint point1, geographic_msgs::GeoPoint point2);
     double Deg2Rad(double degree);
@@ -50,6 +53,8 @@ public:
     double ms_to_kmh(double ms);
     double VelNomalize(double value);
     std::string ToString(double value);
+    Eigen::Vector3d BodyRads2EnuRads(control::Euler euler, Eigen::Vector3d body_rads);
+    tf2::Quaternion Rads2Rad(Eigen::Vector3d rads, double dt);
 };
 }
 

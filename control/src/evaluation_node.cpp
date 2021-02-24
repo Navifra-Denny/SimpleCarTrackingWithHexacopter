@@ -13,6 +13,7 @@
 #include <novatel_oem7_msgs/INSPVA.h>
 #include "control/generate_waypoints.h"
 #include "uav_msgs/TargetWP.h"
+#include "mavros_msgs/HomePosition.h"
 
 class Eval{
 public:
@@ -27,6 +28,7 @@ private:
     ros::Subscriber m_current_local_pose_sub;
     ros::Subscriber m_ego_vehicle_local_vel_sub;
     ros::Subscriber m_target_vehicle_global_position_sub;
+    ros::Subscriber m_home_position_sub;
 
     // initialize publisher
     ros::Publisher m_err_pos_pub;
@@ -37,6 +39,8 @@ private:
     ros::Timer m_eval_timer;
 
     // param
+    double m_target_height_m_param;
+    bool m_is_home_set;
 
     // flag
     bool m_is_global;
@@ -47,10 +51,11 @@ private:
     control::VehicleState m_ego_vehicle;
     control::VehicleState m_target_vehicle;
     
+    geographic_msgs::GeoPoint m_home_position;
     geometry_msgs::PoseStamped m_local_wp;
     geographic_msgs::GeoPoseStamped m_global_wp;
     unsigned int m_rmse_count;
-    double m_sum_err_dist_sqrt;
+    double m_err_sum_dist;
     double m_rmse;
 
     void InitFlag();
@@ -63,11 +68,14 @@ private:
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &local_position_ptr);
     void EgoVehicleLocalVelocityCallback(const geometry_msgs::TwistStamped::ConstPtr &twist_ptr);
     void TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr);
+    void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
 };
 
-Eval::Eval()
+Eval::Eval() :
+    m_target_height_m_param(NAN)
 {
     InitFlag();
+    if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
     InitROS();
 }
 
@@ -79,6 +87,16 @@ void Eval::InitFlag()
     m_is_global = false;
     m_is_detected = false;
     m_is_rmse_started = false;
+    m_is_home_set = false;
+}
+
+bool Eval::GetParam()
+{
+	m_nh.getParam("evaluation_node/target_height_m", m_target_height_m_param);
+    
+    if (__isnan(m_target_height_m_param)) { ROS_ERROR_STREAM("m_target_height_m_param is NAN"); return false; }
+
+    return true;
 }
 
 void Eval::InitROS()
@@ -89,22 +107,30 @@ void Eval::InitROS()
     m_ego_vehicle_local_vel_sub = m_nh.subscribe<geometry_msgs::TwistStamped>("/mavros/local_position/velocity_local", 10, boost::bind(&Eval::EgoVehicleLocalVelocityCallback, this, _1));
     m_target_vehicle_global_position_sub = 
         m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&Eval::TargetVehicleGlobalStateCallback, this, _1));
+    m_home_position_sub = 
+        m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&Eval::HomePositionCallback, this, _1));
 
+    ros::Rate rate(10);
+    while (ros::ok() && !m_is_home_set){
+        ros::spinOnce();
+        rate.sleep();
+    }
+    
     // Initialize publisher
     m_err_pos_pub = m_nh.advertise<geometry_msgs::Point> ("/control/evaluation_node/err_pos", 10);
     m_err_vel_pub = m_nh.advertise<geometry_msgs::Point> ("/control/evaluation_node/err_vel", 10);
     m_rmse_pub = m_nh.advertise<std_msgs::Float64> ("/control/evaluation_node/rmse", 10);
 
     // Initialize timer
-    m_eval_timer = m_nh.createTimer(ros::Duration(0.05), &Eval::EvalTimerCallback, this);
+    m_eval_timer = m_nh.createTimer(ros::Duration(0.1), &Eval::EvalTimerCallback, this);
 }
 
 void Eval::EvalTimerCallback(const ros::TimerEvent& event)
 {
     geometry_msgs::Point err_pos;
     if (!m_is_global){
-        err_pos.x = m_ego_vehicle.local.pose.position.x - m_local_wp.pose.position.x;
-        err_pos.y = m_ego_vehicle.local.pose.position.y - m_local_wp.pose.position.y;
+        err_pos.x = m_ego_vehicle.local.pose.position.x - m_target_vehicle.local.pose.position.x;
+        err_pos.y = m_ego_vehicle.local.pose.position.y - m_target_vehicle.local.pose.position.y;
         err_pos.z = m_ego_vehicle.local.pose.position.z - m_local_wp.pose.position.z;
     }
     
@@ -123,16 +149,16 @@ void Eval::EvalTimerCallback(const ros::TimerEvent& event)
         if (!m_is_rmse_started){
             m_is_rmse_started = true;
             m_rmse_count = 0;
-            m_sum_err_dist_sqrt = 0;
+            m_err_sum_dist = 0;
         }
         m_rmse_count++;
-        m_sum_err_dist_sqrt += err_dist.x;
-        m_rmse = sqrt(m_sum_err_dist_sqrt/(double)m_rmse_count);
+        m_err_sum_dist += err_dist.x;
+        m_rmse = m_err_sum_dist/(double)m_rmse_count;
     }
     else {
         m_is_rmse_started = false;
         m_rmse_count = 0;
-        m_sum_err_dist_sqrt = 0;
+        m_err_sum_dist = 0;
     }
 
     std_msgs::Float64 rmse;
@@ -173,10 +199,44 @@ void Eval::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_ptr)
 
 void Eval::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr)
 {
+    geographic_msgs::GeoPoint geopoint;
+    geopoint.latitude = inspva_msg_ptr->latitude;
+    geopoint.longitude = inspva_msg_ptr->longitude;
+    geopoint.altitude = inspva_msg_ptr->height;
+        
+    geometry_msgs::PoseStamped posestamped;
+    if (!m_utils.IsNan(geopoint)){
+        posestamped = m_utils.ConvertToMapFrame(geopoint.latitude, 
+                                                geopoint.longitude, 
+                                                m_target_height_m_param,
+                                                m_home_position);
+        
+        tf2::Quaternion q;
+        q.setRPY(inspva_msg_ptr->roll * M_PI / 180., inspva_msg_ptr->pitch * M_PI / 180., (-1*inspva_msg_ptr->azimuth + 90.0) * M_PI / 180.);
+        posestamped.pose.orientation.x = q.x();
+        posestamped.pose.orientation.y = q.y();
+        posestamped.pose.orientation.z = q.z();
+        posestamped.pose.orientation.w = q.w();
+    }
+
+    m_target_vehicle.local.pose = posestamped.pose;
+
     m_target_vehicle.velocity.linear.x = inspva_msg_ptr->east_velocity;
     m_target_vehicle.velocity.linear.y = inspva_msg_ptr->north_velocity;
 }
 
+
+void Eval::HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr)
+{
+    if (!m_is_home_set){
+        m_is_home_set = true;
+
+        m_home_position.latitude = home_ptr->geo.latitude;
+        m_home_position.longitude = home_ptr->geo.longitude;
+        m_home_position.altitude = home_ptr->geo.altitude;
+        ROS_WARN_STREAM("[evaulation_node] Home set");
+    }
+}
 
 int main(int argc, char ** argv)
 {

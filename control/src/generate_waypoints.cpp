@@ -43,9 +43,12 @@ bool GenerateWaypoints::InitFlag()
     m_target_wp.state.is_detected = false;
     m_target_wp.state.is_global = false;
     m_target_wp.state.is_hover = true;
+    m_target_wp.state.is_hover_point_set = false;
+    m_target_wp.state.is_reached = true;
     m_target_wp.state.global_to_local = false;
     m_is_offset_changed = false;
     m_is_home_set = false;
+    m_is_generated_path = false;
 
     return true;
 }
@@ -89,6 +92,8 @@ bool GenerateWaypoints::InitROS()
     // Initialize subscriber
     m_target_vehicle_local_state_sub = 
         m_nh.subscribe<uav_msgs::CarState>(m_car_state_sub_topic_name, 10, boost::bind(&GenerateWaypoints::TargetVehicleLocalStateCallback, this, _1));
+    m_lidar_based_target_vehicle_local_state_sub = 
+        m_nh.subscribe<uav_msgs::TargetState>("/tracking/target_state_msg", 10, boost::bind(&GenerateWaypoints::LTargetVehicleLocalStateCallback, this, _1));
     m_target_vehicle_global_position_sub = 
         m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&GenerateWaypoints::TargetVehicleGlobalStateCallback, this, _1));
     m_current_local_pose_sub = 
@@ -129,45 +134,48 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
         m_target_wp.state.is_detected = false;
         m_target_wp.state.is_hover = true;
         m_target_wp.state.is_global = false;
+        m_is_generated_path = false;
 
-        if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
-            // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-            if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
-                AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+        if (!m_target_wp.state.is_hover_point_set){
+            if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
+                // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
+                if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
+                    m_target_wp.state.is_hover_point_set = true;
+                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                }
             }
         }
     }
     else{
         m_target_wp.state.is_detected = true;
-        m_target_wp.state.is_hover = false;
-        
-        if(m_target_wp.state.is_global){
-            if (m_target_wp.state.global_to_local){
+
+        if (!m_is_generated_path){
+            m_is_generated_path = true;
+            m_target_wp.state.is_hover = false;
+            
+            GeneratePath();
+        }
+        else{
+            if (m_target_wp.state.is_reached){
+                m_target_wp.state.is_hover = true;
                 m_target_wp.state.is_global = false;
-                if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
-                    if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
-                        AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                        AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
+
+                if (!m_target_wp.state.is_hover_point_set){
+                    if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
+                        // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
+                        if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
+                            m_target_wp.state.is_hover_point_set = true;
+                            AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                        }
                     }
                 }
             }
             else{
-                if (IsValid(m_target_vehicle.global_trajectory.poses, m_target_vehicle.global.pose.position)){
-                    if (AddTargetWaypoint(m_target_wp, m_target_vehicle.global, m_target_vehicle.velocity)){
-                        AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                        AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
-                    }
-                }
+                m_target_wp.state.is_hover = false;
+                m_target_wp.state.is_hover_point_set = false;
+                GeneratePath();
             }
-        }
-        else{
-            if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
-                // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
-                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                    AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
-                }
-            }
+
         }
     }
 
@@ -187,22 +195,48 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
 void GenerateWaypoints::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr)
 {
     m_ego_vehicle.local = *current_pose_ptr;
+
+    if (m_target_wp.local.poses.size() != 0){
+        double distance = m_utils.Distance3D(m_ego_vehicle.local.pose.position, m_target_wp.local.poses.back().position);
+
+        if (distance < 0.5) {
+            m_target_wp.state.is_reached = true;
+        }
+        else {
+            m_target_wp.state.is_reached = false;
+            m_is_generated_path = false;
+        }
+    }
 }
 
-void GenerateWaypoints::TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr)
+void GenerateWaypoints::TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &target_state_ptr)
 {
     m_last_detected_time = ros::Time::now();
     m_target_wp.state.is_global = false;
 
-    m_target_vehicle.local.header = car_state_ptr->header;
-    m_target_vehicle.local.pose = car_state_ptr->pose.pose;
+    m_target_vehicle.local.header = target_state_ptr->header;
+    m_target_vehicle.local.pose = target_state_ptr->pose.pose;
+}
+
+void GenerateWaypoints::LTargetVehicleLocalStateCallback(const uav_msgs::TargetState::ConstPtr &target_state_ptr)
+{
+    m_last_detected_time = ros::Time::now();
+    m_target_wp.state.is_global = false;
+
+    if (target_state_ptr->pose.header.frame_id.empty()){
+        ROS_ERROR_STREAM("LiDAR based target vehicle frame id is missing");
+    }
+    else{
+        m_target_vehicle.local.header = target_state_ptr->pose.header;
+        m_target_vehicle.local.pose = target_state_ptr->pose.pose;
+        m_target_vehicle.velocity = target_state_ptr->velocity;
+    }
 }
 
 void GenerateWaypoints::TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr)
 {
     m_last_detected_time = ros::Time::now();
     m_target_wp.state.is_global = true;
-
     m_target_vehicle.global.header = inspva_msg_ptr->header;
     m_target_vehicle.global.pose.position.latitude = inspva_msg_ptr->latitude;
     m_target_vehicle.global.pose.position.longitude = inspva_msg_ptr->longitude;
@@ -258,6 +292,37 @@ void GenerateWaypoints::HomePositionCallback(const mavros_msgs::HomePosition::Co
     }
 }
 
+void GenerateWaypoints::GeneratePath()
+{
+    if(m_target_wp.state.is_global){
+        if (m_target_wp.state.global_to_local){
+            m_target_wp.state.is_global = false;
+            if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
+                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
+                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                    AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
+                }
+            }
+        }
+        else{
+            if (IsValid(m_target_vehicle.global_trajectory.poses, m_target_vehicle.global.pose.position)){
+                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.global, m_target_vehicle.velocity)){
+                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                    AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
+                }
+            }
+        }
+    }
+    else{
+        if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
+            // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
+            if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
+                AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
+            }
+        }
+    }
+}
 
 bool GenerateWaypoints::AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped)
 {
@@ -346,6 +411,10 @@ bool GenerateWaypoints::AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geograp
 geometry_msgs::Pose GenerateWaypoints::GenTargetWaypoint(geometry_msgs::Pose &pose)
 {
     geometry_msgs::Pose target_pose = pose;
+    pose.orientation.w = 1.0;
+    pose.orientation.x = 0.0;
+    pose.orientation.y = 0.0;
+    pose.orientation.z = 0.0;
     auto euler = m_utils.Quat2Euler(pose.orientation);
 
     // target_pose.position frame_id is "map"
@@ -409,7 +478,7 @@ bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses, geometr
     }
     else{
         // ditance reflects only x and y values
-        auto distance_m = m_utils.Distance(poses.back().position, curr_position);
+        auto distance_m = m_utils.Distance2D(poses.back().position, curr_position);
         if (distance_m > m_distance_thresh_param){
             return true;
         }
