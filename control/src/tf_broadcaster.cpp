@@ -196,10 +196,12 @@ void TfBroadcaster::EgoVehicleImuCallback(const sensor_msgs::Imu::ConstPtr &imu_
 
     tf2::Quaternion quat;
     quat.setRPY(m_ego_vehicle_attitude.r, m_ego_vehicle_attitude.p, m_ego_vehicle_attitude.y);
-    base_link_tf_stamped.transform.rotation.x = quat.x();
-    base_link_tf_stamped.transform.rotation.y = quat.y();
-    base_link_tf_stamped.transform.rotation.z = quat.z();
-    base_link_tf_stamped.transform.rotation.w = quat.w();
+    if (!m_utils.IsNan(quat)){
+        base_link_tf_stamped.transform.rotation.x = quat.x();
+        base_link_tf_stamped.transform.rotation.y = quat.y();
+        base_link_tf_stamped.transform.rotation.z = quat.z();
+        base_link_tf_stamped.transform.rotation.w = quat.w();
 
-    base_link_tf_broadcaster.sendTransform(base_link_tf_stamped);
+        base_link_tf_broadcaster.sendTransform(base_link_tf_stamped);
+    }
 }

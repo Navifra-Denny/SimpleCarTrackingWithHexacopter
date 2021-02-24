@@ -11,6 +11,7 @@
 
 #include "tf2_ros/transform_listener.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include <tf/LinearMath/Quaternion.h> // tf::quaternion
 
 namespace control{
 
@@ -45,6 +46,7 @@ public:
     double NormalRadius(double a, double b, double lat);
     bool IsNan(geometry_msgs::Point point);
     bool IsNan(geographic_msgs::GeoPoint point);
+    bool IsNan(tf2::Quaternion q);
     geometry_msgs::PoseStamped ConvertToMapFrame(double lat, double lon, double hgt, geographic_msgs::GeoPoint home_position);
     double FnKappaLat(double dRef_Latitude, double dHeight);
     double FnKappaLon(double dRef_Latitude, double dHeight);

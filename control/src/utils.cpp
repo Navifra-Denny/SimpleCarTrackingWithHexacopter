@@ -103,6 +103,15 @@ bool Utils::IsNan(geographic_msgs::GeoPoint point)
     return false;
 }
 
+bool Utils::IsNan(tf2::Quaternion q)
+{
+    
+    if (__isnanf(q.x()) || __isnanf(q.y()) || __isnanf(q.z()) || __isnanf(q.w())){
+        return true;
+    }
+    return false;
+}
+
 geometry_msgs::PoseStamped Utils::ConvertToMapFrame(double lat, double lon, double hgt, geographic_msgs::GeoPoint home_position)
 {
     double dKappaLat = 0;
