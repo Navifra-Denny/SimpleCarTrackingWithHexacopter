@@ -19,6 +19,7 @@
 #include "uav_msgs/TargetWP.h"
 #include "uav_msgs/CarState.h"
 #include "uav_msgs/Offset.h"
+#include "uav_msgs/TargetState.h"
 #include "control/utils.h"
 
 using Vector3f = Eigen::Vector3f;
@@ -54,6 +55,7 @@ private:
 
     // subscriber
 	ros::Subscriber m_target_vehicle_local_state_sub;
+	ros::Subscriber m_lidar_based_target_vehicle_local_state_sub;
 	ros::Subscriber m_target_vehicle_global_position_sub;
     ros::Subscriber m_current_local_pose_sub;
     ros::Subscriber m_offset_sub;
@@ -85,6 +87,7 @@ private:
     bool m_is_hover;
     bool m_is_offset_changed;
     bool m_is_home_set;
+    bool m_is_generated_path;
 
     control::Utils m_utils;
     control::VehicleState m_target_vehicle;
@@ -94,10 +97,7 @@ private:
 
     geographic_msgs::GeoPoint m_home_position;
     ros::Time m_last_detected_time;
-    // geometry_msgs::PoseArray m_target_wp_local;
-    // geographic_msgs::GeoPath m_target_wp_global;
     uav_msgs::TargetWP m_target_wp;
-    // uav_msgs::TargetWP m_target_wp_global;
     float m_z_offset_m;
     float m_x_offset_m;
     float m_alt_offset_m;
@@ -111,12 +111,14 @@ private: // function
     void GenerateWaypointsTimerCallback(const ros::TimerEvent& event);
 
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr);
-    void TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &car_state_ptr);
-    // void TargetVehicleLocalStateCallback(); // Tracking lidar callback
+    void TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &target_state_ptr);
+    void LTargetVehicleLocalStateCallback(const uav_msgs::TargetState::ConstPtr &target_state_ptr);
     void TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
     void OffsetCallback(const uav_msgs::Offset::ConstPtr &point_ptr);
     void ChatterCallback(const std_msgs::String::ConstPtr &string_ptr);
     void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
+
+    void GeneratePath();
 
     bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped);

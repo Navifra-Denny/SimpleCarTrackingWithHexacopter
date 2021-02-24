@@ -13,6 +13,7 @@
 #include <tf/LinearMath/Quaternion.h> // tf::quaternion
 #include <tf/transform_broadcaster.h>
 #include <tf_conversions/tf_eigen.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geographic_msgs/GeoPoint.h>
@@ -35,7 +36,7 @@ private:
     // subscriber
     ros::Subscriber m_novatel_sub;
     ros::Subscriber m_ego_vehicle_local_pose_sub;
-    ros::Subscriber m_imu_sub;
+    ros::Subscriber m_ego_vehicle_imu_sub;
     ros::Subscriber m_home_position_sub;
 
     // publisher
@@ -48,18 +49,21 @@ private:
     bool m_is_finding_home_param;
     bool m_target_height_m_param;
     
+    // time
+    ros::Time m_prev_imu_time;
 
-    const double G;
     geographic_msgs::GeoPoint m_home_position;
     bool m_is_home_set;
-    bool m_is_first_imu;
-    bool m_init_pitch_rad;
-    bool m_init_roll_rad;
+    control::Euler m_ego_vehicle_attitude;
+    geometry_msgs::Point m_ego_vehicle_position;
+
+    tf2_ros::StaticTransformBroadcaster m_odom_static_tf_broadcaster;
 
 private:
+    void InitFlag();
     bool GetParam();
     void InitRos();
-    void InitFlag();
+    void InitStaticTf();
 
     void HomePositionTimerCallback(const ros::TimerEvent& event);
 
