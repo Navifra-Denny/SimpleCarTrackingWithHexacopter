@@ -48,7 +48,6 @@ bool GenerateWaypoints::InitFlag()
     m_target_wp.state.global_to_local = false;
     m_is_offset_changed = false;
     m_is_home_set = false;
-    m_is_generated_path = false;
 
     return true;
 }
@@ -134,48 +133,54 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
         m_target_wp.state.is_detected = false;
         m_target_wp.state.is_hover = true;
         m_target_wp.state.is_global = false;
-        m_is_generated_path = false;
-
-        if (!m_target_wp.state.is_hover_point_set){
-            if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
-                // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-                if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
-                    m_target_wp.state.is_hover_point_set = true;
-                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                }
-            }
-        }
     }
     else{
         m_target_wp.state.is_detected = true;
+        m_target_wp.state.is_hover = false;
 
-        if (!m_is_generated_path){
-            m_is_generated_path = true;
-            m_target_wp.state.is_hover = false;
-            
-            GeneratePath();
-        }
-        else{
-            if (m_target_wp.state.is_reached){
-                m_target_wp.state.is_hover = true;
+        if(m_target_wp.state.is_global){
+            if (m_target_wp.state.global_to_local){
                 m_target_wp.state.is_global = false;
-
-                if (!m_target_wp.state.is_hover_point_set){
-                    if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
-                        // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-                        if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
-                            m_target_wp.state.is_hover_point_set = true;
-                            AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                        }
+                if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
+                    if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
+                        m_target_wp.state.is_reached = IsReached(m_target_wp, m_ego_vehicle.local.pose.position);
+                        m_target_wp.state.is_hover_point_set = false;
+                        AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                        AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
                     }
                 }
             }
             else{
-                m_target_wp.state.is_hover = false;
-                m_target_wp.state.is_hover_point_set = false;
-                GeneratePath();
+                if (IsValid(m_target_vehicle.global_trajectory.poses, m_target_vehicle.global.pose.position)){
+                    if (AddTargetWaypoint(m_target_wp, m_target_vehicle.global, m_target_vehicle.velocity)){
+                        m_target_wp.state.is_reached = IsReached(m_target_wp, m_ego_vehicle.global.pose.position);
+                        m_target_wp.state.is_hover_point_set = false;
+                        AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                        AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
+                    }
+                }
             }
+        }
+        else{
+            if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
+                // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
+                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
+                    m_target_wp.state.is_reached = IsReached(m_target_wp, m_ego_vehicle.local.pose.position);
+                    m_target_wp.state.is_hover_point_set = false;
+                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+                    AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
+                }
+            }
+        }
+    }
 
+    if (m_target_wp.state.is_hover && (!m_target_wp.state.is_hover_point_set || m_is_offset_changed)){
+        if (IsValid(m_ego_vehicle.local_trajectory.poses, m_ego_vehicle.local.pose.position)){
+            // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
+            if (AddTargetWaypoint(m_target_wp, m_ego_vehicle.local)){
+                m_target_wp.state.is_hover_point_set = true;
+                AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
+            }
         }
     }
 
@@ -195,18 +200,6 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
 void GenerateWaypoints::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &current_pose_ptr)
 {
     m_ego_vehicle.local = *current_pose_ptr;
-
-    if (m_target_wp.local.poses.size() != 0){
-        double distance = m_utils.Distance3D(m_ego_vehicle.local.pose.position, m_target_wp.local.poses.back().position);
-
-        if (distance < 0.5) {
-            m_target_wp.state.is_reached = true;
-        }
-        else {
-            m_target_wp.state.is_reached = false;
-            m_is_generated_path = false;
-        }
-    }
 }
 
 void GenerateWaypoints::TargetVehicleLocalStateCallback(const uav_msgs::CarState::ConstPtr &target_state_ptr)
@@ -289,38 +282,6 @@ void GenerateWaypoints::HomePositionCallback(const mavros_msgs::HomePosition::Co
         m_home_position.longitude = home_ptr->geo.longitude;
         m_home_position.altitude = home_ptr->geo.altitude;
         ROS_WARN_STREAM("[generate_waypoints] Home set");
-    }
-}
-
-void GenerateWaypoints::GeneratePath()
-{
-    if(m_target_wp.state.is_global){
-        if (m_target_wp.state.global_to_local){
-            m_target_wp.state.is_global = false;
-            if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
-                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
-                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                    AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
-                }
-            }
-        }
-        else{
-            if (IsValid(m_target_vehicle.global_trajectory.poses, m_target_vehicle.global.pose.position)){
-                if (AddTargetWaypoint(m_target_wp, m_target_vehicle.global, m_target_vehicle.velocity)){
-                    AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                    AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
-                }
-            }
-        }
-    }
-    else{
-        if (IsValid(m_target_vehicle.local_trajectory.poses, m_target_vehicle.local.pose.position)){
-            // Adding ego vehicle position point to ego vehicle trajectory when target waypoint is added
-            if (AddTargetWaypoint(m_target_wp, m_target_vehicle.local, m_target_vehicle.velocity)){
-                AddPointToTrajectory(m_ego_vehicle.local_trajectory, m_ego_vehicle.local);
-                AddPointToTrajectory(m_target_vehicle.local_trajectory, m_target_vehicle.local);
-            }
-        }
     }
 }
 
@@ -470,20 +431,14 @@ bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses, geometr
     if (m_utils.IsNan(curr_position)){
         return false;
     }
-    else if (m_is_offset_changed){
-        return true;
-    }
-    else if (poses.size() < 1){
-        return true;
-    }
-    else{
-        // ditance reflects only x and y values
-        auto distance_m = m_utils.Distance2D(poses.back().position, curr_position);
-        if (distance_m > m_distance_thresh_param){
-            return true;
+
+    if (poses.size() > 1){
+        auto distance_m = m_utils.Distance3D(poses.back().position, curr_position);
+        if (distance_m < m_distance_thresh_param){
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 bool GenerateWaypoints::IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position)
@@ -491,20 +446,14 @@ bool GenerateWaypoints::IsValid(std::vector<geographic_msgs::GeoPoseStamped> &po
     if (m_utils.IsNan(curr_position)){
         return false;
     }
-    else if (m_is_offset_changed){
-        return true;
-    }
-    else if (poses.size() < 1){
-        return true;
-    }
-    else{
-        // ToDo change
+
+    if (poses.size() > 1){
         auto distance_m = m_utils.DistanceFromLatLonInKm(poses.back().pose.position, curr_position);
-        if (distance_m > m_distance_thresh_param){
-            return true;
+        if (distance_m < m_distance_thresh_param){
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses)
@@ -526,3 +475,39 @@ bool GenerateWaypoints::IsValid(std::vector<geographic_msgs::GeoPoseStamped> &po
     else 
         return true;
 }
+
+bool GenerateWaypoints::IsReached(uav_msgs::TargetWP &wp, geometry_msgs::Point curr_position)
+{
+    if (wp.local.poses.size() == 0){
+        return false;
+    }
+    // reach to target
+    // ditance reflects only x and y values
+    auto distance_m = m_utils.Distance3D(wp.local.poses.back().position, curr_position);
+    if (distance_m < m_distance_thresh_param){
+        m_target_wp.state.is_hover = true;
+        m_target_wp.state.is_global = false;
+        return true;
+    }
+
+    return false;
+}
+
+bool GenerateWaypoints::IsReached(uav_msgs::TargetWP &wp, geographic_msgs::GeoPoint curr_position)
+{
+    if (wp.global.poses.size() == 0){
+        return false;
+    }
+
+    // reach to target
+    auto distance_m = m_utils.DistanceFromLatLonInKm(wp.global.poses.back().pose.position, curr_position);
+
+    if (distance_m < m_distance_thresh_param){
+        m_target_wp.state.is_hover = true;
+        m_target_wp.state.is_global = false;
+
+        return true;
+    }
+    return false;
+}
+

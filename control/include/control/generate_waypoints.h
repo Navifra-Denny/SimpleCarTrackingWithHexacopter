@@ -87,7 +87,6 @@ private:
     bool m_is_hover;
     bool m_is_offset_changed;
     bool m_is_home_set;
-    bool m_is_generated_path;
 
     control::Utils m_utils;
     control::VehicleState m_target_vehicle;
@@ -118,8 +117,6 @@ private: // function
     void ChatterCallback(const std_msgs::String::ConstPtr &string_ptr);
     void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
 
-    void GeneratePath();
-
     bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped, geometry_msgs::Twist &target_vel);
@@ -132,6 +129,8 @@ private: // function
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses);
+    bool IsReached(uav_msgs::TargetWP &wp, geometry_msgs::Point curr_position);
+    bool IsReached(uav_msgs::TargetWP &wp, geographic_msgs::GeoPoint curr_position);
 };
 
 #endif // __GENERATE_WAYPOINTS_H__

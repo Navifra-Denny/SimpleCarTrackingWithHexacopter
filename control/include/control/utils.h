@@ -2,6 +2,7 @@
 #define __UTILS_H__
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
 #include <geographic_msgs/GeoPoseStamped.h>
