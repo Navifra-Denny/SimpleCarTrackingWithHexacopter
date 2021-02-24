@@ -61,8 +61,8 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     // init covariance matrix 
     error_cov_post_ << 0.01, 0, 0, 0,
                        0, 0.01, 0, 0,
-                       0, 0, 0.01, 0,
-                       0, 0, 0, 0.01;
+                       0, 0, 3., 0,
+                       0, 0, 0, 3.;
     
     // save initial measure for velocity calculation
     init_meas_ << z(0), z(1);
