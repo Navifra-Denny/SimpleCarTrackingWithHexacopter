@@ -18,6 +18,21 @@ enum TrackingState : int
     Lost = 10
 };
 
+class Vector
+{
+public:
+    double x_;
+    double y_;
+public:
+    Vector()=default;
+    Vector(double x, double y){
+        x_ = x;
+        y_ = y;
+    }
+    ~Vector()
+    {}
+};
+
 class KF
 {
 public:
@@ -40,10 +55,15 @@ public:
 
     std_msgs::ColorRGBA color_;
     std_msgs::Header header_;
+    
     // for env classification
     double vel_;
     double yaw_;
     std::vector<double> vel_history_;
+
+    // estimate heading
+    Vector reference_vec_;
+    Vector ego_vec_;
 
     // LiDAR measurement noise standard deviation in [m]
     double std_lidar_px_;
@@ -86,6 +106,9 @@ public:
     void updateKalmanGain();
     void updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec);
 
+    // helper for calculating heading 
+    Vector VectorSubtractVector(Vector dest, Vector start);
+    double GetHeadingAngle(Vector ref, Vector ego_vec);
 };
 
 

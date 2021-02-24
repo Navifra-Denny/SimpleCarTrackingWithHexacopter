@@ -38,7 +38,7 @@ EuclideanClustering::EuclideanClustering() :
     _pub_DoNSegmentation = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/DoNSegmentation", 1);
 
     // Subscriber
-  //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
+  //  _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
     _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
   //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
 
