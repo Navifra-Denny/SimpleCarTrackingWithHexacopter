@@ -103,6 +103,15 @@ bool Utils::IsNan(geographic_msgs::GeoPoint point)
     return false;
 }
 
+bool Utils::IsNan(tf2::Quaternion q)
+{
+    
+    if (__isnanf(q.x()) || __isnanf(q.y()) || __isnanf(q.z()) || __isnanf(q.w())){
+        return true;
+    }
+    return false;
+}
+
 geometry_msgs::PoseStamped Utils::ConvertToMapFrame(double lat, double lon, double hgt, geographic_msgs::GeoPoint home_position)
 {
     double dKappaLat = 0;
@@ -220,5 +229,40 @@ tf2::Quaternion Utils::Rads2Rad(Eigen::Vector3d rads, double dt)
     tf2::Quaternion q;
     q.setRPY(rad(0), rad(1), rad(2));
     return q;
+}
+bool Utils::IsValidPos(geometry_msgs::Pose pose)
+{
+    Euler euler = Quat2Euler(pose.orientation);
+
+    return true;
+}
+
+/**
+ *         3
+ *      --------
+ *      |     /
+ *      |    /
+ *    4 |   / 5
+ *      |a /
+ *      | /
+ *      |/
+ * 
+ *  tan(a) = 3/4
+ *  atan2(3, 4) = 36.8699
+ **/
+
+double Utils::NormalizedSteeringAngleRad(double y)
+{
+    const double MAX_Y = 3.0;
+    const double MIN_Y = 0.0;
+
+    double ratio;
+    ratio = y/(MAX_Y - MIN_Y);
+
+    const double MAX_DEG = 36.8699;
+    double steering_angle_deg = MAX_DEG*ratio;
+    double steering_angle_rad = Deg2Rad(steering_angle_deg);
+
+    return steering_angle_rad;
 }
 }
