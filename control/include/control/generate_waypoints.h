@@ -10,9 +10,10 @@
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
-
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geographic_msgs/GeoPoseStamped.h>
 #include <geographic_msgs/GeoPath.h>
+#include <geometry_msgs/Quaternion.h>
 
 #include <std_msgs/String.h>
 #include <mavros_msgs/HomePosition.h>
@@ -60,6 +61,7 @@ private:
     ros::Subscriber m_current_local_pose_sub;
     ros::Subscriber m_offset_sub;
     ros::Subscriber m_chatter_sub;
+    ros::Subscriber m_init_pose_sub;
     ros::Subscriber m_home_position_sub;
 
 	// publisher
@@ -86,15 +88,17 @@ private:
     bool m_is_global;
     bool m_is_hover;
     bool m_is_offset_changed;
+    bool m_is_heading_changed;    
     bool m_is_home_set;
-    bool m_is_generated_path;
 
     control::Utils m_utils;
     control::VehicleState m_target_vehicle;
     control::VehicleState m_ego_vehicle;
+    
 	tf2_ros::Buffer m_tfBuffer;
 	tf2_ros::TransformListener m_tfListener;
 
+    geometry_msgs::Quaternion m_target_orientation;
     geographic_msgs::GeoPoint m_home_position;
     ros::Time m_last_detected_time;
     uav_msgs::TargetWP m_target_wp;
@@ -116,9 +120,8 @@ private: // function
     void TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &current_pose_ptr);
     void OffsetCallback(const uav_msgs::Offset::ConstPtr &point_ptr);
     void ChatterCallback(const std_msgs::String::ConstPtr &string_ptr);
+    void InitPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &pose_ptr);
     void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
-
-    void GeneratePath();
 
     bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped);
@@ -132,6 +135,8 @@ private: // function
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses);
+    bool IsReached(uav_msgs::TargetWP &wp, geometry_msgs::Point curr_position);
+    bool IsReached(uav_msgs::TargetWP &wp, geographic_msgs::GeoPoint curr_position);
 };
 
 #endif // __GENERATE_WAYPOINTS_H__

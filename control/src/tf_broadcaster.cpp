@@ -180,26 +180,35 @@ void TfBroadcaster::EgoVehicleImuCallback(const sensor_msgs::Imu::ConstPtr &imu_
     base_link_tf_stamped.transform.translation.y = m_ego_vehicle_position.y;
     base_link_tf_stamped.transform.translation.z = m_ego_vehicle_position.z;
 
-    auto p = imu_ptr->angular_velocity.x;
-    auto q = imu_ptr->angular_velocity.y;
-    auto r = imu_ptr->angular_velocity.z;
-    Eigen::Vector3d body_rads;
-    body_rads << p, q, r;
-
-    auto body_euler = m_utils.Quat2Euler(imu_ptr->orientation);
-    auto enu_rads = m_utils.BodyRads2EnuRads(body_euler, body_rads);
-    Eigen::Vector3d enu_euler = enu_rads * dt.toSec();
-
-    m_ego_vehicle_attitude.r -= enu_euler(0);
-    m_ego_vehicle_attitude.p -= enu_euler(1);
-    m_ego_vehicle_attitude.y -= enu_euler(2);
-
-    tf2::Quaternion quat;
-    quat.setRPY(m_ego_vehicle_attitude.r, m_ego_vehicle_attitude.p, m_ego_vehicle_attitude.y);
-    base_link_tf_stamped.transform.rotation.x = quat.x();
-    base_link_tf_stamped.transform.rotation.y = quat.y();
-    base_link_tf_stamped.transform.rotation.z = quat.z();
-    base_link_tf_stamped.transform.rotation.w = quat.w();
-
+    base_link_tf_stamped.transform.rotation.x = imu_ptr->orientation.x;
+    base_link_tf_stamped.transform.rotation.y = imu_ptr->orientation.y;
+    base_link_tf_stamped.transform.rotation.z = imu_ptr->orientation.z;
+    base_link_tf_stamped.transform.rotation.w = imu_ptr->orientation.w;
+    
     base_link_tf_broadcaster.sendTransform(base_link_tf_stamped);
+    
+    // auto p = imu_ptr->angular_velocity.x;
+    // auto q = imu_ptr->angular_velocity.y;
+    // auto r = imu_ptr->angular_velocity.z;
+    // Eigen::Vector3d body_rads;
+    // body_rads << p, q, r;
+
+    // auto body_euler = m_utils.Quat2Euler(imu_ptr->orientation);
+    // auto enu_rads = m_utils.BodyRads2EnuRads(body_euler, body_rads);
+    // Eigen::Vector3d enu_euler = enu_rads * dt.toSec();
+
+    // m_ego_vehicle_attitude.r -= enu_euler(0);
+    // m_ego_vehicle_attitude.p -= enu_euler(1);
+    // m_ego_vehicle_attitude.y -= enu_euler(2);
+
+    // tf2::Quaternion quat;
+    // quat.setRPY(m_ego_vehicle_attitude.r, m_ego_vehicle_attitude.p, m_ego_vehicle_attitude.y);
+    // if (!m_utils.IsNan(quat)){
+    //     base_link_tf_stamped.transform.rotation.x = quat.x();
+    //     base_link_tf_stamped.transform.rotation.y = quat.y();
+    //     base_link_tf_stamped.transform.rotation.z = quat.z();
+    //     base_link_tf_stamped.transform.rotation.w = quat.w();
+
+    //     base_link_tf_broadcaster.sendTransform(base_link_tf_stamped);
+    // }
 }
