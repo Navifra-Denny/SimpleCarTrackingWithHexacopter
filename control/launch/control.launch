@@ -1,6 +1,6 @@
 <launch>
-    <arg name="use_sim_time" default="true"/>
-    <param name="use_sim_time" value="$(arg use_sim_time)"/>
+    <!-- <arg name="use_sim_time" default="true"/>
+    <param name="use_sim_time" value="$(arg use_sim_time)"/> -->
     <!-- shell script -->
     <arg name="simulation" default="false" />
     <arg name="airsim" default="false" />

@@ -3,7 +3,11 @@
     <arg name="namespace" default="detection" />
     <arg name="lidar_frame_id" default="velodyne" />   
     <!-- <arg name="lidar_frame_id" default="os1_lidar" />     -->
-    <arg name="cluster_size_min" default="100" /><!-- Minimum number of points to consider a cluster as valid-->
+    <arg name="remove_ground_ransac" default="true" />
+    <arg name="remove_ground_rayGroundFilter" default="false" />
+    <arg name="downsample_cloud" default="true" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
+    <arg name="leaf_size" default="0.2" /><!-- Voxel Grid Filter leaf size-->
+    <arg name="cluster_size_min" default="150" /><!-- Minimum number of points to consider a cluster as valid-->
     <arg name="cluster_size_max" default="100000" /><!-- Maximum number of points to allow inside a cluster-->
     <arg name="pose_estimation" default="true" />
     <arg name="cluster_merge_threshold" default="0.1" />

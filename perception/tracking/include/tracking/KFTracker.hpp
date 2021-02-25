@@ -9,6 +9,7 @@
 #include "uav_msgs/DetectedObject.h"
 #include "uav_msgs/DetectedObjectArray.h"
 #include "uav_msgs/TargetState.h"
+#include "uav_msgs/TrackingTime.h"
 #include "tracking/KF.hpp"
 
 class KFTracker
@@ -36,8 +37,10 @@ private:
     ros::Subscriber sub_target_id_;
     ros::Publisher pub_object_array_;
     ros::Publisher pub_target_state_;
+    ros::Publisher pub_timer_;
 
     std_msgs::Header input_header_;
+    uav_msgs::TrackingTime tracking_time_;
 
     double merge_distance_threshold_;
     const double CENTROID_DISTANCE = 0.05;

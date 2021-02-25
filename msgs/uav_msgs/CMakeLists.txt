@@ -43,6 +43,9 @@ add_message_files(
   Param.msg
   Offset.msg
   TargetState.msg
+  TrackingTime.msg
+  DetectionTime.msg
+  PerceptionTimer.msg
 )
 
 ## Generate services in the 'srv' folder
