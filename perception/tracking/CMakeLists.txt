@@ -173,6 +173,11 @@ target_link_libraries(targetIdPublisher
   ${catkin_LIBRARIES}
 )
 
+add_executable(CheckTimer src/CheckTimer.cpp)
+target_link_libraries(CheckTimer
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############

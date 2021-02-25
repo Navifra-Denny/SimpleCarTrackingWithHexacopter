@@ -66,4 +66,5 @@
 
     </group>
 
+    <node pkg="tracking" type="CheckTimer" name="CheckTimer" output="screen"/>
 </launch>
