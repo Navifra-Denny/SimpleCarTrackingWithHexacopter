@@ -3,15 +3,11 @@
     <arg name="namespace" default="detection" />
     <arg name="lidar_frame_id" default="velodyne" />   
     <!-- <arg name="lidar_frame_id" default="os1_lidar" />     -->
-    <arg name="remove_ground_ransac" default="true" />
-    <arg name="remove_ground_rayGroundFilter" default="false" />
-    <arg name="downsample_cloud" default="true" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
-    <arg name="leaf_size" default="0.2" /><!-- Voxel Grid Filter leaf size-->
-    <arg name="cluster_size_min" default="150" /><!-- Minimum number of points to consider a cluster as valid-->
+    <arg name="cluster_size_min" default="100" /><!-- Minimum number of points to consider a cluster as valid-->
     <arg name="cluster_size_max" default="100000" /><!-- Maximum number of points to allow inside a cluster-->
     <arg name="pose_estimation" default="true" />
     <arg name="cluster_merge_threshold" default="0.1" />
-    <arg name="clustering_distance" default="1.0" />
+    <arg name="clustering_distance" default="0.4" />
     <arg name="clustering_ranges" default="[15,30,45,60]"/><!-- Distances to segment pointcloud -->
     <arg name="clustering_distances" default="[0.5,1.1,1.6,2.1,2.6]"/><!-- Euclidean Clustering threshold distance for each segment -->
     <arg name="sync" default="false" />
@@ -38,7 +34,7 @@
     <arg name="keep_lane_right_distance" default="4" />
     
     <!-- Downsampling -->
-    <arg name="downsample_cloud" default="false" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
+    <arg name="downsample_cloud" default="true" /> <!-- Apply VoxelGrid Filter with the value given by "leaf_size"-->
     <arg name="leaf_size" default="0.2" /><!-- Voxel Grid Filter leaf size-->
 
     <!-- Diffnormals -->
@@ -48,8 +44,8 @@
     <!-- Ransac Parameter -->
     <arg name="remove_ground_ransac" default="true" />
     <arg name="in_max_height" default="0.4" />
-    <arg name="in_floor_max_angle" default="0.1" />
-    <arg name="max_iterations" default="250" />
+    <arg name="in_floor_max_angle" default="0.2" />
+    <arg name="max_iterations" default="100" />
     
 
     <!-- Ray ground Parameter --> 

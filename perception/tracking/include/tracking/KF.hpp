@@ -15,7 +15,7 @@ enum TrackingState : int
     Init = 1,
     Stable = 4,
     Occlusion = 5,
-    Lost = 10
+    Lost = 15
 };
 
 class Vector

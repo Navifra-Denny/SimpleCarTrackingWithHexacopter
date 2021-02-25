@@ -60,10 +60,10 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     state_post_(3) = 0;
 
     // init covariance matrix 
-    error_cov_post_ << 0.01, 0, 0, 0,
-                       0, 0.01, 0, 0,
-                       0, 0, 3., 0,
-                       0, 0, 0, 3.;
+    error_cov_post_ << 10., 0, 0, 0,
+                       0, 10., 0, 0,
+                       0, 0, 15., 0,
+                       0, 0, 0, 15.;
     
     // save initial measure for velocity calculation
     init_meas_ << z(0), z(1);
@@ -73,10 +73,10 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     error_cov_pre_ = error_cov_post_;
 
     // initialize Q, R covariance 
-    process_noise_cov_ << 1., 0, 0, 0,
-                          0, 1., 0, 0,
-                          0, 0, 1.5, 0,
-                          0, 0, 0, 1.5;
+    process_noise_cov_ << 5., 0, 0, 0,
+                          0, 5., 0, 0,
+                          0, 0, 5., 0,
+                          0, 0, 0, 5.;
 
     measure_noise_cov_ << std_lidar_px_  * std_lidar_px_, 0, 0, std_lidar_py_ * std_lidar_py_; 
 
