@@ -7,7 +7,8 @@
     <arg name="gazebo" default="false" />
 
     <!-- mavros px4 -->
-    <arg name="fcu_url" default="/dev/ttyPixhawk"/>
+    <arg name="fcu_url" default="/dev/ttyACM0:57600"/>
+    <!-- <arg name="fcu_url" default="/dev/ttyPixhawk"/> -->
 
     <!-- mavros_offb_node  -->
 	<arg name="setpoint_pub_interval" default="0.05" />

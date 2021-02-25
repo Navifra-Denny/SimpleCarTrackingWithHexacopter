@@ -2,7 +2,7 @@
 	<arg name="output" default="screen"/>
 
 	<arg name="is_debug_mode" default="false"/>
-	<arg name="setpoint_pub_interval" default="0.1" />
+	<arg name="setpoint_pub_interval" default="0.05" />
 
 	<node pkg="control" type="checker_node" name="checker_node" output="$(arg output)">
 		<param name="is_debug_mode" value="$(arg is_debug_mode)" />
