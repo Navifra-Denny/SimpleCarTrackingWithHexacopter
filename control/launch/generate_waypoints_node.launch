@@ -12,6 +12,9 @@
 	<arg name="global_to_local" default="false" />
 	<arg name="alt_offset_m" default="45.0" />
 	<arg name="target_height_m" default="1.0" />
+	<arg name="detection_tool_lidar" default="true" />
+	<arg name="detection_tool_gps" default="false" />
+	<arg name="detection_tool_airsim" default="false" />
 
 	<!-- visualize_control_node -->
 	<arg name="uav_name" default="PX4" />
@@ -26,6 +29,9 @@
 		<param name="global_to_local" value="$(arg global_to_local)" />
 		<param name="alt_offset_m" value="$(arg alt_offset_m)" />
 		<param name="target_height_m" value="$(arg target_height_m)" />
+		<param name="detection_tool_lidar" value="$(arg detection_tool_lidar)" />
+		<param name="detection_tool_gps" value="$(arg detection_tool_gps)" />
+		<param name="detection_tool_airsim" value="$(arg detection_tool_airsim)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
 	</node>
 

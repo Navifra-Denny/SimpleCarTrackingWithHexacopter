@@ -49,6 +49,9 @@ bool GenerateWaypoints::InitFlag()
     m_is_offset_changed = false;
     m_is_heading_changed = false;
     m_is_home_set = false;
+    m_detection_tool_lidar_param = false;
+    m_detection_tool_gps_param = false;
+    m_detection_tool_airsim_param = false;
 
     return true;
 }
@@ -64,6 +67,9 @@ bool GenerateWaypoints::GetParam()
     m_nh.getParam("generate_waypoints_node/global_to_local", m_global_to_local_param);    
     m_nh.getParam("generate_waypoints_node/alt_offset_m", m_alt_offset_m_param);
     m_nh.getParam("generate_waypoints_node/target_height_m", m_target_height_m_param);
+    m_nh.getParam("generate_waypoints_node/detection_tool_lidar", m_detection_tool_lidar_param);
+    m_nh.getParam("generate_waypoints_node/detection_tool_gps", m_detection_tool_gps_param);
+    m_nh.getParam("generate_waypoints_node/detection_tool_airsim", m_detection_tool_airsim_param);
 
     if (__isnan(m_x_offset_m_param)) { ROS_ERROR_STREAM("m_x_offset_m_param is NAN"); return false; }
     else if (__isnan(m_z_offset_m_param)) { ROS_ERROR_STREAM("m_z_offset_m_param is NAN"); return false; }
@@ -90,12 +96,18 @@ bool GenerateWaypoints::InitROS()
     std::string m_car_state_sub_topic_name = "/airsim_node/" + m_vehicle_name_param + "/car_state";
 
     // Initialize subscriber
-    m_target_vehicle_local_state_sub = 
-        m_nh.subscribe<uav_msgs::CarState>(m_car_state_sub_topic_name, 10, boost::bind(&GenerateWaypoints::TargetVehicleLocalStateCallback, this, _1));
-    m_lidar_based_target_vehicle_local_state_sub = 
-        m_nh.subscribe<uav_msgs::TargetState>("/tracking/target_state_msg", 10, boost::bind(&GenerateWaypoints::LTargetVehicleLocalStateCallback, this, _1));
-    m_target_vehicle_global_position_sub = 
-        m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&GenerateWaypoints::TargetVehicleGlobalStateCallback, this, _1));
+    if (m_detection_tool_airsim_param){
+        m_target_vehicle_local_state_sub = 
+            m_nh.subscribe<uav_msgs::CarState>(m_car_state_sub_topic_name, 10, boost::bind(&GenerateWaypoints::TargetVehicleLocalStateCallback, this, _1));
+    }
+    if (m_detection_tool_lidar_param){
+        m_lidar_based_target_vehicle_local_state_sub = 
+            m_nh.subscribe<uav_msgs::TargetState>("/tracking/target_state_msg", 10, boost::bind(&GenerateWaypoints::LTargetVehicleLocalStateCallback, this, _1));
+    }
+    if (m_detection_tool_gps_param){
+        m_target_vehicle_global_position_sub = 
+            m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&GenerateWaypoints::TargetVehicleGlobalStateCallback, this, _1));
+    }
     m_current_local_pose_sub = 
         m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&GenerateWaypoints::EgoVehicleLocalPositionCallback, this, _1));
     m_offset_sub = 
