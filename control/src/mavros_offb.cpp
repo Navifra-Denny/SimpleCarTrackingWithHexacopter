@@ -166,8 +166,14 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &targe
 
 void Offboard::ChatterCallback(const std_msgs::String::ConstPtr &string_ptr)
 {
-    if (string_ptr->data == "offboard") m_debugging_msg = "OFFBOARD";
-    else if (string_ptr->data == "manual") m_debugging_msg = "MANUAL";
+    if (string_ptr->data == "offboard") {
+        m_debugging_msg = "OFFBOARD";
+        m_current_status.mode = "OFFBOARD";
+    }
+    else if (string_ptr->data == "manual"){
+        m_debugging_msg = "MANUAL";
+        m_current_status.mode = "MANUAL";
+    }
     else if (string_ptr->data == "debugging") m_is_debugging = true;
     else if (string_ptr->data == "rc") m_is_debugging = false;
 }

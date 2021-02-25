@@ -91,10 +91,4 @@
 		<arg name="is_finding_home" value="$(arg is_finding_home)" />
         <arg name="target_height_m" value="$(arg target_height_m)" />
 	</include>
-
-    <group if="$(arg simulation)">
-        
-        <include file="$(find visualization)/launch/visualize_rviz.launch" />
-
-    </group>
 </launch>
