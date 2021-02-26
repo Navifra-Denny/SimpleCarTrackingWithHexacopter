@@ -135,33 +135,17 @@ void EuclideanClustering::getParam()
 
 void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud)
 {
-    ros::Time timer = ros::Time::now();
-    ros::Duration eclipse;
+    // _pub_check.publish(*transformed_cloud);
 
-    geometry_msgs::TransformStamped transformStamped;
-	  sensor_msgs::PointCloud2::Ptr transformed_cloud(new sensor_msgs::PointCloud2);
-	  try{
-	  	transformStamped = m_tfBuffer.lookupTransform("map", "velodyne", ros::Time(0));
-	  	tf2::doTransform(*in_sensor_cloud, *transformed_cloud, transformStamped);
-	  }
-	  catch (tf2::TransformException &ex) {
-	  	ROS_WARN("%s", ex.what());
-	  	ros::Duration(1.0).sleep();
-	  }
-    
-    eclipse = ros::Time::now() - timer;
-    detection_time_.transform = eclipse.toSec();
-
-    _pub_check.publish(*transformed_cloud);
-
-    _velodyne_header = transformed_cloud->header;
-    // _velodyne_header = in_sensor_cloud->header;
+    // _velodyne_header = transformed_cloud->header;
+    _velodyne_header = in_sensor_cloud->header;
 
     /************************************/
     //          Preprocessing           //          
     /************************************/
   
-    if(!PreprocessCloud(transformed_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    // if(!PreprocessCloud(transformed_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
     // if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
     PublishCloud(&_pub_check, preprocessed_cloud_ptr);
 
@@ -205,11 +189,56 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     if (_downsample_cloud){
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
-        if (!DownsampleCloud(current_sensor_cloud_ptr, downsampled_cloud_ptr, _leaf_size)) ROS_ERROR_STREAM("Fail to downsampling");
+
+        
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+        for (auto &p : current_sensor_cloud_ptr->points){
+          if ((p.y < 15.0 && p.y > -15.0) &&
+          (p.z < 15.0 && p.z > -15.0) &&
+          (p.x < 15.0 && p.x > -15.0)){
+            cloud_ptr->points.push_back(p);
+          }
+        }
+        cloud_ptr->header.frame_id = "velodyne";
+
+        if (!DownsampleCloud(cloud_ptr, downsampled_cloud_ptr, _leaf_size)) ROS_ERROR_STREAM("Fail to downsampling");
         PublishCloud(&_pub_DownsampleCloud, downsampled_cloud_ptr);
     }
     else downsampled_cloud_ptr = current_sensor_cloud_ptr;
 
+    sensor_msgs::PointCloud2 cloud_msg;
+    pcl::toROSMsg(*downsampled_cloud_ptr, cloud_msg);
+    cloud_msg.header = _velodyne_header;
+
+    
+    eclipse = ros::Time::now() - timer;
+    detection_time_.downsample = eclipse.toSec();
+    timer = ros::Time::now();
+    
+
+    geometry_msgs::TransformStamped transformStamped;
+	  sensor_msgs::PointCloud2::Ptr transformed_cloud(new sensor_msgs::PointCloud2);
+	  try{
+	  	transformStamped = m_tfBuffer.lookupTransform("map", "velodyne", ros::Time(0));
+	  	tf2::doTransform(cloud_msg, *transformed_cloud, transformStamped);
+	  }
+	  catch (tf2::TransformException &ex) {
+	  	ROS_WARN("%s", ex.what());
+	  	ros::Duration(1.0).sleep();
+	  }
+    
+    eclipse = ros::Time::now() - timer;
+    detection_time_.transform = eclipse.toSec();
+    timer = ros::Time::now();
+
+
+
+
+    _velodyne_header.frame_id = "map";
+
+
+
+    
     // Ground Removal 
     // Choose 1. Rayground 2. Ransac 3. No filtering
     if (_remove_ground_rayGroundFilter){
@@ -222,10 +251,10 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     }
     else if (_remove_ground_ransac){
         // pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
-        // pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
+        pcl::fromROSMsg(*transformed_cloud, *current_sensor_cloud_ptr);
         // if(!PassThrough(current_sensor_cloud_ptr, passThrough_cloud_ptr)) ROS_ERROR_STREAM("Fail to passthrough poincloud");
         // if(!RemoveFloorRansac(current_sensor_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
-        if(!RemoveFloorRansac(downsampled_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
+        if(!RemoveFloorRansac(current_sensor_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
         PublishCloud(&_pub_ground_cloud, onlyfloor_cloud_ptr);
         PublishCloud(&_pub_noground_cloud, nofloor_cloud_ptr);
     }   

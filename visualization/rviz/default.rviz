@@ -9,6 +9,7 @@ Panels:
         - /airsim1
         - /perception1
         - /perception1/processed_cloud1
+        - /control1
         - /control1/control_markers1
         - /control1/control_markers1/Namespaces1
         - /control1/TF1
@@ -580,7 +581,11 @@ Visualization Manager:
           Marker Topic: /control/visualzie_control_node/control_marekrs
           Name: control_markers
           Namespaces:
-            {}
+            ego_trajectory/center_point: false
+            ego_trajectory/lane: true
+            ego_trajectory/orientation: true
+            ego_trajectory/txt: true
+            waypoints/lane: true
           Queue Size: 100
           Value: true
         - Class: rviz/TF
@@ -590,7 +595,7 @@ Visualization Manager:
             All Enabled: false
             base_link:
               Value: true
-            gps:
+            base_link_frd:
               Value: true
             map:
               Value: true
@@ -598,6 +603,8 @@ Visualization Manager:
               Value: false
             odom:
               Value: false
+            odom_ned:
+              Value: true
             velodyne:
               Value: true
           Marker Scale: 1
@@ -608,10 +615,14 @@ Visualization Manager:
           Tree:
             map:
               base_link:
+                base_link_frd:
+                  {}
                 velodyne:
                   {}
-              gps:
-                {}
+              map_ned:
+                odom:
+                  odom_ned:
+                    {}
           Update Interval: 0
           Value: true
       Enabled: true
@@ -673,26 +684,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 10
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7853981852531433
+      Scale: 73.07404327392578
       Target Frame: base_link
-      Value: XYOrbit (rviz)
-      Yaw: 0.7853981852531433
+      Value: TopDownOrtho (rviz)
+      X: -0.3185351490974426
+      Y: 1.072034478187561
     Saved: ~
 Window Geometry:
   Displays:
