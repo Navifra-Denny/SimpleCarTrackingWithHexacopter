@@ -34,6 +34,7 @@ EuclideanClustering::EuclideanClustering() :
     _pub_KeepLanePoints = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/KeepLanePoints", 1);
     _pub_toRayGroundFilter = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/toRayGroundFilter", 1);
     _pub_DoNSegmentation = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/DoNSegmentation", 1);
+    _pub_timer = nh.advertise<uav_msgs::DetectionTime>(ros_namespace_ + "/detection_timer",1);
 
     // Subscriber
   //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
@@ -115,6 +116,9 @@ void EuclideanClustering::getParam()
 
 void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud)
 {
+    ros::Time timer = ros::Time::now();
+    ros::Duration eclipse;
+
     geometry_msgs::TransformStamped transformStamped;
 	  sensor_msgs::PointCloud2::Ptr transformed_cloud(new sensor_msgs::PointCloud2);
 	  try{
@@ -126,6 +130,9 @@ void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::Con
 	  	ros::Duration(1.0).sleep();
 	  }
     
+    eclipse = ros::Time::now() - timer;
+    detection_time_.transform = eclipse.toSec();
+
     _pub_check.publish(*transformed_cloud);
 
     _velodyne_header = transformed_cloud->header;
@@ -151,6 +158,7 @@ void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::Con
     if(!PublishCentroids(&_pub_centroid, centroids)) ROS_ERROR_STREAM("Fail to publish centroids");
     cloud_clusters.header = _velodyne_header;
     if(!PublishCloudClusters(&_pub_clusters_message, cloud_clusters)) ROS_ERROR_STREAM("Fail to publish CloudClusters");
+    _pub_timer.publish(detection_time_);
 }
 
 
@@ -165,6 +173,9 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     pcl::PointCloud<pcl::PointXYZ>::Ptr diffnormals_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
     _pub_check_.publish(*in_sensor_cloud);
+
+    ros::Time timer = ros::Time::now();
+    ros::Duration eclipse;
 
     // Ground Removal 
     // Choose 1. Rayground 2. Ransac 3. No filtering
@@ -189,6 +200,10 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
         nofloor_cloud_ptr = current_sensor_cloud_ptr;
     }
+
+    eclipse = ros::Time::now() - timer;
+    detection_time_.remove_ground = eclipse.toSec();
+    timer = ros::Time::now();
     
     // PublishCloud(&_pub_check, nofloor_cloud_ptr);
 
@@ -196,6 +211,10 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     pcl::PointCloud<pcl::PointXYZ>::Ptr threshold_removed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     // ThresholdRemoveCloud(nofloor_cloud_ptr, threshold_removed_cloud_ptr); 
 
+    eclipse = ros::Time::now() - timer;
+    detection_time_.threshold = eclipse.toSec();
+    timer = ros::Time::now();
+    
     // Downsampling
     pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     if (_downsample_cloud){
@@ -204,6 +223,10 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     }
     else downsampled_cloud_ptr = threshold_removed_cloud_ptr; 
 
+    eclipse = ros::Time::now() - timer;
+    detection_time_.downsample = eclipse.toSec();
+    timer = ros::Time::now();
+    
     if(_use_diffnormals) 
     {
       if(!DifferenceNormalsSegmentation(downsampled_cloud_ptr, diffnormals_cloud_ptr)) ROS_ERROR_STREAM("Fail to calculate difference normlas");
@@ -211,6 +234,10 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     }
     else diffnormals_cloud_ptr = downsampled_cloud_ptr;
 
+    eclipse = ros::Time::now() - timer;
+    detection_time_.normal_segmentation = eclipse.toSec();
+    timer = ros::Time::now();
+    
     // *out_cloud_ptr = *diffnormals_cloud_ptr;
     *out_cloud_ptr = *nofloor_cloud_ptr;
 
@@ -420,7 +447,7 @@ bool EuclideanClustering::RemoveFloorRansac(const pcl::PointCloud<pcl::PointXYZ>
   // seg.setOptimizeCoefficients(true);
   if (inliers->indices.size() == 0)
   {
-    std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
+    // std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
   }
 
   // REMOVE THE FLOOR FROM THE CLOUD
@@ -512,6 +539,9 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
   std::vector<ClusterPtr> all_clusters;
   out_cloud_ptr->clear();
 
+  ros::Time timer = ros::Time::now();
+  ros::Duration eclipse;
+
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
   for (unsigned int i = 0; i < in_cloud_ptr->points.size(); i++)
   {
@@ -523,7 +553,11 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
   }
   // all_clusters = ClusterAndColor(cloud_ptr, out_cloud_ptr, in_out_centroids, _clustering_distance);
   all_clusters = ClusterAndColor(cloud_ptr, out_cloud_ptr, in_out_centroids, _clustering_distance);
- 
+
+  eclipse = ros::Time::now() - timer;
+  detection_time_.cluster_and_color = eclipse.toSec();
+  timer = ros::Time::now();
+  
   // Clusters can be merged or checked in here
   //....
   // check for mergable clusters
@@ -537,6 +571,10 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
   if (mid_clusters.size() > 0) CheckAllForMerge(mid_clusters, final_clusters, _cluster_merge_threshold);
   else final_clusters = mid_clusters;
   // ROS_WARN_STREAM(final_clusters.size());
+  
+  eclipse = ros::Time::now() - timer;
+  detection_time_.cluster_checking = eclipse.toSec();
+  timer = ros::Time::now();
   
   // Initialization
   in_out_centroids.points.clear();
@@ -599,6 +637,12 @@ bool EuclideanClustering::SegmentByDistance(const pcl::PointCloud<pcl::PointXYZ>
     color_index ++;
   }
   // ROS_WARN_STREAM("---------");
+  final_clusters.size();
+  
+  eclipse = ros::Time::now() - timer;
+  detection_time_.cluster_publish = eclipse.toSec();
+  timer = ros::Time::now();
+  
   return true;
 }
 
@@ -691,7 +735,7 @@ bool EuclideanClustering::CheckClusterMerge(size_t in_cluster_id, std::vector<Cl
         {
           in_out_visited_clusters[i] = true;
           out_merge_indices.push_back(i);
-          std::cout << "일정 distance이내 " << in_cluster_id << " with " << i << " dist:" << distance << std::endl;
+          // std::cout << "일정 distance이내 " << in_cluster_id << " with " << i << " dist:" << distance << std::endl;
           CheckClusterMerge(i, in_clusters, in_out_visited_clusters, out_merge_indices, in_merge_threshold);
         }
       }
@@ -742,7 +786,7 @@ bool EuclideanClustering::PublishColorCloud(const ros::Publisher *in_publisher, 
 
 bool EuclideanClustering::PublishCentroids(const ros::Publisher *in_publisher, const uav_msgs::Centroids &in_centroids)
 {
-    std::cout << "number of Clustering: " << in_centroids.points.size() << std::endl;
+    // std::cout << "number of Clustering: " << in_centroids.points.size() << std::endl;
     in_publisher->publish(in_centroids);
 
     return true;

@@ -66,7 +66,7 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     
     // save initial measure for velocity calculation
     init_meas_ << z(0), z(1);
-    std::cout << "init_meas_" <<init_meas_ << std::endl;
+    // std::cout << "init_meas_" <<init_meas_ << std::endl;
 
     state_pre_ = state_post_;
     error_cov_pre_ = error_cov_post_;
@@ -134,7 +134,7 @@ void KF::update(const std::vector<uav_msgs::DetectedObject>& object_vec)
 void KF::updateKalmanGain()
 {
     kalman_gain_ = error_cov_pre_ * measure_mat_.transpose() * (measure_mat_ * error_cov_pre_ * measure_mat_.transpose() + measure_noise_cov_).inverse();
-    std::cout << "kalman gain" <<kalman_gain_ << std::endl;
+    // std::cout << "kalman gain" <<kalman_gain_ << std::endl;
 }
 
 void KF::updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec)
@@ -144,10 +144,10 @@ void KF::updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec)
     Eigen::VectorXd measure_diff;
     measure_diff.setZero(num_measure_state_);
 
-    ROS_WARN_STREAM(state_pre_(0));
-    ROS_WARN_STREAM(state_pre_(1));
-    ROS_WARN_STREAM(state_pre_(2));
-    ROS_WARN_STREAM(state_pre_(3));
+    // ROS_WARN_STREAM(state_pre_(0));
+    // ROS_WARN_STREAM(state_pre_(1));
+    // ROS_WARN_STREAM(state_pre_(2));
+    // ROS_WARN_STREAM(state_pre_(3));
 
 
     for (size_t i = 0; i < num_meas; i++)
@@ -155,17 +155,17 @@ void KF::updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec)
         Eigen::VectorXd meas = Eigen::VectorXd(num_measure_state_);
         meas(0) = object_vec[i].pose.position.x;
         meas(1) = object_vec[i].pose.position.y;
-        ROS_ERROR_STREAM(meas(0));
-        ROS_ERROR_STREAM(meas(1));
+        // ROS_ERROR_STREAM(meas(0));
+        // ROS_ERROR_STREAM(meas(1));
         measure_diff = meas - measure_pre_;
     }
 
     // correct 
     state_post_ = state_pre_ + kalman_gain_ * measure_diff;
-    ROS_INFO_STREAM(state_post_(0));
-    ROS_INFO_STREAM(state_post_(1));
-    ROS_INFO_STREAM(state_post_(2));
-    ROS_INFO_STREAM(state_post_(3));
+    // ROS_INFO_STREAM(state_post_(0));
+    // ROS_INFO_STREAM(state_post_(1));
+    // ROS_INFO_STREAM(state_post_(2));
+    // ROS_INFO_STREAM(state_post_(3));
 
     error_cov_post_ = error_cov_pre_ - kalman_gain_ * measure_mat_ * error_cov_pre_;
 

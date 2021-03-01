@@ -103,7 +103,6 @@ void Checker::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_pt
     m_uav_status.state.is_global = waypoints_ptr->state.is_global;
     m_uav_status.state.is_detected = waypoints_ptr->state.is_detected;
     m_uav_status.state.is_hover = waypoints_ptr->state.is_hover;
-    m_uav_status.state.is_hover_point_set = waypoints_ptr->state.is_hover_point_set;
     m_uav_status.state.is_reached = waypoints_ptr->state.is_reached;
 
     if (m_uav_status.state.is_global){

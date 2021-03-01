@@ -11,6 +11,7 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/TransformStamped.h>
+#include "uav_msgs/DetectionTime.h"
 
 using namespace cv;
 
@@ -45,6 +46,7 @@ private:
     ros::Publisher _pub_DoNSegmentation;
     ros::Publisher _pub_check;
     ros::Publisher _pub_check_;
+    ros::Publisher _pub_timer;
 
     // velodyne header 
     std_msgs::Header _velodyne_header;
@@ -113,6 +115,7 @@ private:
     // pcl::PointCloud<pcl::PointXYZ>::Ptr diffnormals_cloud_ptr;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_clustered_cloud_ptr;
 
+    uav_msgs::DetectionTime detection_time_;
 
 
 
