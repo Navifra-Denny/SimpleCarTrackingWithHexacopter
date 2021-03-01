@@ -1,10 +1,12 @@
 <launch>
-    <!-- <arg name="use_sim_time" default="true"/>
-    <param name="use_sim_time" value="$(arg use_sim_time)"/> -->
     <!-- shell script -->
     <arg name="simulation" default="false" />
     <arg name="airsim" default="false" />
     <arg name="gazebo" default="false" />
+    <group if="$(arg simulation)">
+		<param name="use_sim_time" value="true" />
+	</group>
+
 
     <!-- mavros px4 -->
     <arg name="fcu_url" default="/dev/ttyACM0:57600"/>
@@ -26,15 +28,15 @@
     <!-- generate_waypoints_node -->
 	<arg name="global_to_local" default="true" />
 	<arg name="distance_threshold" default="1.0"/>
-    <arg name="target_wp_pub_interval" default="0.02" />
+    <arg name="target_wp_pub_interval" default="0.05" />
 	<arg name="detected_dead_band" default="0.5" />
 	<!-- <arg name="x_offset_m" default="3.0" /> -->
 	<arg name="x_offset_m" default="0.0" />
 	<arg name="z_offset_m" default="3.5" />
 	<arg name="alt_offset_m" default="45.0" />
 	<arg name="target_height_m" default="1.0" />
-	<arg name="detection_tool_lidar" default="true" />
-	<arg name="detection_tool_gps" default="false" />
+	<arg name="detection_tool_lidar" default="false" />
+	<arg name="detection_tool_gps" default="true" />
 	<arg name="detection_tool_airsim" default="false" />
 
 	<!-- tf_broadcaster_node -->

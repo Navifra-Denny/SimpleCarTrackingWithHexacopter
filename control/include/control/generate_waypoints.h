@@ -30,11 +30,11 @@ namespace control
 struct VehicleState{
     geometry_msgs::PoseStamped local;
     geographic_msgs::GeoPoseStamped global; // [deg/1e-7]
+    geometry_msgs::Twist velocity;           // [m/s]
 
     geometry_msgs::PoseArray local_trajectory;
     geographic_msgs::GeoPath global_trajectory;
 
-    geometry_msgs::Twist velocity;           // [m/s]
     int g_speed_raw;                                // [mm/s]
     int heading_raw;                                // [deg/1e-5]
     double heading_deg;
@@ -126,7 +126,7 @@ private: // function
     void InitPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &pose_ptr);
     void HomePositionCallback(const mavros_msgs::HomePosition::ConstPtr &home_ptr);
 
-    bool AddPointToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
+    bool AddPoseToTrajectory(geometry_msgs::PoseArray &pose_array, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geometry_msgs::PoseStamped &curr_pose_stamped, geometry_msgs::Twist &target_vel);
     bool AddTargetWaypoint(uav_msgs::TargetWP &target_wp, geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped, geometry_msgs::Twist &target_vel);
@@ -140,6 +140,8 @@ private: // function
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses);
     bool IsReached(uav_msgs::TargetWP &wp, geometry_msgs::Point curr_position);
     bool IsReached(uav_msgs::TargetWP &wp, geographic_msgs::GeoPoint curr_position);
+    bool IsDetected();
+    bool IsGlobalToLocal();
 };
 
 #endif // __GENERATE_WAYPOINTS_H__
