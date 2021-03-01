@@ -82,6 +82,9 @@ private:
     bool m_global_to_local_param;
     float m_alt_offset_m_param;
     float m_target_height_m_param;
+    bool m_detection_tool_lidar_param;
+    bool m_detection_tool_gps_param;
+    bool m_detection_tool_airsim_param;
 
     // flag
     bool m_is_detected;
