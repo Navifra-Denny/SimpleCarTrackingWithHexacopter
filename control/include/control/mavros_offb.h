@@ -21,8 +21,9 @@
 #include <std_msgs/String.h>
 
 #include "uav_msgs/CarState.h"
-#include "uav_msgs/UavStatus.h"
-#include "uav_msgs/TargetWP.h"
+#include "uav_msgs/TargetWaypoints.h"
+#include "uav_msgs/Chat.h"
+#include "uav_msgs/OffboardState.h"
 
 #include "control/generate_waypoints.h"
 #include "control/utils.h"
@@ -53,6 +54,7 @@ private:
     ros::Publisher m_local_pose_pub;
     ros::Publisher m_global_pose_pub;
     ros::Publisher m_velocity_pub;
+    ros::Publisher m_offboard_state_pub;
     
     // ServiceClient
     ros::ServiceClient m_arming_serv_client;
@@ -74,25 +76,25 @@ private:
     geometry_msgs::PoseStamped m_local_setpoint;
     geographic_msgs::GeoPoseStamped m_global_setpoint;
     geometry_msgs::Twist m_vel_setpoint;
-    std::string m_debugging_msg;
 
+    std::string m_debugging_msg;
 	tf2_ros::Buffer m_tfBuffer;
 	tf2_ros::TransformListener m_tfListener;
 
 private: // function
     bool GetParam();
     bool InitFlag();
-    bool InitRos();
+    bool InitROS();
     bool InitClient();
     
     void OffboardTimeCallback(const ros::TimerEvent& event);
     
     void StatusCallback(const mavros_msgs::State::ConstPtr &state_ptr);
-    void TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &target_wp_ptr);
-    void ChatterCallback(const std_msgs::String::ConstPtr &string_ptr);
+    void TargetWaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr &target_wp_ptr);
+    void ChatterCallback(const uav_msgs::Chat::ConstPtr &chat_ptr);
 
     void OffboardReConnection();
-    void PublishSetpoint();
+    void Publish();
 };
 }
 #endif //  __MAVROS_OFFB_H__

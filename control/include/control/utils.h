@@ -60,6 +60,7 @@ public:
     tf2::Quaternion Rads2Rad(Eigen::Vector3d rads, double dt);
     bool IsValidPos(geometry_msgs::Pose pose);
     double NormalizedSteeringAngleRad(double y);
+    double NormalizedSteeringAngleRad(double x, double y);
 };
 }
 

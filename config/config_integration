@@ -1,0 +1,173 @@
+[global_config]
+[keybindings]
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = window0
+      type = Terminal
+    [[[window0]]]
+      parent = ""
+      type = Window
+  [[uav_tracking_r]]
+    [[[child0]]]
+      fullscreen = False
+      last_active_term = 9a1f441f-df79-469c-8a3f-563d68aa6024
+      last_active_window = True
+      maximised = True
+      order = 0
+      parent = ""
+      position = 1987:27
+      size = 1853, 1025
+      type = Window
+    [[[child1]]]
+      order = 0
+      parent = child0
+      position = 924
+      ratio = 0.5
+      type = HPaned
+    [[[child2]]]
+      order = 0
+      parent = child1
+      position = 510
+      ratio = 0.5
+      type = VPaned
+    [[[child3]]]
+      order = 0
+      parent = child2
+      position = 460
+      ratio = 0.500544069641
+      type = HPaned
+    [[[child7]]]
+      order = 1
+      parent = child1
+      position = 461
+      ratio = 0.5
+      type = HPaned
+    [[[child8]]]
+      order = 0
+      parent = child7
+      position = 510
+      ratio = 0.5
+      type = VPaned
+    [[[terminal1]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; roscd control/scripts/; ./launch-visual.sh -r; $SHELL'"
+      directory = ""
+      order = 0
+      parent = child3
+      profile = default
+      type = Terminal
+    [[[terminal2]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; roslaunch tracking KFTracker.launch; $SHELL'"
+      directory = ""
+      order = 1
+      parent = child3
+      profile = default
+      type = Terminal
+    [[[terminal3]]]
+      command = ""
+      order = 0
+      parent = child8
+      profile = default
+      type = Terminal
+    [[[terminal4]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; rostopic echo /control/checker_node/uav_status; $SHELL'"
+      order = 1
+      parent = child7
+      profile = default
+      type = Terminal
+    [[[terminal5]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; rosrun control char_pub_node; $SHELL'"
+      order = 1
+      parent = child2
+      profile = default
+      type = Terminal
+    [[[terminal6]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; rosrun tracking targetIdPublisher; $SHELL'"
+      order = 1
+      parent = child8
+      profile = default
+      type = Terminal
+  [[uav_tracking_s]]
+    [[[child0]]]
+      fullscreen = False
+      last_active_term = 9a1f441f-df79-469c-8a3f-563d68aa6024
+      last_active_window = True
+      maximised = True
+      order = 0
+      parent = ""
+      position = 1987:27
+      size = 1853, 1025
+      type = Window
+    [[[child1]]]
+      order = 0
+      parent = child0
+      position = 924
+      ratio = 0.5
+      type = HPaned
+    [[[child2]]]
+      order = 0
+      parent = child1
+      position = 510
+      ratio = 0.5
+      type = VPaned
+    [[[child3]]]
+      order = 0
+      parent = child2
+      position = 460
+      ratio = 0.500544069641
+      type = HPaned
+    [[[child7]]]
+      order = 1
+      parent = child1
+      position = 461
+      ratio = 0.5
+      type = HPaned
+    [[[child8]]]
+      order = 0
+      parent = child7
+      position = 510
+      ratio = 0.5
+      type = VPaned
+    [[[terminal1]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; roscd control/scripts/; ./launch-visual.sh -s; $SHELL'"
+      directory = ""
+      order = 0
+      parent = child3
+      profile = default
+      type = Terminal
+    [[[terminal2]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; roslaunch tracking KFTracker.launch; $SHELL'"
+      directory = ""
+      order = 1
+      parent = child3
+      profile = default
+      type = Terminal
+    [[[terminal3]]]
+      command = ""
+      order = 0
+      parent = child8
+      profile = default
+      type = Terminal
+    [[[terminal4]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; rostopic echo /control/checker_node/uav_status; $SHELL'"
+      order = 1
+      parent = child7
+      profile = default
+      type = Terminal
+    [[[terminal5]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; rosrun control char_pub_node; $SHELL'"
+      order = 1
+      parent = child2
+      profile = default
+      type = Terminal
+    [[[terminal6]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash; source ${HOME}/catkin_ws/devel/setup.bash; rosrun tracking targetIdPublisher; $SHELL'"
+      order = 1
+      parent = child8
+      profile = default
+      type = Terminal
+[plugins]
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
+    scrollback_infinite = True

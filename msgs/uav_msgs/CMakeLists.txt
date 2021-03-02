@@ -36,16 +36,17 @@ add_message_files(
   PolyfitLaneData.msg
   PolyfitLane.msg
   Roi.msg
-  UavStatus.msg
-  TargetWP.msg
-  TargetWPState.msg
-  Trajectory.msg
-  Param.msg
-  Offset.msg
+  TargetWaypoints.msg
+  Chat.msg
   TargetState.msg
   TrackingTime.msg
   DetectionTime.msg
   PerceptionTimer.msg
+  VehicleState.msg
+  VehicleStateArray.msg
+  GenerateWaypointState.msg
+  OffboardState.msg
+  ControlStatus.msg
 )
 
 ## Generate services in the 'srv' folder

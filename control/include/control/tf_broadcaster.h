@@ -62,7 +62,7 @@ private:
 private:
     void InitFlag();
     bool GetParam();
-    void InitRos();
+    void InitROS();
     void InitStaticTf();
 
     void HomePositionTimerCallback(const ros::TimerEvent& event);
