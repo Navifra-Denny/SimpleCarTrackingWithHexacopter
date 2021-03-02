@@ -1,0 +1,2 @@
+GenerateWaypointState generate_waypoint_state
+OffboardState offboard_state

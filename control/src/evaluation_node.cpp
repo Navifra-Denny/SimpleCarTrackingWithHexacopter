@@ -12,7 +12,7 @@
 
 #include <novatel_oem7_msgs/INSPVA.h>
 #include "control/generate_waypoints.h"
-#include "uav_msgs/TargetWP.h"
+#include "uav_msgs/TargetWaypoints.h"
 #include "mavros_msgs/HomePosition.h"
 
 class Eval{
@@ -25,9 +25,9 @@ private:
 
     // initialize subscriber
     ros::Subscriber m_waypoints_sub;
-    ros::Subscriber m_current_local_pose_sub;
-    ros::Subscriber m_ego_vehicle_local_vel_sub;
-    ros::Subscriber m_target_vehicle_global_position_sub;
+    ros::Subscriber m_ego_local_pose_sub;
+    ros::Subscriber m_ego_local_vel_sub;
+    ros::Subscriber m_gps_based_target_global_position_sub;
     ros::Subscriber m_home_position_sub;
 
     // initialize publisher
@@ -64,7 +64,7 @@ private:
 
     void EvalTimerCallback(const ros::TimerEvent& event);
     
-    void WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_ptr);
+    void WaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr &waypoints_ptr);
     void EgoVehicleLocalPositionCallback(const geometry_msgs::PoseStamped::ConstPtr &local_position_ptr);
     void EgoVehicleLocalVelocityCallback(const geometry_msgs::TwistStamped::ConstPtr &twist_ptr);
     void TargetVehicleGlobalStateCallback(const novatel_oem7_msgs::INSPVA::ConstPtr &inspva_msg_ptr);
@@ -102,10 +102,10 @@ bool Eval::GetParam()
 void Eval::InitROS()
 {
     // Initialize subscriber
-    m_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWP>("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Eval::WaypointsCallback, this, _1));
-    m_current_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&Eval::EgoVehicleLocalPositionCallback, this, _1));
-    m_ego_vehicle_local_vel_sub = m_nh.subscribe<geometry_msgs::TwistStamped>("/mavros/local_position/velocity_local", 10, boost::bind(&Eval::EgoVehicleLocalVelocityCallback, this, _1));
-    m_target_vehicle_global_position_sub = 
+    m_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWaypoints>("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Eval::WaypointsCallback, this, _1));
+    m_ego_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&Eval::EgoVehicleLocalPositionCallback, this, _1));
+    m_ego_local_vel_sub = m_nh.subscribe<geometry_msgs::TwistStamped>("/mavros/local_position/velocity_local", 10, boost::bind(&Eval::EgoVehicleLocalVelocityCallback, this, _1));
+    m_gps_based_target_global_position_sub = 
         m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&Eval::TargetVehicleGlobalStateCallback, this, _1));
     m_home_position_sub = 
         m_nh.subscribe<mavros_msgs::HomePosition>("/mavros/home_position/home", 10, boost::bind(&Eval::HomePositionCallback, this, _1));
@@ -180,7 +180,7 @@ void Eval::EgoVehicleLocalVelocityCallback(const geometry_msgs::TwistStamped::Co
     m_ego_vehicle.velocity.linear.z = twist_ptr->twist.linear.z;
 }
 
-void Eval::WaypointsCallback(const uav_msgs::TargetWP::ConstPtr &waypoints_ptr)
+void Eval::WaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr &waypoints_ptr)
 {
     m_is_global = waypoints_ptr->state.is_global;
     m_is_detected = waypoints_ptr->state.is_detected;

@@ -1,6 +1,0 @@
-bool is_debug_mode
-float32 setpoint_pub_interval
-
-float32 init_gps_lat
-float32 init_gps_lon
-float32 init_gps_alt

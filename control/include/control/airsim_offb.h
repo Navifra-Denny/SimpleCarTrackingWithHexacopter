@@ -53,7 +53,7 @@ public:
 private:
     // Subscriber
     ros::Subscriber m_desired_local_waypoints_pub;
-    ros::Subscriber m_target_vehicle_local_state_sub;
+    ros::Subscriber m_airsim_based_target_local_state_sub;
     ros::Subscriber m_odom_sub;
 
     // Publisher
@@ -75,7 +75,7 @@ private:
 
 private: // function
     void GetParam();
-    void InitRos();
+    void InitROS();
     void InitClient();
     
     void DesiredLocalWaypointsCallback(const geometry_msgs::PoseArray::ConstPtr pose_array);

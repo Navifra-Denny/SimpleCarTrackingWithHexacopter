@@ -1,12 +1,5 @@
 <launch>
 	<arg name="output" default="screen"/>
 
-	<arg name="is_debug_mode" default="false"/>
-	<arg name="setpoint_pub_interval" default="0.05" />
-
-	<node pkg="control" type="checker_node" name="checker_node" output="$(arg output)">
-		<param name="is_debug_mode" value="$(arg is_debug_mode)" />
-		<param name="setpoint_pub_interval" value="$(arg setpoint_pub_interval)" />
-		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
-	</node>
+	<node pkg="control" type="checker_node" name="checker_node" output="$(arg output)"/>
 </launch>
