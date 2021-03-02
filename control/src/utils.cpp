@@ -265,4 +265,32 @@ double Utils::NormalizedSteeringAngleRad(double y)
 
     return steering_angle_rad;
 }
+
+
+/**
+ *         3
+ *      --------
+ *      |     /
+ *      |    /
+ *    x |   / 5
+ *      |a /
+ *      | /
+ *      |/
+ * 
+ *  tan(a) = 3/x
+ *  atan2(3, x) = theta
+ **/
+
+double Utils::NormalizedSteeringAngleRad(double x, double y)
+{
+    const double MAX_Y = 3.0;
+    const double MIN_Y = -3.0;
+
+    if (y > MAX_Y) y = MAX_Y;
+    else if (y < MIN_Y) y = MIN_Y;
+
+    double steering_angle_rad = atan2(y, x);
+
+    return steering_angle_rad;
+}
 }

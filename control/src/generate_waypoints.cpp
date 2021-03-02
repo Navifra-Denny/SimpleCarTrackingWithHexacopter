@@ -245,7 +245,7 @@ void GenerateWaypoints::LTargetVehicleLocalStateCallback(const uav_msgs::TargetS
             ros::Duration(1.0).sleep();
         }
 
-        auto base_link_steering_rad = m_utils.NormalizedSteeringAngleRad(transformed_pose.position.y);
+        auto base_link_steering_rad = m_utils.NormalizedSteeringAngleRad(transformed_pose.position.x, transformed_pose.position.y);
         tf2::Quaternion q;
         q.setRPY(0.0, 0.0, base_link_steering_rad);
         geometry_msgs::Pose base_link_pose;
@@ -483,6 +483,8 @@ geometry_msgs::Pose GenerateWaypoints::GenTargetWaypoint(geometry_msgs::Pose &po
         target_pose.position.x += x_offset_m * cos(euler.y);
         target_pose.position.y += x_offset_m * sin(euler.y);
         target_pose.position.z = m_z_offset_m_param;
+        
+        m_target_orientation = target_pose.orientation;
     }
     m_is_offset_changed = false;
     m_is_heading_changed = false;
