@@ -147,7 +147,7 @@ void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::Con
     if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
     // if(!PreprocessCloud(transformed_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
     // if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
-    PublishCloud(&_pub_check, preprocessed_cloud_ptr);
+    // PublishCloud(&_pub_check, preprocessed_cloud_ptr);
 
     /************************************/
     //          Segmentation            //
@@ -227,6 +227,9 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
 	  	ros::Duration(1.0).sleep();
 	  }
     
+    // PublishCloud(&_pub_check, transformed_cloud);
+    _pub_check.publish(transformed_cloud);
+
     eclipse = ros::Time::now() - timer;
     detection_time_.transform = eclipse.toSec();
     timer = ros::Time::now();
