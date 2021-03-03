@@ -3,6 +3,7 @@
 KF::KF()
 : num_state_(4)
 , num_measure_state_(2)
+, reference_vec_(1,0)
 {
     // transition matrix 
     transition_mat_ = Eigen::MatrixXd(num_state_, num_state_);
@@ -59,10 +60,10 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     state_post_(3) = 0;
 
     // init covariance matrix 
-    error_cov_post_ << 0.01, 0, 0, 0,
-                       0, 0.01, 0, 0,
-                       0, 0, 0.01, 0,
-                       0, 0, 0, 0.01;
+    error_cov_post_ << 10., 0, 0, 0,
+                       0, 10., 0, 0,
+                       0, 0, 15., 0,
+                       0, 0, 0, 15.;
     
     // save initial measure for velocity calculation
     init_meas_ << z(0), z(1);
@@ -72,10 +73,10 @@ void KF::initialize(const Eigen::VectorXd& z, const double timestamp, const int 
     error_cov_pre_ = error_cov_post_;
 
     // initialize Q, R covariance 
-    process_noise_cov_ << 1., 0, 0, 0,
-                          0, 1., 0, 0,
-                          0, 0, 1.5, 0,
-                          0, 0, 0, 1.5;
+    process_noise_cov_ << 5., 0, 0, 0,
+                          0, 5., 0, 0,
+                          0, 0, 5., 0,
+                          0, 0, 0, 5.;
 
     measure_noise_cov_ << std_lidar_px_  * std_lidar_px_, 0, 0, std_lidar_py_ * std_lidar_py_; 
 
@@ -169,5 +170,30 @@ void KF::updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec)
 
     error_cov_post_ = error_cov_pre_ - kalman_gain_ * measure_mat_ * error_cov_pre_;
 
+
+    double target_x = state_post_(0);
+    double target_y = state_post_(1);
+    double target_diff_x = target_x - init_meas_(0);
+    double target_diff_y = target_y - init_meas_(1);
+    double target_yaw = atan2(target_diff_y, target_diff_x);
+
+    //ROS_WARN("estimated yaw based on post state [%f]", target_yaw);
+}
+
+Vector KF::VectorSubtractVector(Vector dest, Vector start)
+{
+    Vector vec;
+    vec.x_ = dest.x_ - start.x_;
+    vec.y_ = dest.y_ - start.y_;
+    
+    return vec;
+}
+
+double KF::GetHeadingAngle(Vector ref, Vector ego_vec)
+{
+    double heading;
+    heading = asin((ref.x_*ego_vec.y_ - ref.y_*ego_vec.x_)/(sqrt(ref.x_*ref.x_ + ref.y_*ref.y_)*sqrt(ego_vec.x_*ego_vec.x_ + ego_vec.y_*ego_vec.y_)));   // [rad]
+    
+    return heading;
 }
 

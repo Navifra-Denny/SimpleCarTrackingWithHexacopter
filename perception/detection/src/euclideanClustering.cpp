@@ -28,7 +28,9 @@ EuclideanClustering::EuclideanClustering() :
     // Check Publisher
     _pub_check = nh.advertise<sensor_msgs::PointCloud2>("a", 1);
     _pub_check_ = nh.advertise<sensor_msgs::PointCloud2>("b", 1);
+    _pub_TransformedPoints = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/TransformedPoints", 1); 
     _pub_RemovePointsUpTo = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/RemovePointsUpTo", 1);
+    _pub_RemovePointsOutside = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/RemovePointsOutside", 1);
     _pub_DownsampleCloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/DownsampleCloud", 1);
     _pub_ClipCloud = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/ClipCloud",1);
     _pub_KeepLanePoints = nh.advertise<sensor_msgs::PointCloud2>(ros_namespace_ + "/KeepLanePoints", 1);
@@ -37,7 +39,7 @@ EuclideanClustering::EuclideanClustering() :
     _pub_timer = nh.advertise<uav_msgs::DetectionTime>(ros_namespace_ + "/detection_timer",1);
 
     // Subscriber
-  //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
+  //  _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
     _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
   //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
 
@@ -69,35 +71,34 @@ EuclideanClustering::~EuclideanClustering()
 void EuclideanClustering::getParam()
 {
     nh.getParam("euclideanClustering/lidar_frame_id", _lidar_frame_id);
-    nh.getParam("euclideanClustering/downsample_cloud", _downsample_cloud);
-    nh.getParam("euclideanClustering/remove_ground_ransac", _remove_ground_ransac);
-    nh.getParam("euclideanClustering/remove_ground_rayGroundFilter", _remove_ground_rayGroundFilter);
-    nh.getParam("euclideanClustering/leaf_size", _leaf_size);
+
+    // Clustering Param
     nh.getParam("euclideanClustering/cluster_size_min", _cluster_size_min);
     nh.getParam("euclideanClustering/cluster_size_max", _cluster_size_max);
     nh.getParam("euclideanClustering/pose_estimation", _pose_estimation);
-    nh.getParam("euclideanClustering/clip_min_height", _clip_min_height);
-    nh.getParam("euclideanClustering/clip_max_height", _clip_max_height);
-    nh.getParam("euclideanClustering/keep_lanes", _keep_lanes);
-    nh.getParam("euclideanClustering/keep_lane_left_distance", _keep_lane_left_distance);
-    nh.getParam("euclideanClustering/keep_lane_right_distance", _keep_lane_right_distance);
     nh.getParam("euclideanClustering/cluster_merge_threshold", _cluster_merge_threshold);
-    nh.getParam("euclideanClustering/output_frame", _output_frame);
-    nh.getParam("euclideanClustering/remove_points_upto", _remove_points_upto);
     nh.getParam("euclideanClustering/clustering_distance", _clustering_distance);
     nh.getParam("euclideanClustering/use_gpu", _use_gpu);
     nh.getParam("euclideanClustering/use_multiple_thres", _use_multiple_thres);
     nh.getParam("euclideanClustering/clustering_distances", str_distances);
     nh.getParam("euclideanClustering/clustering_ranges", str_ranges);
-    nh.getParam("euclideanClustering/use_diffnormals", _use_diffnormals);
+
+    // Remove points upto
+    nh.getParam("euclideanClustering/remove_points_upto", _remove_points_upto);
+    nh.getParam("euclideanClustering/in_distance", _in_distance);
+
+    // Remove points outside
     nh.getParam("euclideanClustering/remove_points_outside", _remove_points_outside);
+    nh.getParam("euclideanClustering/out_distance", _out_distance);
 
     // Ransac Parameter
+    nh.getParam("euclideanClustering/remove_ground_ransac", _remove_ground_ransac);
     nh.getParam("euclideanClustering/in_max_height", _in_max_height);
     nh.getParam("euclideanClustering/in_floor_max_angle", _in_floor_max_angle);
     nh.getParam("euclideanClustering/max_iterations", _max_iterations);
 
     // Ray Ground Parameter
+    nh.getParam("euclideanClustering/remove_ground_rayGroundFilter", _remove_ground_rayGroundFilter);
     nh.getParam("euclideanClustering/general_max_slope", _general_max_slope);
     nh.getParam("euclideanClustering/local_max_slope", _local_max_slope);
     nh.getParam("euclideanClustering/radial_divider_angle", _radial_divider_angle);
@@ -107,6 +108,24 @@ void EuclideanClustering::getParam()
     nh.getParam("euclideanClustering/min_point_distance", _min_point_distance);
     nh.getParam("euclideanClustering/reclass_distance_threshold", _reclass_distance_threshold);
     nh.getParam("euclideanClustering/sensor_height", _sensor_height);
+    nh.getParam("euclideanClustering/output_frame", _output_frame);
+
+    // Clip cloud Parameter
+    nh.getParam("euclideanClustering/clip_min_height", _clip_min_height);
+    nh.getParam("euclideanClustering/clip_max_height", _clip_max_height);
+    nh.getParam("euclideanClustering/ClipCloud", _ClipCloud);
+
+    // Keep lanes Parameter
+    nh.getParam("euclideanClustering/keep_lanes", _keep_lanes);
+    nh.getParam("euclideanClustering/keep_lane_left_distance", _keep_lane_left_distance);
+    nh.getParam("euclideanClustering/keep_lane_right_distance", _keep_lane_right_distance);
+
+    // Downsample Parameter
+    nh.getParam("euclideanClustering/downsample_cloud", _downsample_cloud);
+    nh.getParam("euclideanClustering/leaf_size", _leaf_size);
+
+    // Diffnormals Parameter
+    nh.getParam("euclideanClustering/use_diffnormals", _use_diffnormals);
 }
 
 
@@ -116,32 +135,19 @@ void EuclideanClustering::getParam()
 
 void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud)
 {
-    ros::Time timer = ros::Time::now();
-    ros::Duration eclipse;
+    // _pub_check.publish(*transformed_cloud);
 
-    geometry_msgs::TransformStamped transformStamped;
-	  sensor_msgs::PointCloud2::Ptr transformed_cloud(new sensor_msgs::PointCloud2);
-	  try{
-	  	transformStamped = m_tfBuffer.lookupTransform("map", "velodyne", ros::Time(0));
-	  	tf2::doTransform(*in_sensor_cloud, *transformed_cloud, transformStamped);
-	  }
-	  catch (tf2::TransformException &ex) {
-	  	ROS_WARN("%s", ex.what());
-	  	ros::Duration(1.0).sleep();
-	  }
-    
-    eclipse = ros::Time::now() - timer;
-    detection_time_.transform = eclipse.toSec();
-
-    _pub_check.publish(*transformed_cloud);
-
-    _velodyne_header = transformed_cloud->header;
+    // _velodyne_header = transformed_cloud->header;
+    _velodyne_header = in_sensor_cloud->header;
 
     /************************************/
     //          Preprocessing           //          
     /************************************/
   
-    if(!PreprocessCloud(transformed_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    // if(!PreprocessCloud(transformed_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    // if(!PreprocessCloud(in_sensor_cloud, preprocessed_cloud_ptr)) ROS_ERROR_STREAM("Fail to preprocess PointCloud");
+    // PublishCloud(&_pub_check, preprocessed_cloud_ptr);
 
     /************************************/
     //          Segmentation            //
@@ -162,6 +168,7 @@ void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::Con
 }
 
 
+
 bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
 { 
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -172,11 +179,71 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     pcl::PointCloud<pcl::PointXYZ>::Ptr onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr diffnormals_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
-    _pub_check_.publish(*in_sensor_cloud);
+    // _pub_check_.publish(*in_sensor_cloud);
 
     ros::Time timer = ros::Time::now();
     ros::Duration eclipse;
 
+
+    // Downsampling
+    pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    if (_downsample_cloud){
+        pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
+
+        
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+        for (auto &p : current_sensor_cloud_ptr->points){
+	  const int MAX_TH = 20.0;
+	  const int MIN_TH = -20.0;
+          if ((p.y < MAX_TH && p.y > MIN_TH) &&
+          (p.z < MAX_TH && p.z > MIN_TH) &&
+          (p.x < MAX_TH && p.x > MIN_TH)){
+            cloud_ptr->points.push_back(p);
+          }
+        }
+        cloud_ptr->header.frame_id = "velodyne";
+
+        if (!DownsampleCloud(cloud_ptr, downsampled_cloud_ptr, _leaf_size)) ROS_ERROR_STREAM("Fail to downsampling");
+        PublishCloud(&_pub_DownsampleCloud, downsampled_cloud_ptr);
+    }
+    else downsampled_cloud_ptr = current_sensor_cloud_ptr;
+
+    sensor_msgs::PointCloud2 cloud_msg;
+    pcl::toROSMsg(*downsampled_cloud_ptr, cloud_msg);
+    cloud_msg.header = _velodyne_header;
+
+    
+    eclipse = ros::Time::now() - timer;
+    detection_time_.downsample = eclipse.toSec();
+    timer = ros::Time::now();
+    
+
+    geometry_msgs::TransformStamped transformStamped;
+	  sensor_msgs::PointCloud2::Ptr transformed_cloud(new sensor_msgs::PointCloud2);
+	  try{
+	  	transformStamped = m_tfBuffer.lookupTransform("map", "velodyne", ros::Time(0));
+	  	tf2::doTransform(cloud_msg, *transformed_cloud, transformStamped);
+	  }
+	  catch (tf2::TransformException &ex) {
+	  	ROS_WARN("%s", ex.what());
+	  	ros::Duration(1.0).sleep();
+	  }
+    
+    // PublishCloud(&_pub_check, transformed_cloud);
+    _pub_check.publish(transformed_cloud);
+
+    eclipse = ros::Time::now() - timer;
+    detection_time_.transform = eclipse.toSec();
+    timer = ros::Time::now();
+
+
+
+
+    _velodyne_header.frame_id = "map";
+
+
+
+    
     // Ground Removal 
     // Choose 1. Rayground 2. Ransac 3. No filtering
     if (_remove_ground_rayGroundFilter){
@@ -189,7 +256,7 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     }
     else if (_remove_ground_ransac){
         // pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
-        pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
+        pcl::fromROSMsg(*transformed_cloud, *current_sensor_cloud_ptr);
         // if(!PassThrough(current_sensor_cloud_ptr, passThrough_cloud_ptr)) ROS_ERROR_STREAM("Fail to passthrough poincloud");
         // if(!RemoveFloorRansac(current_sensor_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
         if(!RemoveFloorRansac(current_sensor_cloud_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle)) ROS_ERROR_STREAM("Fail to remove floor");
@@ -198,7 +265,7 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     }   
     else{
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
-        nofloor_cloud_ptr = current_sensor_cloud_ptr;
+        nofloor_cloud_ptr = downsampled_cloud_ptr;
     }
 
     eclipse = ros::Time::now() - timer;
@@ -209,19 +276,16 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
 
     // Remove pointcloud within Threshold
     pcl::PointCloud<pcl::PointXYZ>::Ptr threshold_removed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    // ThresholdRemoveCloud(nofloor_cloud_ptr, threshold_removed_cloud_ptr); 
+    ThresholdRemoveCloud(nofloor_cloud_ptr, threshold_removed_cloud_ptr); 
 
-    eclipse = ros::Time::now() - timer;
-    detection_time_.threshold = eclipse.toSec();
-    timer = ros::Time::now();
-    
+       
     // Downsampling
-    pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    if (_downsample_cloud){
-        if (!DownsampleCloud(threshold_removed_cloud_ptr, downsampled_cloud_ptr, _leaf_size)) ROS_ERROR_STREAM("Fail to downsampling");
-        PublishCloud(&_pub_DownsampleCloud, downsampled_cloud_ptr);
-    }
-    else downsampled_cloud_ptr = threshold_removed_cloud_ptr; 
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    // if (_downsample_cloud){
+    //     if (!DownsampleCloud(threshold_removed_cloud_ptr, downsampled_cloud_ptr, _leaf_size)) ROS_ERROR_STREAM("Fail to downsampling");
+    //     PublishCloud(&_pub_DownsampleCloud, downsampled_cloud_ptr);
+    // }
+    // else downsampled_cloud_ptr = threshold_removed_cloud_ptr; 
 
     eclipse = ros::Time::now() - timer;
     detection_time_.downsample = eclipse.toSec();
@@ -229,17 +293,17 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     
     if(_use_diffnormals) 
     {
-      if(!DifferenceNormalsSegmentation(downsampled_cloud_ptr, diffnormals_cloud_ptr)) ROS_ERROR_STREAM("Fail to calculate difference normlas");
+      if(!DifferenceNormalsSegmentation(threshold_removed_cloud_ptr, diffnormals_cloud_ptr)) ROS_ERROR_STREAM("Fail to calculate difference normlas");
       PublishCloud(&_pub_DoNSegmentation, diffnormals_cloud_ptr);
     }
-    else diffnormals_cloud_ptr = downsampled_cloud_ptr;
+    else diffnormals_cloud_ptr = threshold_removed_cloud_ptr;
 
     eclipse = ros::Time::now() - timer;
     detection_time_.normal_segmentation = eclipse.toSec();
     timer = ros::Time::now();
     
     // *out_cloud_ptr = *diffnormals_cloud_ptr;
-    *out_cloud_ptr = *nofloor_cloud_ptr;
+    *out_cloud_ptr = *diffnormals_cloud_ptr;
 
     return true;
 }
@@ -266,12 +330,17 @@ bool EuclideanClustering::ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointX
     pcl::PointCloud<pcl::PointXYZ>::Ptr removed_points_cloud_upto_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr removed_points_cloud_outside_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr removed_points_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    if (_remove_points_upto > 0.0){
-        if (!RemovePointsUpTo(in_cloud_ptr, removed_points_cloud_upto_ptr, _remove_points_upto)) ROS_ERROR_STREAM("Fail Convert Message to PointCloud");
-        if (!RemovePointsOutside(removed_points_cloud_upto_ptr, removed_points_cloud_outside_ptr, _remove_points_outside));
-        PublishCloud(&_pub_RemovePointsUpTo, removed_points_cloud_outside_ptr);
+    if (_remove_points_upto){
+        if (!RemovePointsUpTo(in_cloud_ptr, removed_points_cloud_upto_ptr, _in_distance)) ROS_ERROR_STREAM("Fail to remove inside PointCloud");
+        PublishCloud(&_pub_RemovePointsUpTo, removed_points_cloud_upto_ptr);
     }
-    else removed_points_cloud_outside_ptr = in_cloud_ptr;
+    else removed_points_cloud_upto_ptr = in_cloud_ptr;
+
+    if (_remove_points_outside){
+        if (!RemovePointsOutside(removed_points_cloud_upto_ptr, removed_points_cloud_outside_ptr, _out_distance)) ROS_ERROR_STREAM("Fail to remove outside Pointcloud");
+        PublishCloud(&_pub_RemovePointsOutside, removed_points_cloud_outside_ptr);
+    }
+    else removed_points_cloud_outside_ptr = removed_points_cloud_upto_ptr;
 
     // Trim with z axis
     pcl::PointCloud<pcl::PointXYZ>::Ptr clipped_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -279,7 +348,7 @@ bool EuclideanClustering::ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointX
        if (!ClipCloud(removed_points_cloud_outside_ptr, clipped_cloud_ptr, _clip_min_height, _clip_max_height)) ROS_ERROR_STREAM("Fail to clip"); 
        PublishCloud(&_pub_ClipCloud, clipped_cloud_ptr);      
     }
-    else clipped_cloud_ptr = removed_points_cloud_ptr;
+    else clipped_cloud_ptr = removed_points_cloud_outside_ptr;
 
     // Trim with y axis 
     pcl::PointCloud<pcl::PointXYZ>::Ptr inlanes_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -822,6 +891,7 @@ bool EuclideanClustering::PublishDetectedObjects(const uav_msgs::CloudClusterArr
       detected_object.convex_hull = in_clusters.clusters[i].convex_hull;
       detected_object.valid = true; 
       detected_objects.objects.push_back(detected_object);
+
     }
     _pub_detected_objects.publish(detected_objects); 
 

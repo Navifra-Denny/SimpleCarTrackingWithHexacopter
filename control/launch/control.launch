@@ -35,8 +35,8 @@
 	<arg name="z_offset_m" default="3.5" />
 	<arg name="alt_offset_m" default="45.0" />
 	<arg name="target_height_m" default="0.0" />
-	<arg name="detection_tool_lidar" default="false" />
-	<arg name="detection_tool_gps" default="true" />
+	<arg name="detection_tool_lidar" default="true" />
+	<arg name="detection_tool_gps" default="false" />
 	<arg name="detection_tool_airsim" default="false" />
 
 	<!-- tf_broadcaster_node -->
