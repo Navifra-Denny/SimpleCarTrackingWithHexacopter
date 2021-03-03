@@ -244,8 +244,8 @@ void GenerateWaypoints::LTargetVehicleLocalStateCallback(const uav_msgs::TargetS
             ros::Duration(1.0).sleep();
         }
 
-        //auto base_link_steering_rad = m_utils.NormalizedSteeringAngleRad(transformed_pose.position.x, transformed_pose.position.y);
-        auto base_link_steering_rad = m_utils.NormalizedSteeringAngleRad(transformed_pose.position.y);
+        auto base_link_steering_rad = m_utils.NormalizedSteeringAngleRad(transformed_pose.position.x, transformed_pose.position.y);
+        //auto base_link_steering_rad = m_utils.NormalizedSteeringAngleRad(transformed_pose.position.y);
         tf2::Quaternion q;
         q.setRPY(0.0, 0.0, base_link_steering_rad);
         geometry_msgs::Pose base_link_pose;

@@ -1,0 +1,113 @@
+[global_config]
+  suppress_multiple_term_dialog = True
+[keybindings]
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = window0
+      type = Terminal
+    [[[window0]]]
+      parent = ""
+      type = Window
+  [[uav]]
+    [[[child0]]]
+      fullscreen = False
+      last_active_term = c505ed64-d465-4acf-b764-f17dcece6a32
+      last_active_window = True
+      maximised = True
+      order = 0
+      parent = ""
+      position = 67:27
+      size = 1853, 1025
+      title = uav@NUC: ~
+      type = Window
+    [[[child1]]]
+      order = 0
+      parent = child0
+      position = 926
+      ratio = 0.501082251082
+      type = HPaned
+    [[[child10]]]
+      order = 0
+      parent = child9
+      position = 510
+      ratio = 0.5
+      type = VPaned
+    [[[child2]]]
+      order = 0
+      parent = child1
+      position = 510
+      ratio = 0.5
+      type = VPaned
+    [[[child3]]]
+      order = 0
+      parent = child2
+      position = 461
+      ratio = 0.500542888165
+      type = HPaned
+    [[[child6]]]
+      order = 1
+      parent = child2
+      position = 254
+      ratio = 0.5
+      type = VPaned
+    [[[child9]]]
+      order = 1
+      parent = child1
+      position = 460
+      ratio = 0.5
+      type = HPaned
+    [[[terminal1]]]
+      command = "bash -c 'cd ${HOME}/rosbag; $SHELL'"
+      order = 0
+      parent = child3
+      profile = default
+      type = Terminal
+      uuid = 9313fe42-c941-4d08-ab48-f84b2108a7c6
+    [[[terminal2]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash;export ROS_HOSTNAME=192.168.1.12; export ROS_IP=192.168.1.12; export ROS_MASTER_URI=http://192.168.1.12:11311; source ${HOME}/catkin_ws/devel/setup.bash; source ${HOME}/uav_ws/devel/setup.bash; roslaunch tracking KFTracker.launch; $SHELL'"
+      order = 1
+      parent = child3
+      profile = default
+      type = Terminal
+      uuid = c505ed64-d465-4acf-b764-f17dcece6a32
+    [[[terminal3]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash;export ROS_HOSTNAME=192.168.1.12; export ROS_IP=192.168.1.12; export ROS_MASTER_URI=http://192.168.1.12:11311; source ${HOME}/catkin_ws/devel/setup.bash; source ${HOME}/uav_ws/devel/setup.bash; rosrun control char_pub_node; $SHELL'"
+      order = 0
+      parent = child6
+      profile = default
+      type = Terminal
+      uuid = 12816c9a-c2df-40fc-9fe5-7444e36398b4
+    [[[terminal4]]]
+      command = ""
+      order = 1
+      parent = child6
+      profile = default
+      type = Terminal
+      uuid = 01b3fdcb-92b0-426e-bbe7-3e548d5717d5
+    [[[terminal5]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash;export ROS_HOSTNAME=192.168.1.12; export ROS_IP=192.168.1.12; export ROS_MASTER_URI=http://192.168.1.12:11311; source ${HOME}/catkin_ws/devel/setup.bash; roslaunch velodyne_pointcloud VLP16_points.launch; $SHELL'"
+      order = 0
+      parent = child10
+      profile = default
+      type = Terminal
+      uuid = 99c24e65-d9e4-4917-b15e-e5cafec770bd
+    [[[terminal6]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash;export ROS_HOSTNAME=192.168.1.12; export ROS_IP=192.168.1.12; export ROS_MASTER_URI=http://192.168.1.12:11311; source ${HOME}/catkin_ws/devel/setup.bash; source ${HOME}/uav_ws/devel/setup.bash; rosrun tracking targetIdPublisher; $SHELL'"
+      order = 1
+      parent = child10
+      profile = default
+      type = Terminal
+      uuid = 880f0082-becb-4b65-97d2-687721768392
+    [[[terminal7]]]
+      command = "bash -c 'source /opt/ros/melodic/setup.bash;export ROS_HOSTNAME=192.168.1.12; export ROS_IP=192.168.1.12; export ROS_MASTER_URI=http://192.168.1.12:11311; source ${HOME}/catkin_ws/devel/setup.bash; source ${HOME}/uav_ws/devel/setup.bash; rostopic echo /control/checker_node/uav_status; $SHELL'"
+      order = 1
+      parent = child9
+      profile = default
+      type = Terminal
+      uuid = 2ec93b48-6979-41e5-ac17-3e3d6079453b
+[plugins]
+[profiles]
+  [[default]]
+    cursor_color = "#aaaaaa"
+    scrollback_infinite = True

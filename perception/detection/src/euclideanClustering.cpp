@@ -5,7 +5,8 @@
 EuclideanClustering::EuclideanClustering() :
   preprocessed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
   colored_clustered_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>),
-  m_tfListener(m_tfBuffer)
+  m_tfListener(m_tfBuffer),
+  is_publish_(true)
 // : current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), removed_points_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
 //   downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), inlanes_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
 //   nofloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
@@ -42,6 +43,7 @@ EuclideanClustering::EuclideanClustering() :
   //  _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
     _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
   //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
+    _sub_chatter = nh.subscribe("/control/char_pub_node/chatter", 10, &EuclideanClustering::ChatterCallback, this);
 
     // getParam();
     getParam();
@@ -193,11 +195,11 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
         
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
         for (auto &p : current_sensor_cloud_ptr->points){
-	  const int MAX_TH = 20.0;
-	  const int MIN_TH = -20.0;
+          const int MAX_TH = 10.0;
+          const int MIN_TH = -10.0;
           if ((p.y < MAX_TH && p.y > MIN_TH) &&
           (p.z < MAX_TH && p.z > MIN_TH) &&
-          (p.x < MAX_TH && p.x > MIN_TH)){
+          (p.x < 20.0 && p.x > -20.0)){
             cloud_ptr->points.push_back(p);
           }
         }
@@ -893,7 +895,7 @@ bool EuclideanClustering::PublishDetectedObjects(const uav_msgs::CloudClusterArr
       detected_objects.objects.push_back(detected_object);
 
     }
-    _pub_detected_objects.publish(detected_objects); 
+    if (is_publish_) _pub_detected_objects.publish(detected_objects); 
 
     return true;
 }
@@ -985,4 +987,10 @@ void EuclideanClustering::DownsamplePoints(const Mat& src, Mat& dst, size_t coun
         minMaxLoc(minDists, 0, &maxVal, 0, &maxLoc, candidatePointsMask);
         dst.at<Point3_<uchar> >((int)i) = src.at<Point3_<uchar> >(maxLoc.x);
     }
+}
+
+void EuclideanClustering::ChatterCallback(const uav_msgs::Chat::ConstPtr &chat_ptr)
+{
+    if (chat_ptr->msg == "d") is_publish_ = true;
+    else if (chat_ptr->msg == "m") is_publish_ = false;
 }
