@@ -159,7 +159,6 @@ void GenerateWaypoints::GenerateWaypointsTimerCallback(const ros::TimerEvent& ev
 
             if (IsDetected(target_vehicle, is_selected_tool)){
                 AddPoseToTrajectory(target_vehicle.local_trajectory, target_vehicle.local);
-                
                 if (m_detection_tool_gps_param){
                     if (IsGlobalToLocal()){
                         AddTargetWaypoint(m_target_wp, target_vehicle.local, target_vehicle.velocity);
@@ -438,10 +437,11 @@ bool GenerateWaypoints::AddTargetWaypoint(uav_msgs::TargetWaypoints &target_wp, 
 
     geometry_msgs::Pose target_pose = GenTargetWaypoint(curr_pose, target_vel);
     
-    if(IsValid(target_wp.local.poses, target_pose.position)){
+    if(IsValid(target_wp.local.poses, target_pose.position) || m_is_heading_changed){
+        m_is_heading_changed = false;
+
         target_wp.local.header.stamp = ros::Time::now();
         target_wp.local.poses.push_back(target_pose);
-        
         double coef_vel = 1.5;
         target_vel.linear.x *= coef_vel;
         target_vel.linear.y *= coef_vel;
@@ -488,7 +488,6 @@ geometry_msgs::Pose GenerateWaypoints::GenTargetWaypoint(geometry_msgs::Pose &po
         //m_target_orientation = target_pose.orientation;
     }
     m_is_offset_changed = false;
-    m_is_heading_changed = false;
 
     return target_pose;
 }
