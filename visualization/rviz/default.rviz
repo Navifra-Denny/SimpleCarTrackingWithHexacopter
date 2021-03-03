@@ -32,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: PointCloud2
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -555,7 +555,10 @@ Visualization Manager:
               Marker Topic: /tracking/objects_markers
               Name: TrackingMarker
               Namespaces:
-                {}
+                /tracking/box_markers: true
+                /tracking/centroid_markers: true
+                /tracking/hull_markers: true
+                /tracking/label_markers: true
               Queue Size: 100
               Value: true
             - Class: rviz/Axes
@@ -625,6 +628,7 @@ Visualization Manager:
             ego/orientation: true
             ego/trajectory: true
             ego/txt: true
+            waypoints/trajectory: true
           Queue Size: 100
           Value: true
       Enabled: true
@@ -686,26 +690,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 6.841245651245117
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: -0.6636368036270142
-        Y: 0.5563942193984985
-        Z: 0
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.25039875507354736
+      Scale: 81.14012145996094
       Target Frame: base_link
-      Value: XYOrbit (rviz)
-      Yaw: 1.400397539138794
+      Value: TopDownOrtho (rviz)
+      X: 0
+      Y: 0
     Saved: ~
 Window Geometry:
   Displays:

@@ -286,6 +286,10 @@ double Utils::NormalizedSteeringAngleRad(double x, double y)
     const double MAX_Y = 3.0;
     const double MIN_Y = -3.0;
 
+    const double MIN_X = 1.5;
+
+    if (x < MIN_X) x = MIN_X;
+
     if (y > MAX_Y) y = MAX_Y;
     else if (y < MIN_Y) y = MIN_Y;
 
