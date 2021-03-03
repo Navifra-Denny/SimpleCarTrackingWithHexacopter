@@ -193,9 +193,11 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
         
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
         for (auto &p : current_sensor_cloud_ptr->points){
-          if ((p.y < 15.0 && p.y > -15.0) &&
-          (p.z < 15.0 && p.z > -15.0) &&
-          (p.x < 15.0 && p.x > -15.0)){
+	  const int MAX_TH = 20.0;
+	  const int MIN_TH = -20.0;
+          if ((p.y < MAX_TH && p.y > MIN_TH) &&
+          (p.z < MAX_TH && p.z > MIN_TH) &&
+          (p.x < MAX_TH && p.x > MIN_TH)){
             cloud_ptr->points.push_back(p);
           }
         }
