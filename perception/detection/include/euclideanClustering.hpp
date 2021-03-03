@@ -11,6 +11,8 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <pcl/filters/passthrough.h>
+
 #include "uav_msgs/DetectionTime.h"
 
 using namespace cv;
@@ -36,8 +38,10 @@ private:
     ros::Publisher _pub_clusters_message;
     ros::Publisher _pub_noground_cloud;
     ros::Publisher _pub_detected_objects;
+    ros::Publisher _pub_RemovePointsOutside;
 
     // Check Publisher
+    ros::Publisher _pub_TransformedPoints;
     ros::Publisher _pub_RemovePointsUpTo;
     ros::Publisher _pub_DownsampleCloud;
     ros::Publisher _pub_ClipCloud;
@@ -56,35 +60,44 @@ private:
 
     // Param
     std::string ros_namespace_;   
-    bool _remove_ground_ransac;
-    bool _remove_ground_rayGroundFilter;
-    bool _downsample_cloud;
-    double _leaf_size;
+    std::string _lidar_frame_id;
+    std::string _output_frame;
+    
+    // Clustering Param
     int _cluster_size_min;
     int _cluster_size_max;
-    bool _use_diffnormals;
+    double _clustering_distance;
+    double _cluster_merge_threshold;
     bool _pose_estimation;
-    bool _keep_lanes;
-    double _keep_lane_left_distance;
-    double _keep_lane_right_distance;
+    bool _use_gpu;
+    bool _use_multiple_thres;
+   
+    // Remove points upto
+    bool _remove_points_upto;
+    double _in_distance;
+
+    // Remove points outside
+    bool _remove_points_outside;
+    double _out_distance;
+
+    // ClipCloud Param
     bool _ClipCloud;
     double _clip_min_height;
     double _clip_max_height;
-    double _remove_points_upto;
-    double _clustering_distance;
-    double _cluster_merge_threshold;
-    bool _use_gpu;
-    bool _use_multiple_thres;
-    std::string _output_frame;
-    std::string _lidar_frame_id;
-    float _remove_points_outside;
-   
+
+    // Keep Lanes Param
+    bool _keep_lanes;
+    double _keep_lane_left_distance;
+    double _keep_lane_right_distance;
+    
     // Ransac Param
+    bool _remove_ground_ransac;
     float _in_max_height;
     float _in_floor_max_angle;
     int _max_iterations;    
 
     // Ray Ground Param
+    bool _remove_ground_rayGroundFilter;
     double _general_max_slope;
     double _local_max_slope;
     double _radial_divider_angle;
@@ -95,7 +108,14 @@ private:
     double _reclass_distance_threshold;
     double _sensor_height;
     
-  
+    // Downsample Param
+    bool _downsample_cloud;
+    double _leaf_size;
+    
+    // Diffnormals Param
+    bool _use_diffnormals;
+
+
     std::string str_distances;
     std::string str_ranges;
 
@@ -141,7 +161,6 @@ private:
     /************************************/
     //          Preprocessing           //          
     /************************************/
-
     bool PreprocessCloud(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
 
     bool ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
@@ -154,7 +173,6 @@ private:
     bool RemoveFloorRansac(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_nofloor_cloud_ptr,
                      pcl::PointCloud<pcl::PointXYZ>::Ptr out_onlyfloor_cloud_ptr, float in_max_height = 0.2, float in_floor_max_angle = 0.1);
     bool DifferenceNormalsSegmentation(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
-    bool PassThrough(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr);
 
 
     /************************************/
