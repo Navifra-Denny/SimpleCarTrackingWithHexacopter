@@ -44,7 +44,7 @@
     <!-- Ransac Parameter -->
     <arg name="remove_ground_ransac" default="true" />
     <arg name="in_max_height" default="0.4" />
-    <arg name="in_floor_max_angle" default="0.2" />
+    <arg name="in_floor_max_angle" default="0.1" />
     <arg name="max_iterations" default="100" />
     
 
