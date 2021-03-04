@@ -158,7 +158,7 @@ private: // function
     geographic_msgs::GeoPoseStamped GenTargetWaypoint(geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped);
 
     void Publish();
-    bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position);
+    bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position, bool is_waypoint=false);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses);
