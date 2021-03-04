@@ -1,0 +1,8 @@
+bool is_global
+
+geometry_msgs/PoseStamped local_posestamped
+geographic_msgs/GeoPoseStamped global_posestamped
+geometry_msgs/Twist velocity
+
+geometry_msgs/PoseArray local_trajectory
+geographic_msgs/GeoPath global_trajectory

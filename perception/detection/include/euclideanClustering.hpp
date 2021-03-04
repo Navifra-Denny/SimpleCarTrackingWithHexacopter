@@ -14,6 +14,7 @@
 #include <pcl/filters/passthrough.h>
 
 #include "uav_msgs/DetectionTime.h"
+#include "uav_msgs/Chat.h"
 
 using namespace cv;
 
@@ -30,6 +31,7 @@ private:
 
     // Subscriber
     ros::Subscriber _sub_velodyne;
+    ros::Subscriber _sub_chatter;
 
     // Publisher
     ros::Publisher _pub_cluster_cloud;
@@ -151,6 +153,8 @@ private:
     // Generate colors
     std::vector<cv::Scalar> _colors;
 
+    bool is_publish_;
+
 private: 
     
     /************************************/
@@ -214,6 +218,7 @@ private:
     void getParam();
     void GenerateColors(std::vector<Scalar>& colors, size_t count, size_t factor = 100);
     void DownsamplePoints(const Mat& src, Mat& dst, size_t count);
+    void ChatterCallback(const uav_msgs::Chat::ConstPtr &chat_ptr);
 
 };
 

@@ -68,8 +68,8 @@ target_link_libraries(visualize_control_node ${catkin_LIBRARIES})
 add_executable(checker_node src/checker_node.cpp)
 target_link_libraries(checker_node ${catkin_LIBRARIES})
 
-add_executable(evaluation_node src/evaluation_node.cpp src/utils.cpp)
-target_link_libraries(evaluation_node ${catkin_LIBRARIES})
+# add_executable(evaluation_node src/evaluation_node.cpp src/utils.cpp)
+# target_link_libraries(evaluation_node ${catkin_LIBRARIES})
 
 add_executable(char_pub_node src/char_pub_node.cpp)
 target_link_libraries(char_pub_node ${catkin_LIBRARIES})

@@ -1,0 +1,15 @@
+<launch>
+	<!-- common -->
+	<arg name="output" default="screen"/>
+
+	<!-- generate_waypoints_node -->
+	<arg name="ugv_name" default="GV" />
+	<arg name="uav_name" default="PX4" />
+
+	<!-- visualize_control_node -->
+
+	<node pkg="control" type="visualize_control_node" name="visualize_control_node" output="$(arg output)" >
+		<param name="ugv_name" value="$(arg ugv_name)" />
+		<param name="uav_name" value="$(arg uav_name)" />
+	</node>
+</launch>

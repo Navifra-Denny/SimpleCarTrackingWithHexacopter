@@ -11,7 +11,8 @@
 #include <sstream>
 #include <iostream>
 #include <string.h>
-#include "uav_msgs/Offset.h"
+
+#include "uav_msgs/Chat.h"
 
 bool IsNum(const std::string& str) {
     size_t size = str.size();
@@ -23,7 +24,17 @@ bool IsNum(const std::string& str) {
         if (c < '0' || c > '9') return false;
     }
 
-    return true; // 그밖의 경우는 숫자임
+    return true;
+}
+
+bool IsTool(const std::string& str){
+    if((str.compare("airsim") == 0) || 
+        (str.compare("lidar") == 0) ||
+        (str.compare("gps") == 0))
+    {
+        return true;
+    }
+    return false;
 }
 
 int main(int argc, char ** argv)
@@ -31,8 +42,9 @@ int main(int argc, char ** argv)
     ros::init(argc, argv, "char_pub_node");
     ros::NodeHandle nh;
 
-    ros::Publisher char_pub = nh.advertise<std_msgs::String>("/control/char_pub_node/chatter", 1000);
-    ros::Publisher offset_pub = nh.advertise<uav_msgs::Offset>("/control/char_pub_node/offset", 1000);
+    // package, node, topic name
+    std::string node_name_with_namespace = ros::this_node::getName();
+    ros::Publisher char_pub = nh.advertise<uav_msgs::Chat>("/control/char_pub_node/chatter", 1000);
 
     ros::Rate loop_rate(10);
 
@@ -44,32 +56,55 @@ int main(int argc, char ** argv)
             ROS_INFO_STREAM("/********************************************/");
             ROS_INFO_STREAM("/** command: offboard|manual|set_origin|   **/");
             ROS_INFO_STREAM("/**          global|local|global_z|local_z **/");
-            ROS_INFO_STREAM("/**          debugging|rc                  **/");
+            ROS_INFO_STREAM("/**          debugging|rc|tool             **/");
             ROS_INFO_STREAM("/********************************************/");
         }
 
         std::string inputString;
         std::cout << "[command] ";
         std::getline(std::cin, inputString);
-        std_msgs::String msg;
+        uav_msgs::Chat chat;
 
-
+        bool is_error = true;
         if((inputString.compare("offboard") == 0) || 
             (inputString.compare("manual") == 0) ||
             (inputString.compare("set_origin") == 0) ||
             (inputString.compare("global") == 0) ||
             (inputString.compare("local") == 0) ||
             (inputString.compare("debugging") == 0) ||
+            (inputString.compare("d") == 0) || 
+            (inputString.compare("m") == 0) ||
             (inputString.compare("rc") == 0))
         {
             std::cout << ("[input] " + inputString) << std::endl;
-            msg.data = inputString;
-            char_pub.publish(msg);
+            chat.msg = inputString;
+
+            char_pub.publish(chat);
+        }
+        else if(inputString.compare("tool") == 0)
+        {
+            while (is_error){                    
+                std::string inputToolString;
+                std::cout << "[tool] ";
+                std::getline(std::cin, inputToolString);
+
+                if (IsTool(inputToolString)){
+                    std::cout << "[input] tool: " + inputToolString << std::endl;
+                    chat.msg = inputString;
+                    chat.tool = inputToolString;
+
+                    char_pub.publish(chat);
+                    is_error = false;
+                }
+                else {
+                    ROS_ERROR_STREAM("Please input tool (airsim, lidar or gps");
+                    is_error = true;
+                }
+            }
         }
         else if((inputString.compare("global_z") == 0) || 
                 (inputString.compare("local_z") == 0))
         {
-            bool is_error = true;
             while (is_error){                    
                 std::string inputNumString;
                 std::cout << "[value] ";
@@ -78,26 +113,21 @@ int main(int argc, char ** argv)
                 if (IsNum(inputNumString)){
                     float height = stof(inputNumString);
 
-                    uav_msgs::Offset offset;
                     geographic_msgs::GeoPoint geopoint;
                     geometry_msgs::Point point;
-                    bool is_global;
                     if ((inputString.compare("global_z") == 0)){
                         std::cout << ("[input] global altitude offset: " + inputNumString) << std::endl;
-                        is_global = true;
                         geopoint.altitude = height;
                     }
                     else {
                         std::cout << ("[input] local z offset: " + inputNumString) << std::endl;
-                        is_global = false;
                         point.z = height;
                     }
-                    
-                    offset.is_global = is_global;
-                    offset.geopoint = geopoint;
-                    offset.point = point;
+                    chat.msg = inputString;
+                    chat.geopoint = geopoint;
+                    chat.point = point;
 
-                    offset_pub.publish(offset);
+                    char_pub.publish(chat);
                     is_error = false;
                 }
                 else {

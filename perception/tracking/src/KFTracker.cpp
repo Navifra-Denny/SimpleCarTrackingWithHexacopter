@@ -257,12 +257,12 @@ void KFTracker::secondInit(KF& target, const std::vector<uav_msgs::DetectedObjec
     Vector start_vec(target.init_meas_(0), target.init_meas_(1));
     Vector dest_vec(target_x, target_y);
 
-    std::cerr << "dest_vec : " << target_x << ", " << target_y << std::endl;
-    std::cerr << "start_vec : " << start_vec.x_ << ", " << start_vec.y_ << std::endl;
+//    std::cerr << "dest_vec : " << target_x << ", " << target_y << std::endl;
+//    std::cerr << "start_vec : " << start_vec.x_ << ", " << start_vec.y_ << std::endl;
 
     target.ego_vec_ = target.VectorSubtractVector(dest_vec, start_vec);  // 차량 이전 frame와 현재 frame의 위치 벡터
 
-    std::cerr << "상대 벡터 : " << target.ego_vec_.x_ << ", " << target.ego_vec_.y_ << std::endl;
+    //std::cerr << "상대 벡터 : " << target.ego_vec_.x_ << ", " << target.ego_vec_.y_ << std::endl;
 
     target.vel_ = target_v;
     target.yaw_ = target_yaw;

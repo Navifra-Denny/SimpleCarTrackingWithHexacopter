@@ -8,7 +8,7 @@ TfBroadcaster::TfBroadcaster() :
 {
     InitFlag();
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
-    InitRos();
+    InitROS();
     InitStaticTf();
 
     m_ego_vehicle_attitude.r = 0.0;
@@ -34,8 +34,11 @@ bool TfBroadcaster::GetParam()
     return true;
 }
 
-void TfBroadcaster::InitRos()
+void TfBroadcaster::InitROS()
 {
+    // package, node, topic name
+    std::string node_name_with_namespace = ros::this_node::getName();
+    
     // Initialize subscriber
     m_novatel_sub = m_nh.subscribe<novatel_oem7_msgs::INSPVA>("/novatel/oem7/inspva", 10, boost::bind(&TfBroadcaster::NovatelINSPVACallback, this, _1));
     m_ego_vehicle_local_pose_sub = m_nh.subscribe<geometry_msgs::PoseStamped>("/mavros/local_position/pose", 10, boost::bind(&TfBroadcaster::EgoVehicleLocalPositionCallback, this, _1));
@@ -50,7 +53,7 @@ void TfBroadcaster::InitRos()
         }
     }
     // Initialize publisher
-    m_home_position_pub = m_nh.advertise<geographic_msgs::GeoPoint>("/control/tf_broadcaster_node/home", 1);
+    m_home_position_pub = m_nh.advertise<geographic_msgs::GeoPoint>(node_name_with_namespace + "/home", 1);
 
     // Time callback
     m_home_position_timer = m_nh.createTimer(ros::Duration(2.0), &TfBroadcaster::HomePositionTimerCallback, this);
@@ -150,7 +153,7 @@ void TfBroadcaster::EgoVehicleLocalPositionCallback(const geometry_msgs::PoseSta
     // Get offset
     lidar_tf_stamped.transform.translation.x = 0.0;
     lidar_tf_stamped.transform.translation.y = 0.0;
-    lidar_tf_stamped.transform.translation.z = -0.5;
+    lidar_tf_stamped.transform.translation.z = -0.25;
     
     tf2::Quaternion q;
     q.setRPY(0.0, M_PI/2.0, M_PI/2.0);

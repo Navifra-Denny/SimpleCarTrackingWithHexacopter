@@ -1,0 +1,46 @@
+<launch>
+    <param name="use_sim_time" value="true" />
+
+    <!--visualization parameter-->
+    <arg name="objects_markers_topic" default="/objects_markers" />
+    <arg name="objects_topic" default="/objects" />
+    <arg name="object_speed_threshold" default="0.1" />
+    <arg name="arrow_speed_threshold" default="0.25" />
+    <arg name="marker_display_duration" default="0.2" />
+    <arg name="label_color" default="{255.,255.,255.,1.0}" />
+    <arg name="arrow_color" default="{0.,255.,0.,0.8}" />
+    <arg name="hull_color" default="{51.,204.,51.,0.8}" />
+    <arg name="box_color" default="{51.,128.,204.,0.8}" />
+    <arg name="centroid_color" default="{77.,121.,255.,0.8}" />
+
+	<!-- visualize_perception_node -->
+    <group ns="tracking">
+        <node pkg="visualization" type="visualize_perception_node" name="visualize_perception_node" output="screen">
+            <param name="objects_markers_topic" value="$(arg objects_markers_topic)"/>
+            <param name="objects_topic" value="$(arg objects_topic)"/>
+            <param name="object_speed_threshold" value="$(arg object_speed_threshold)"/>
+            <param name="arrow_speed_threshold" value="$(arg arrow_speed_threshold)"/>
+            <param name="marker_display_duration" value="$(arg marker_display_duration)"/>
+            <param name="label_color" value="$(arg label_color)"/>
+            <param name="arrow_color" value="$(arg arrow_color)"/>
+            <param name="hull_color" value="$(arg hull_color)"/>
+            <param name="box_color" value="$(arg box_color)"/>
+            <param name="centroid_color" value="$(arg centroid_color)"/>
+        </node>
+    </group>
+	<!-- visualize_perception_node -->
+    <group ns="dection">
+        <node pkg="visualization" type="visualize_perception_node" name="visualize_perception_node" output="screen">
+            <param name="objects_markers_topic" value="$(arg objects_markers_topic)"/>
+            <param name="objects_topic" value="$(arg objects_topic)"/>
+            <param name="object_speed_threshold" value="$(arg object_speed_threshold)"/>
+            <param name="arrow_speed_threshold" value="$(arg arrow_speed_threshold)"/>
+            <param name="marker_display_duration" value="$(arg marker_display_duration)"/>
+            <param name="label_color" value="$(arg label_color)"/>
+            <param name="arrow_color" value="$(arg arrow_color)"/>
+            <param name="hull_color" value="$(arg hull_color)"/>
+            <param name="box_color" value="$(arg box_color)"/>
+            <param name="centroid_color" value="$(arg centroid_color)"/>
+        </node>
+    </group>
+</launch>

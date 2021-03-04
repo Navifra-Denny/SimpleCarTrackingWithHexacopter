@@ -177,7 +177,7 @@ void KF::updateMotion(const std::vector<uav_msgs::DetectedObject>& object_vec)
     double target_diff_y = target_y - init_meas_(1);
     double target_yaw = atan2(target_diff_y, target_diff_x);
 
-    ROS_WARN("estimated yaw based on post state [%f]", target_yaw);
+    //ROS_WARN("estimated yaw based on post state [%f]", target_yaw);
 }
 
 Vector KF::VectorSubtractVector(Vector dest, Vector start)

@@ -1,5 +1,4 @@
 #include "control/mavros_offb.h"
-#include "uav_msgs/TargetWPState.h"
 
 namespace mavros {
     
@@ -10,7 +9,7 @@ Offboard::Offboard() :
 {
     InitFlag();
     if (!GetParam()) ROS_ERROR_STREAM("Fail GetParam");
-    InitRos();
+    InitROS();
     InitClient();
 
     m_local_setpoint.header.frame_id = "map";
@@ -40,23 +39,27 @@ bool Offboard::GetParam()
     return true;
 }
 
-bool Offboard::InitRos()
+bool Offboard::InitROS()
 {
+    // package, node, topic name
+    std::string node_name_with_namespace = ros::this_node::getName();
+
     // Initialize subscriber
-    m_state_sub = m_nh.subscribe<mavros_msgs::State>("mavros/state", 10, boost::bind(&Offboard::StatusCallback, this, _1));
-    m_target_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWP>
+    m_state_sub = m_nh.subscribe<mavros_msgs::State>("/mavros/state", 10, boost::bind(&Offboard::StatusCallback, this, _1));
+    m_target_waypoints_sub = m_nh.subscribe<uav_msgs::TargetWaypoints>
             ("/control/generate_waypoints_node/target_waypoints", 10, boost::bind(&Offboard::TargetWaypointsCallback, this, _1));
     m_chatter_sub = 
-        m_nh.subscribe<std_msgs::String>("/control/char_pub_node/chatter", 10, boost::bind(&Offboard::ChatterCallback, this, _1));
+        m_nh.subscribe<uav_msgs::Chat>("/control/char_pub_node/chatter", 10, boost::bind(&Offboard::ChatterCallback, this, _1));
 
     // Initialize publisher
-    m_local_pose_pub = m_nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
-    m_global_pose_pub = m_nh.advertise<geographic_msgs::GeoPoseStamped>("mavros/setpoint_position/global", 10);
-    m_velocity_pub = m_nh.advertise<geometry_msgs::Twist>("mavros/setpoint_velocity/cmd_vel_unstamped", 10);
+    m_local_pose_pub = m_nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 10);
+    m_global_pose_pub = m_nh.advertise<geographic_msgs::GeoPoseStamped>("/mavros/setpoint_position/global", 10);
+    m_velocity_pub = m_nh.advertise<geometry_msgs::Twist>("/mavros/setpoint_velocity/cmd_vel_unstamped", 10);
+    m_offboard_state_pub = m_nh.advertise<uav_msgs::OffboardState>(node_name_with_namespace + "/offboard_state", 1000);
 
     // Initialize service client
-    m_arming_serv_client = m_nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
-    m_set_mode_serv_client = m_nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+    m_arming_serv_client = m_nh.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
+    m_set_mode_serv_client = m_nh.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     
     // Time callback
     m_timer = m_nh.createTimer(ros::Duration(m_setpoint_pub_interval_param), &Offboard::OffboardTimeCallback, this);
@@ -96,7 +99,7 @@ void Offboard::OffboardTimeCallback(const ros::TimerEvent& event)
         else {
         }
     }
-    PublishSetpoint();
+    Publish();
 }
 
 void Offboard::StatusCallback(const mavros_msgs::State::ConstPtr &state_ptr)
@@ -104,11 +107,9 @@ void Offboard::StatusCallback(const mavros_msgs::State::ConstPtr &state_ptr)
     m_current_status = *state_ptr;
 }
 
-void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &target_wp_ptr)
+void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr &target_wp_ptr)
 {
-    uav_msgs::TargetWPState target_wp_state = target_wp_ptr->state;
-
-    m_is_global = target_wp_state.is_global;
+    m_is_global = target_wp_ptr->is_global;
     if (m_is_global){
         geographic_msgs::GeoPath waypoints = target_wp_ptr->global;
         if (waypoints.poses.size() < 1){
@@ -164,18 +165,18 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWP::ConstPtr &targe
     }
 }
 
-void Offboard::ChatterCallback(const std_msgs::String::ConstPtr &string_ptr)
+void Offboard::ChatterCallback(const uav_msgs::Chat::ConstPtr &chat_ptr)
 {
-    if (string_ptr->data == "offboard") {
+    if (chat_ptr->msg == "offboard") {
         m_debugging_msg = "OFFBOARD";
         m_current_status.mode = "OFFBOARD";
     }
-    else if (string_ptr->data == "manual"){
+    else if (chat_ptr->msg == "manual"){
         m_debugging_msg = "MANUAL";
         m_current_status.mode = "MANUAL";
     }
-    else if (string_ptr->data == "debugging") m_is_debugging = true;
-    else if (string_ptr->data == "rc") m_is_debugging = false;
+    else if (chat_ptr->msg == "debugging") m_is_debugging = true;
+    else if (chat_ptr->msg == "rc") m_is_debugging = false;
 }
 
 void Offboard::OffboardReConnection()
@@ -205,10 +206,15 @@ void Offboard::OffboardReConnection()
     }
 }
 
-void Offboard::PublishSetpoint()
+void Offboard::Publish()
 {
     if (m_is_global) m_global_pose_pub.publish(m_global_setpoint);
     else if (!m_is_global) m_local_pose_pub.publish(m_local_setpoint);
     m_velocity_pub.publish(m_vel_setpoint);
+
+    uav_msgs::OffboardState offboard_state_msg;
+    offboard_state_msg.px4_mode = m_current_status.mode;
+    offboard_state_msg.is_debug_mode = m_is_debugging;
+    m_offboard_state_pub.publish(offboard_state_msg);
 }
 }
