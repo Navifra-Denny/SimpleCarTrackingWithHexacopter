@@ -5,8 +5,7 @@
 EuclideanClustering::EuclideanClustering() :
   preprocessed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
   colored_clustered_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>),
-  m_tfListener(m_tfBuffer),
-  is_publish_(true)
+  m_tfListener(m_tfBuffer)
 // : current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), removed_points_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
 //   downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), inlanes_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
 //   nofloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>), onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>),
@@ -43,7 +42,6 @@ EuclideanClustering::EuclideanClustering() :
   //  _sub_velodyne = nh.subscribe("/os1_cloud_node/points", 1, &EuclideanClustering::PointCloudCallback, this);  // TF
     _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
   //  _sub_velodyne = nh.subscribe("/velodyne_points", 1, &EuclideanClustering::PointCloudCallback, this);
-    _sub_chatter = nh.subscribe("/control/char_pub_node/chatter", 10, &EuclideanClustering::ChatterCallback, this);
 
     // getParam();
     getParam();
@@ -173,7 +171,6 @@ void EuclideanClustering::PointCloudCallback(const sensor_msgs::PointCloud2::Con
 
 bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstPtr& in_sensor_cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
 { 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr passThrough_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     sensor_msgs::PointCloud2::Ptr nofloor_cloud_ptr_Rayground(new sensor_msgs::PointCloud2);           // rayground filter 거친 pointcloud ptr
     sensor_msgs::PointCloud2::Ptr onlyfloor_cloud_ptr_Rayground(new sensor_msgs::PointCloud2);  
@@ -188,18 +185,20 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
 
 
     // Downsampling
+    pcl::PointCloud<pcl::PointXYZ>::Ptr current_sensor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr removed_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     if (_downsample_cloud){
         pcl::fromROSMsg(*in_sensor_cloud, *current_sensor_cloud_ptr);
+        RemovePointsWithinROI(current_sensor_cloud_ptr, removed_cloud_ptr, _in_distance);
+        PublishCloud(&_pub_check, removed_cloud_ptr);
 
         
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
-        for (auto &p : current_sensor_cloud_ptr->points){
-          const int MAX_TH = 10.0;
-          const int MIN_TH = -10.0;
-          if ((p.y < MAX_TH && p.y > MIN_TH) &&
-          (p.z < MAX_TH && p.z > MIN_TH) &&
-          (p.x < 20.0 && p.x > -20.0)){
+        for (auto &p : removed_cloud_ptr->points){
+          if ((p.y < 15.0 && p.y > -15.0) &&
+          (p.z < 15.0 && p.z > -15.0) &&
+          (p.x < 15.0 && p.x > -15.0)){
             cloud_ptr->points.push_back(p);
           }
         }
@@ -231,9 +230,6 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
 	  	ros::Duration(1.0).sleep();
 	  }
     
-    // PublishCloud(&_pub_check, transformed_cloud);
-    _pub_check.publish(transformed_cloud);
-
     eclipse = ros::Time::now() - timer;
     detection_time_.transform = eclipse.toSec();
     timer = ros::Time::now();
@@ -310,19 +306,25 @@ bool EuclideanClustering::PreprocessCloud(const sensor_msgs::PointCloud2::ConstP
     return true;
 }
 
-// bool EuclideanClustering::PassThrough(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
-//                                       pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
-// {
-//     pcl::PassThrough<pcl::PointXYZ> pass_filter;
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr ptr_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+bool EuclideanClustering::RemovePointsWithinROI(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
+                                               pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr, const double in_distance)
+{   
+    out_cloud_ptr->points.clear();
+    for (unsigned int i = 0; i < in_cloud_ptr->points.size(); i++)
+    {
+        float origin_distance = sqrt(pow(in_cloud_ptr->points[i].x, 2) + pow(in_cloud_ptr->points[i].y, 2) + pow(in_cloud_ptr->points[i].z, 2));
+        if (origin_distance > in_distance)
+        {
+            out_cloud_ptr->points.push_back(in_cloud_ptr->points[i]);
+        }
+    }
+    
+    if (out_cloud_ptr->points.size() < 1) return false;
+  
+    return true;
 
-//     ptr_filtered = in_cloud_ptr;
-//     PublishCloud(&_pub_check, ptr_filtered);
-//     // pass_filter.setInputCloud(in_cloud_ptr);
+}
 
-//     return true;
-
-// }
 
 bool EuclideanClustering::ThresholdRemoveCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud_ptr, 
                                                pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud_ptr)
@@ -728,6 +730,9 @@ std::vector<ClusterPtr> EuclideanClustering::ClusterAndColor(const pcl::PointClo
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_2d(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::copyPointCloud(*in_cloud_ptr, *cloud_2d);  
    
+    
+
+
     //make it flat
     for (size_t i = 0; i < cloud_2d->points.size(); i++)
     {
@@ -895,7 +900,7 @@ bool EuclideanClustering::PublishDetectedObjects(const uav_msgs::CloudClusterArr
       detected_objects.objects.push_back(detected_object);
 
     }
-    if (is_publish_) _pub_detected_objects.publish(detected_objects); 
+    _pub_detected_objects.publish(detected_objects); 
 
     return true;
 }
@@ -987,10 +992,4 @@ void EuclideanClustering::DownsamplePoints(const Mat& src, Mat& dst, size_t coun
         minMaxLoc(minDists, 0, &maxVal, 0, &maxLoc, candidatePointsMask);
         dst.at<Point3_<uchar> >((int)i) = src.at<Point3_<uchar> >(maxLoc.x);
     }
-}
-
-void EuclideanClustering::ChatterCallback(const uav_msgs::Chat::ConstPtr &chat_ptr)
-{
-    if (chat_ptr->msg == "d") is_publish_ = true;
-    else if (chat_ptr->msg == "m") is_publish_ = false;
 }

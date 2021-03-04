@@ -17,7 +17,7 @@
 
     <!-- Remove points upto -->
     <arg name="remove_points_upto" default="false" /> 
-    <arg name="in_distance" default="2.8" /> 
+    <arg name="in_distance" default="1.0" /> 
 
     <!-- Remove points outside -->
     <arg name="remove_points_outside" default="false" /> 
