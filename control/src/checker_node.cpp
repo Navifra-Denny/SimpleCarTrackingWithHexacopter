@@ -51,7 +51,7 @@ void Checker::InitROS()
     m_gen_wp_state_sub = 
         m_nh.subscribe<uav_msgs::GenerateWaypointState>("/control/generate_waypoints_node/gen_wp_state", 10, boost::bind(&Checker::GenWpStateCallback, this, _1));
     m_offb_state_sub = 
-        m_nh.subscribe<uav_msgs::OffboardState>("/control/mavros_offb_node/offboard_state", 10, boost::bind(&Checker::OffbStateCallback, this, _1));
+        m_nh.subscribe<uav_msgs::OffboardState>("/control/offb_node/offboard_state", 10, boost::bind(&Checker::OffbStateCallback, this, _1));
 
     // Initialize publisher
     m_control_status_pub = m_nh.advertise<uav_msgs::ControlStatus>(node_name_with_namespace + "/uav_status", 10);

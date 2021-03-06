@@ -43,9 +43,9 @@ elif [ "$2" == "gazebo" ]; then
     gazebo="true"
 fi
 
-export PX4_HOME_LAT=37.5448196399
-export PX4_HOME_LON=127.078922483
-export PX4_HOME_ALT=43.4793964783
+export PX4_HOME_LAT=37.544820
+export PX4_HOME_LON=127.078922
+export PX4_HOME_ALT=43.479396
 
 if [ $simulation == "false" ] || [ $airsim == "true" ]; then
     roslaunch control control.launch simulation:="$simulation" airsim:="$airsim" gazebo:="$gazebo" fcu_url:="/dev/ttyACM0:57600"

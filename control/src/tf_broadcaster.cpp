@@ -85,6 +85,13 @@ void TfBroadcaster::HomePositionTimerCallback(const ros::TimerEvent& event)
 {
     if (m_is_home_set){
         m_home_position_pub.publish(m_home_position);
+        
+        if (m_is_finding_home_param){
+            ROS_INFO("---");
+            ROS_INFO("Home latitude: %f", m_home_position.latitude);
+            ROS_INFO("Home longitude: %f", m_home_position.longitude);
+            ROS_INFO("Home altitude: %f", m_home_position.altitude);
+        }
     }
 }
 
@@ -122,6 +129,7 @@ void TfBroadcaster::NovatelINSPVACallback(const novatel_oem7_msgs::INSPVA::Const
         m_home_position.latitude = inspva_msg_ptr->latitude;
         m_home_position.longitude = inspva_msg_ptr->longitude;
         m_home_position.altitude = inspva_msg_ptr->height;
+        ROS_WARN_STREAM("[tf_broadcaster] Home set");
     }
 }
 

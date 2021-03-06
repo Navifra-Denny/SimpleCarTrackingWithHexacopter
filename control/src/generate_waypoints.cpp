@@ -484,7 +484,7 @@ geometry_msgs::Pose GenerateWaypoints::GenTargetWaypoint(geometry_msgs::Pose &po
         target_pose.position.y += x_offset_m * sin(euler.y);
         target_pose.position.z = m_z_offset_m_param;
         
-        //m_target_orientation = target_pose.orientation;
+        m_target_orientation = target_pose.orientation;
     }
 
     return target_pose;

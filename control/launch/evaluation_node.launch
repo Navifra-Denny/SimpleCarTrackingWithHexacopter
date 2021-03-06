@@ -1,8 +1,0 @@
-<launch>
-	<arg name="output" default="screen"/>
-	<arg name="target_height_m" default="1.0" />
-
-	<node pkg="control" type="evaluation_node" name="evaluation_node" output="$(arg output)">
-		<param name="target_height_m" value="$(arg target_height_m)" />
-	</node>
-</launch>

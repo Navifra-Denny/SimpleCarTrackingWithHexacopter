@@ -72,8 +72,8 @@ int main(int argc, char ** argv)
             (inputString.compare("global") == 0) ||
             (inputString.compare("local") == 0) ||
             (inputString.compare("debugging") == 0) ||
-            (inputString.compare("d") == 0) || 
-            (inputString.compare("m") == 0) ||
+            (inputString.compare("es") == 0) ||
+            (inputString.compare("ee") == 0) ||
             (inputString.compare("rc") == 0))
         {
             std::cout << ("[input] " + inputString) << std::endl;
