@@ -1,7 +1,7 @@
 <launch>
 	<arg name="output" default="screen"/>
-	<arg name="is_finding_home" default="false"/>
-	<arg name="target_height_m" default="1.0" />
+	<arg name="is_finding_home" default="true"/>
+	<arg name="target_height_m" default="0.0" />
 
 	<node pkg="control" type="tf_broadcaster_node" name="tf_broadcaster_node" output="$(arg output)">
 		<param name="is_finding_home" value="$(arg is_finding_home)" />

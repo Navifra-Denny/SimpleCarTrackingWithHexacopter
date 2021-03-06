@@ -16,9 +16,6 @@
 	<arg name="detection_tool_gps" default="false" />
 	<arg name="detection_tool_airsim" default="false" />
 
-	<!-- visualize_control_node -->
-	<arg name="uav_name" default="PX4" />
-
 	<node pkg="control" type="generate_waypoints_node" name="generate_waypoints_node" output="$(arg output)">
 		<param name="x_offset_m" value="$(arg x_offset_m)" />
 		<param name="z_offset_m" value="$(arg z_offset_m)" />
@@ -33,10 +30,5 @@
 		<param name="detection_tool_gps" value="$(arg detection_tool_gps)" />
 		<param name="detection_tool_airsim" value="$(arg detection_tool_airsim)" />
 		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
-	</node>
-
-	<node pkg="control" type="visualize_control_node" name="visualize_control_node" output="$(arg output)" >
-		<param name="ugv_name" value="$(arg ugv_name)" />
-		<param name="uav_name" value="$(arg uav_name)" />
 	</node>
 </launch>

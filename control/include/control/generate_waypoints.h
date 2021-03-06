@@ -157,8 +157,7 @@ private: // function
     geometry_msgs::Pose GenTargetWaypoint(geometry_msgs::Pose &curr_pose, geometry_msgs::Twist &target_vel);
     geographic_msgs::GeoPoseStamped GenTargetWaypoint(geographic_msgs::GeoPoseStamped &curr_geo_pose_stamped);
 
-    void Publish();
-    bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position);
+    bool IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position, bool is_waypoint=false);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses, geographic_msgs::GeoPoint curr_position);
     bool IsValid(std::vector<geometry_msgs::Pose> &poses);
     bool IsValid(std::vector<geographic_msgs::GeoPoseStamped> &poses);
@@ -166,6 +165,8 @@ private: // function
     bool IsReached(uav_msgs::TargetWaypoints &wp, geographic_msgs::GeoPoint curr_position);
     bool IsDetected(TargetState& target_state, bool is_selected);
     bool IsGlobalToLocal();
+    
+    void Publish();
 };
 
 #endif // __GENERATE_WAYPOINTS_H__

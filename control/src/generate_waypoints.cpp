@@ -437,9 +437,8 @@ bool GenerateWaypoints::AddTargetWaypoint(uav_msgs::TargetWaypoints &target_wp, 
 
     geometry_msgs::Pose target_pose = GenTargetWaypoint(curr_pose, target_vel);
     
-    if(IsValid(target_wp.local.poses, target_pose.position) || m_is_heading_changed){
-        m_is_heading_changed = false;
-
+    bool is_waypoint_validation = true;
+    if(IsValid(target_wp.local.poses, target_pose.position, is_waypoint_validation)){
         target_wp.local.header.stamp = ros::Time::now();
         target_wp.local.poses.push_back(target_pose);
         double coef_vel = 1.5;
@@ -485,9 +484,8 @@ geometry_msgs::Pose GenerateWaypoints::GenTargetWaypoint(geometry_msgs::Pose &po
         target_pose.position.y += x_offset_m * sin(euler.y);
         target_pose.position.z = m_z_offset_m_param;
         
-        //m_target_orientation = target_pose.orientation;
+        m_target_orientation = target_pose.orientation;
     }
-    m_is_offset_changed = false;
 
     return target_pose;
 }
@@ -567,13 +565,23 @@ void GenerateWaypoints::Publish()
     m_gen_wp_state_pub.publish(gen_wp_state_msg);
 }
 
-bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position)
+bool GenerateWaypoints::IsValid(std::vector<geometry_msgs::Pose> &poses, geometry_msgs::Point curr_position, bool is_waypoint)
 {
     if (m_utils.IsNan(curr_position)){
         return false;
     }
 
     if (poses.size() > 0){
+        if (is_waypoint){
+            if (m_is_offset_changed){
+                m_is_offset_changed = false;
+                return true;
+            }
+            if (m_is_heading_changed){
+                m_is_heading_changed = false;
+                return true;
+            }
+        }
         auto distance_m = m_utils.Distance3D(poses.back().position, curr_position);
         if (distance_m < m_distance_thresh_param){
             return false;

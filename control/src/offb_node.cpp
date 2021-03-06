@@ -5,13 +5,13 @@
  */
 
 #include "ros/ros.h"
-#include "control/mavros_offb.h"
+#include "control/offb.h"
 #include <ros/spinner.h>
 
 int main(int argc, char ** argv)
 {
     // Initialize ROS
-	ros::init (argc, argv, "mavros_offb_node");
+	ros::init (argc, argv, "offb_node");
     mavros::Offboard offboard;
 
     ros::spin();

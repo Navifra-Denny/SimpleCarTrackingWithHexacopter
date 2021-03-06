@@ -9,6 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 # find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
+find_package(PythonLibs 2.7)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   geometry_msgs
@@ -56,8 +57,8 @@ include_directories(
 add_executable(generate_waypoints_node src/generate_waypoints_node.cpp src/generate_waypoints.cpp src/utils.cpp)
 target_link_libraries(generate_waypoints_node ${catkin_LIBRARIES})
 
-add_executable(mavros_offb_node src/mavros_offb_node.cpp src/mavros_offb.cpp src/utils.cpp)
-target_link_libraries(mavros_offb_node ${catkin_LIBRARIES})
+add_executable(offb_node src/offb_node.cpp src/offb.cpp src/utils.cpp)
+target_link_libraries(offb_node ${catkin_LIBRARIES})
 
 add_executable(tf_broadcaster_node src/tf_broadcaster_node.cpp src/tf_broadcaster.cpp src/utils.cpp)
 target_link_libraries(tf_broadcaster_node ${catkin_LIBRARIES})
@@ -68,8 +69,9 @@ target_link_libraries(visualize_control_node ${catkin_LIBRARIES})
 add_executable(checker_node src/checker_node.cpp)
 target_link_libraries(checker_node ${catkin_LIBRARIES})
 
-# add_executable(evaluation_node src/evaluation_node.cpp src/utils.cpp)
-# target_link_libraries(evaluation_node ${catkin_LIBRARIES})
-
 add_executable(char_pub_node src/char_pub_node.cpp)
 target_link_libraries(char_pub_node ${catkin_LIBRARIES})
+
+catkin_install_python(PROGRAMS scripts/eval.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

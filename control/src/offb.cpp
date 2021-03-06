@@ -1,4 +1,4 @@
-#include "control/mavros_offb.h"
+#include "control/offb.h"
 
 namespace mavros {
     
@@ -29,8 +29,8 @@ bool Offboard::InitFlag()
 
 bool Offboard::GetParam()
 {
-    m_nh.getParam("mavros_offb_node/setpoint_pub_interval", m_setpoint_pub_interval_param);
-    m_nh.getParam("mavros_offb_node/is_debug_mode", m_is_debug_mode_param);
+    m_nh.getParam("offb_node/setpoint_pub_interval", m_setpoint_pub_interval_param);
+    m_nh.getParam("offb_node/is_debug_mode", m_is_debug_mode_param);
 
     if (__isnan(m_setpoint_pub_interval_param)) { ROS_ERROR_STREAM("m_setpoint_pub_interval_param is NAN"); return false; }
 
@@ -113,13 +113,13 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr
     if (m_is_global){
         geographic_msgs::GeoPath waypoints = target_wp_ptr->global;
         if (waypoints.poses.size() < 1){
-            ROS_ERROR_STREAM("[mavros_offb] Waypoints is empty");
+            ROS_ERROR_STREAM("[offb] Waypoints is empty");
         }
         else {
             geographic_msgs::GeoPoseStamped waypoint = waypoints.poses.back();
 
             if (m_utils.IsNan(waypoint.pose.position)){
-                ROS_ERROR_STREAM("[mavros_offb] Waypoint contains nan");
+                ROS_ERROR_STREAM("[offb] Waypoint contains nan");
             }
             else{
                 m_global_setpoint.pose = waypoint.pose;
@@ -131,7 +131,7 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr
     else {
         geometry_msgs::PoseArray waypoints = target_wp_ptr->local;
         if (waypoints.poses.size() < 1){
-            ROS_ERROR_STREAM("[mavros_offb] Waypoints is empty");
+            ROS_ERROR_STREAM("[offb] Waypoints is empty");
         }
         else {
             geometry_msgs::PoseStamped waypoint;
@@ -139,7 +139,7 @@ void Offboard::TargetWaypointsCallback(const uav_msgs::TargetWaypoints::ConstPtr
             waypoint.pose = waypoints.poses.back();
 
             if (m_utils.IsNan(waypoint.pose.position)){
-                ROS_ERROR_STREAM("[mavros_offb] Waypoint contains nan");
+                ROS_ERROR_STREAM("[offb] Waypoint contains nan");
             }
             else {
                 if (m_local_setpoint.header.frame_id != waypoint.header.frame_id){
