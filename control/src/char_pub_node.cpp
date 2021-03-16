@@ -53,11 +53,11 @@ int main(int argc, char ** argv)
     {
         if (is_first){
             is_first = false;
-            ROS_INFO_STREAM("/********************************************/");
-            ROS_INFO_STREAM("/** command: offboard|manual|set_origin|   **/");
-            ROS_INFO_STREAM("/**          global|local|global_z|local_z **/");
-            ROS_INFO_STREAM("/**          debugging|rc|tool             **/");
-            ROS_INFO_STREAM("/********************************************/");
+            ROS_INFO_STREAM("/****************************************/");
+            ROS_INFO_STREAM("/** command: debugging|rc|offboard|    **/");
+            ROS_INFO_STREAM("/**          manual|global|local|      **/");
+            ROS_INFO_STREAM("/**          global_z|local_z|tool     **/");
+            ROS_INFO_STREAM("/****************************************/");
         }
 
         std::string inputString;
@@ -66,15 +66,12 @@ int main(int argc, char ** argv)
         uav_msgs::Chat chat;
 
         bool is_error = true;
-        if((inputString.compare("offboard") == 0) || 
+        if((inputString.compare("debugging") == 0) || 
+            (inputString.compare("rc") == 0) ||
+            (inputString.compare("offboard") == 0) ||
             (inputString.compare("manual") == 0) ||
-            (inputString.compare("set_origin") == 0) ||
             (inputString.compare("global") == 0) ||
-            (inputString.compare("local") == 0) ||
-            (inputString.compare("debugging") == 0) ||
-            (inputString.compare("es") == 0) ||
-            (inputString.compare("ee") == 0) ||
-            (inputString.compare("rc") == 0))
+            (inputString.compare("local") == 0))
         {
             std::cout << ("[input] " + inputString) << std::endl;
             chat.msg = inputString;
@@ -97,7 +94,7 @@ int main(int argc, char ** argv)
                     is_error = false;
                 }
                 else {
-                    ROS_ERROR_STREAM("Please input tool (airsim, lidar or gps");
+                    ROS_ERROR_STREAM("Please input tool (airsim, lidar or gps)");
                     is_error = true;
                 }
             }
@@ -105,7 +102,7 @@ int main(int argc, char ** argv)
         else if((inputString.compare("global_z") == 0) || 
                 (inputString.compare("local_z") == 0))
         {
-            while (is_error){                    
+            while (is_error){
                 std::string inputNumString;
                 std::cout << "[value] ";
                 std::getline(std::cin, inputNumString);
