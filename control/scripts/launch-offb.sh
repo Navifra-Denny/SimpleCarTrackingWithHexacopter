@@ -5,7 +5,10 @@ if [ "$#" -ne 1 ] && [ "$#" -ne 2 ]; then
     exit 0
 else
     if [ "$#" -eq 1 ]; then
-        if ! [ "$1" == "-h" ] && ! [ "$1" == "-r" ]; then
+        if [ "$1" == "-s" ]; then
+            echo "Try 'launch-offb.sh -s -h' for more information."
+            exit 0
+		elif ! [ "$1" == "-h" ] && ! [ "$1" == "-r" ]; then
             echo "Try 'launch-offb.sh -h' for more information."
             exit 0
         fi
@@ -26,15 +29,23 @@ gazebo="false"
 
 if [ "$1" == "-h" ]; then
     echo -e "Usage: launch-offb.sh [OPTION] ...\n"
-    echo "  -h, show this help message and exit."
-    echo "  -s, px4 sitl. Please select simulator airsim or gazebo. launch-offb.sh -s [SIMULATOR]    "
-    echo "  -r, real flight with px4."
+    echo -e "  -h, show this help message and exit.\n"
+    echo "  -s, px4 sitl. Please select simulator airsim or gazebo."
+    echo -e "      Example: launch-offb.sh -s [SIMULATOR]\n"
+    echo "  -r, real flight with px4. usage: launch-offb.sh -r"
+    echo -e "      Example: launch-offb.sh -r\n"
+
+	exit 0
 elif [ "$1" == "-r" ]; then
     simulation="false"
 elif [ "$2" == "-h" ]; then
     echo -e "Usage: launch-offb.sh -s [SIMULATOR]\n"
     echo "  airsim, px4 sitl with airsim."
+    echo -e "          Example: launch-offb.sh -s airsim\n"
     echo "  gazebo, px4 sitl with gazebo."
+    echo -e "          Example: launch-offb.sh -s gazebo\n"
+
+	exit 0
 elif [ "$2" == "airsim" ]; then
     simulation="true"
     airsim="true"
